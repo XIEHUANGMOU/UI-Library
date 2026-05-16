@@ -41,7 +41,7 @@ function Library:CreateWindow(Config)
     UI_Shadow.ImageTransparency = 0.4
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    UI_Shadow.ZIndex = 0
+    UI_Shadow.ZIndex = 999999998
     UI_Shadow.Parent = WindowFrame
 
     local MainFrame = Instance.new("CanvasGroup")
@@ -49,10 +49,10 @@ function Library:CreateWindow(Config)
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
     MainFrame.Position = UDim2.new(0, 0, 0, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-    MainFrame.BackgroundTransparency = 0.3
+    MainFrame.BackgroundTransparency = 0.35
     MainFrame.BorderSizePixel = 0
     MainFrame.GroupTransparency = 1 
-    MainFrame.ZIndex = 1
+    MainFrame.ZIndex = 999999999
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
