@@ -38,7 +38,7 @@ function Library:CreateWindow(Config)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.4 -- [修改] UI阴影透明度0.4
+    UI_Shadow.ImageTransparency = 0.4
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
     UI_Shadow.ZIndex = 0
@@ -49,7 +49,7 @@ function Library:CreateWindow(Config)
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
     MainFrame.Position = UDim2.new(0, 0, 0, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-    MainFrame.BackgroundTransparency = 0.55 -- [修改] UI背景透明度0.55
+    MainFrame.BackgroundTransparency = 0.3
     MainFrame.BorderSizePixel = 0
     MainFrame.GroupTransparency = 1 
     MainFrame.ZIndex = 1
