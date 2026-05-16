@@ -99,8 +99,8 @@ local NotifyContainer = Create("Frame", {
     Name = "Container",
     Parent = NotifyGui,
     BackgroundTransparency = 1,
-    Position = UDim2.new(1, -320, 0, 20),
-    Size = UDim2.new(0, 300, 1, -40)
+    Position = UDim2.new(1, -280, 0, 20),
+    Size = UDim2.new(0, 260, 1, -40)
 })
 
 local NotifyLayout = Create("UIListLayout", {
@@ -121,10 +121,11 @@ function Library:Notify(Config)
         Name = "NotifyFrame",
         Parent = NotifyContainer,
         BackgroundColor3 = Library.Theme.Notification,
+        BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        Position = UDim2.new(1, 350, 0, 0),
-        Size = UDim2.new(1, 0, 0, 80),
-        ClipsDescendants = true
+        Position = UDim2.new(1, 80, 0, 0),
+        Size = UDim2.new(1, 0, 0, 65),
+        ClipsDescendants = false
     })
 
     Create("UICorner", {
@@ -136,8 +137,9 @@ function Library:Notify(Config)
         Name = "ColorStrip",
         Parent = NotifyFrame,
         BackgroundColor3 = Library.Theme.Accent,
+        BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        Size = UDim2.new(0, 4, 1, 0)
+        Size = UDim2.new(0, 3, 1, 0)
     })
 
     Create("UICorner", {
@@ -145,17 +147,18 @@ function Library:Notify(Config)
         CornerRadius = UDim.new(0, 8)
     })
 
-    local TextContainerOffset = 15
+    local TextContainerOffset = 12
     if IconId then
-        TextContainerOffset = 60
+        TextContainerOffset = 45
         local Icon = Create("ImageLabel", {
             Name = "Icon",
             Parent = NotifyFrame,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 15, 0.5, -15),
-            Size = UDim2.new(0, 30, 0, 30),
+            Position = UDim2.new(0, 12, 0.5, -12),
+            Size = UDim2.new(0, 24, 0, 24),
             Image = string.find(IconId, "rbxassetid://") and IconId or "rbxassetid://" .. IconId,
-            ImageColor3 = Library.Theme.Accent
+            ImageColor3 = Library.Theme.Accent,
+            ImageTransparency = 1
         })
     end
 
@@ -163,27 +166,29 @@ function Library:Notify(Config)
         Name = "Title",
         Parent = NotifyFrame,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, TextContainerOffset, 0, 15),
-        Size = UDim2.new(1, -TextContainerOffset - 15, 0, 20),
+        Position = UDim2.new(0, TextContainerOffset, 0, 12),
+        Size = UDim2.new(1, -TextContainerOffset - 12, 0, 18),
         Font = Enum.Font.GothamBold,
         Text = Title,
         TextColor3 = Library.Theme.Text,
-        TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTransparency = 1
     })
 
     local ContentLabel = Create("TextLabel", {
         Name = "Content",
         Parent = NotifyFrame,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, TextContainerOffset, 0, 40),
-        Size = UDim2.new(1, -TextContainerOffset - 15, 0, 25),
+        Position = UDim2.new(0, TextContainerOffset, 0, 32),
+        Size = UDim2.new(1, -TextContainerOffset - 12, 0, 20),
         Font = Enum.Font.Gotham,
         Text = Content,
         TextColor3 = Library.Theme.TextDark,
-        TextSize = 14,
+        TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
-        TextWrapped = true
+        TextWrapped = true,
+        TextTransparency = 1
     })
 
     local Shadow = Create("ImageLabel", {
@@ -193,9 +198,9 @@ function Library:Notify(Config)
         Position = UDim2.new(0, -15, 0, -15),
         Size = UDim2.new(1, 30, 1, 30),
         ZIndex = -1,
-        Image = "rbxassetid://6015897711",
+        Image = "rbxassetid://1316045217",
         ImageColor3 = Library.Theme.Shadow,
-        ImageTransparency = 0.5,
+        ImageTransparency = 1,
         ScaleType = Enum.ScaleType.Slice,
         SliceCenter = Rect.new(49, 49, 450, 450)
     })
@@ -203,15 +208,27 @@ function Library:Notify(Config)
     local BreathingAnim = TweenService:Create(ColorStrip, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)})
     BreathingAnim:Play()
 
-    Tween(NotifyFrame, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    -- 优化后的滑入与渐显动画
+    Tween(NotifyFrame, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(TitleLabel, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(ContentLabel, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(ColorStrip, {BackgroundTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(Shadow, {ImageTransparency = 0.5}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    if IconId then
+        Tween(NotifyFrame.Icon, {ImageTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    end
 
     task.delay(Duration, function()
         BreathingAnim:Cancel()
-        local OutAnim = Tween(NotifyFrame, {Position = UDim2.new(1, 350, 0, 0), BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        Tween(TitleLabel, {TextTransparency = 1}, 0.5)
-        Tween(ContentLabel, {TextTransparency = 1}, 0.5)
-        Tween(ColorStrip, {BackgroundTransparency = 1}, 0.5)
-        Tween(Shadow, {ImageTransparency = 1}, 0.5)
+        -- 优化后的滑出与渐隐动画
+        local OutAnim = Tween(NotifyFrame, {Position = UDim2.new(1, 80, 0, 0), BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(TitleLabel, {TextTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(ContentLabel, {TextTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(ColorStrip, {BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(Shadow, {ImageTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        if IconId then
+            Tween(NotifyFrame.Icon, {ImageTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        end
         OutAnim.Completed:Connect(function()
             NotifyFrame:Destroy()
         end)
@@ -598,7 +615,6 @@ function Library:CreateWindow(Config)
                 local OldContent = OldTab.Content
                 local FadeOut = Tween(OldContent, {Position = UDim2.new(-0.1, 0, 0, 0)}, 0.2)
                 FadeOut.Completed:Connect(function()
-                    -- 修复 Bug：正确判断当前页面是不是旧页面，如果是新页面则隐藏旧页面
                     if Window.CurrentTab ~= OldTab then
                         OldContent.Visible = false
                     end
