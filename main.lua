@@ -193,7 +193,6 @@ function Library:Notify(config)
         Tween(iconFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 0})
     end
 
-    -- Measurement for dynamic sizing
     local baseHeight = 45
     local textBounds = game:GetService("TextService"):GetTextSize(content, 12, Enum.Font.Gotham, Vector2.new(250, 1000))
     local targetHeight = math.clamp(baseHeight + textBounds.Y, 65, 120)
@@ -263,7 +262,6 @@ function Library:CreateWindow(titleText)
         Parent = MainFrame
     })
 
-    -- Shadow Layer (Dynamic Scale & Follow)
     local Shadow = Create("ImageLabel", {
         Name = "Shadow",
         Position = UDim2.new(0, -15, 0, -15),
@@ -277,7 +275,6 @@ function Library:CreateWindow(titleText)
         Parent = MainFrame
     })
 
-    -- Top Bar / Drag Handle
     local TopBar = Create("Frame", {
         Name = "TopBar",
         Position = UDim2.new(0, 0, 0, 0),
@@ -342,10 +339,8 @@ function Library:CreateWindow(titleText)
         Parent = CloseButton
     })
 
-    -- Drag Integration
     MakeDraggable(TopBar, MainFrame)
 
-    -- Sidebar / Tab Selection Container
     local Sidebar = Create("Frame", {
         Name = "Sidebar",
         Position = UDim2.new(0, 10, 0, 50),
@@ -382,7 +377,6 @@ function Library:CreateWindow(titleText)
         Parent = TabScroll
     })
 
-    -- Content Container
     local ContentContainer = Create("Frame", {
         Name = "ContentContainer",
         Position = UDim2.new(0, 160, 0, 50),
@@ -403,7 +397,6 @@ function Library:CreateWindow(titleText)
         Parent = ContentContainer
     })
 
-    -- Floating Action Button / Minimization Sphere
     local FloatingBall = Create("TextButton", {
         Name = "FloatingBall",
         Position = UDim2.new(0, 20, 0.5, -25),
@@ -450,7 +443,6 @@ function Library:CreateWindow(titleText)
 
     MakeDraggable(FloatingBall, FloatingBall)
 
-    -- Window Level State Tracking
     local Window = {
         Tabs = {},
         ActiveTab = nil,
@@ -458,7 +450,6 @@ function Library:CreateWindow(titleText)
         Instance = ScreenGui
     }
 
-    -- Button Interaction Effects
     local function BindHover(btn, icon, strokeInstance)
         local c1 = btn.MouseEnter:Connect(function()
             Tween(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)})
@@ -477,10 +468,8 @@ function Library:CreateWindow(titleText)
     BindHover(MinimizeButton, MinimizeIcon)
     BindHover(CloseButton, CloseIcon)
 
-    -- Minimization Mechanics
     local function ToggleMinimize()
         if Window.Minimized then
-            -- Restore Phase
             FloatingBall.Visible = false
             MainFrame.Visible = true
             MainFrame.Size = UDim2.new(0, 550, 0, 350)
@@ -497,7 +486,6 @@ function Library:CreateWindow(titleText)
             
             Window.Minimized = false
         else
-            -- Shrink to Floating Ball Phase
             Tween(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
             Tween(Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 1})
             Tween(Sidebar, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
@@ -545,13 +533,11 @@ function Library:CreateWindow(titleText)
             Parent = TabPage
         })
 
-        -- Auto Canvas Resize logic per tab
         local cCanvas = PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 10)
         end)
         table.insert(Library.Signals, cCanvas)
 
-        -- Sidebar Button Elements
         local TabButton = Create("TextButton", {
             Name = tabName .. "_Btn",
             Size = UDim2.new(1, 0, 0, 34),
@@ -622,7 +608,7 @@ function Library:CreateWindow(titleText)
 
             TabPage.Visible = true
             TabPage.Position = UDim2.new(0, 25, 0, 8)
-            Tween(TabPage, TweenInfo.new(0.35, Enum.EasingStyle.Fluid or Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 8, 0, 8)})
+            Tween(TabPage, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 8, 0, 8)})
         end
 
         local cTabClick = TabButton.MouseButton1Click:Connect(ActivateThisTab)
@@ -630,12 +616,12 @@ function Library:CreateWindow(titleText)
 
         local cBtnHover = TabButton.MouseEnter:Connect(function()
             if Window.ActiveTab ~= TabButton then
-                Tween(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.5, BackgroundBackgroundColor3 = Color3.fromRGB(28, 28, 36)})
+                Tween(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.5, BackgroundColor3 = Color3.fromRGB(28, 28, 36)})
             end
         end)
         local cBtnLeave = TabButton.MouseLeave:Connect(function()
             if Window.ActiveTab ~= TabButton then
-                Tween(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1, BackgroundBackgroundColor3 = Color3.fromRGB(23, 23, 28)})
+                Tween(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1, BackgroundColor3 = Color3.fromRGB(23, 23, 28)})
             end
         end)
         table.insert(Library.Signals, cBtnHover)
@@ -648,7 +634,6 @@ function Library:CreateWindow(titleText)
         -- [[ Interactive UI Components Generation ]]
         local ComponentFactory = {}
 
-        -- Component 1: Functional Button
         function ComponentFactory:CreateButton(btnText, callback)
             local buttonFrame = Create("TextButton", {
                 Name = "Button_" .. btnText,
@@ -699,7 +684,6 @@ function Library:CreateWindow(titleText)
             table.insert(Library.Signals, cHov2)
         end
 
-        -- Component 2: Toggle Switch
         function ComponentFactory:CreateToggle(toggleText, defaultState, callback)
             local toggled = defaultState or false
 
@@ -780,7 +764,6 @@ function Library:CreateWindow(titleText)
             table.insert(Library.Signals, cHov2)
         end
 
-        -- Component 3: Fluid Slider
         function ComponentFactory:CreateSlider(sliderText, min, max, default, callback)
             local value = math.clamp(default or min, min, max)
 
@@ -888,7 +871,6 @@ function Library:CreateWindow(titleText)
             table.insert(Library.Signals, cHov2)
         end
 
-        -- Component 4: Standard Text Input Box
         function ComponentFactory:CreateTextbox(boxText, placeholder, callback)
             local textboxFrame = Create("Frame", {
                 Name = "Textbox_" .. boxText,
@@ -968,7 +950,6 @@ function Library:CreateWindow(titleText)
             table.insert(Library.Signals, cHov2)
         end
 
-        -- Component 5: Stateful Dropdown Selector
         function ComponentFactory:CreateDropdown(dropdownText, optionList, default, callback)
             local expanded = false
             local selectedValue = default or optionList[1] or ""
@@ -1110,8 +1091,6 @@ function Library:CreateWindow(titleText)
     Library.CurrentWindow = Window
     return Window
 end
-
--- [[ Global Garbage Clean-up / Lifecycle Destruction Method ]]
 
 function Library:Destroy()
     for _, signal in ipairs(Library.Signals) do
