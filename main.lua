@@ -23,7 +23,7 @@ function Library:CreateWindow(Config)
         ScreenGui.Parent = CoreGui
     end
 
-    -- 顶层包装盒：用于隔离解耦 ClipsDescendants 剪裁与外围阴影
+    -- 顶层包装盒：用于承载主窗体与阴影层
     local WindowFrame = Instance.new("Frame")
     WindowFrame.Name = "WindowFrame"
     WindowFrame.Size = UDim2.new(0, 680, 0, 440)
@@ -31,21 +31,23 @@ function Library:CreateWindow(Config)
     WindowFrame.BackgroundTransparency = 1
     WindowFrame.Parent = ScreenGui
 
-    -- 精致微阴影外层 (使用用户指定专属精细阴影资产)
+    -- 精致微阴影外层：严格适配主 UI 边框，无任何冗余溢出
     local UI_Shadow = Instance.new("ImageLabel")
     UI_Shadow.Name = "UI_Shadow"
-    UI_Shadow.Size = UDim2.new(1, 38, 1, 38)
-    UI_Shadow.Position = UDim2.new(0, -19, 0, -19)
+    -- 紧凑型尺寸适配：四周仅微膨胀 6 像素，完美匹配 24 像素圆角
+    UI_Shadow.Size = UDim2.new(1, 12, 1, 12)
+    UI_Shadow.Position = UDim2.new(0, -6, 0, -6)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.65 -- 微阴影控制，绝不突兀变黑
+    UI_Shadow.ImageTransparency = 0.5 -- 适中微阴影透明度
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
+    -- 精准切片，防止圆角处产生大面积冗余阴影块
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    UI_Shadow.ZIndex = 0
+    UI_Shadow.ZIndex = 0 -- 严格低于主UI
     UI_Shadow.Parent = WindowFrame
 
-    -- 主框架升级为 CanvasGroup，完美支持全局像素级淡入淡出
+    -- 主框架：CanvasGroup
     local MainFrame = Instance.new("CanvasGroup")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -53,8 +55,8 @@ function Library:CreateWindow(Config)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
     MainFrame.BackgroundTransparency = 0.15
     MainFrame.BorderSizePixel = 0
-    MainFrame.GroupTransparency = 1 -- 初始全透明，用于后续滑入淡入
-    MainFrame.ZIndex = 1
+    MainFrame.GroupTransparency = 1 -- 初始全透明，用于淡入
+    MainFrame.ZIndex = 1 -- 严格高于阴影
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
@@ -213,23 +215,31 @@ function Library:CreateWindow(Config)
     -- 悬浮球容器
     local FloatBallFrame = Instance.new("Frame")
     FloatBallFrame.Name = "FloatBallFrame"
-    FloatBallFrame.Size = UDim2.new(0, 55, 0, 55)
+    FloatBallFrame.Size = UDim2.new(0, 56, 0, 56)
     FloatBallFrame.Position = UDim2.new(0, 30, 0, 30)
     FloatBallFrame.BackgroundTransparency = 1
     FloatBallFrame.Visible = false
     FloatBallFrame.Parent = ScreenGui
 
+    -- 悬浮球纯圆形微阴影层 (拒绝正方形冗余)
     local BallShadow = Instance.new("ImageLabel")
     BallShadow.Name = "BallShadow"
-    BallShadow.Size = UDim2.new(1, 24, 1, 24)
-    BallShadow.Position = UDim2.new(0, -12, 0, -12)
+    -- 微缩紧凑包裹：边缘仅向外漫反射 4 像素
+    BallShadow.Size = UDim2.new(1, 8, 1, 8)
+    BallShadow.Position = UDim2.new(0, -4, 0, -4)
     BallShadow.BackgroundTransparency = 1
     BallShadow.Image = "rbxassetid://1316045217"
     BallShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    BallShadow.ImageTransparency = 0.6
+    BallShadow.ImageTransparency = 0.55
     BallShadow.ScaleType = Enum.ScaleType.Slice
     BallShadow.SliceCenter = Rect.new(35, 35, 93, 93)
+    BallShadow.ZIndex = 0 -- 低于悬浮球
     BallShadow.Parent = FloatBallFrame
+
+    -- 强制使悬浮球阴影变为纯圆环轮廓，完全切除正方形尖角
+    local BallShadowCorner = Instance.new("UICorner")
+    BallShadowCorner.CornerRadius = UDim.new(0.5, 0)
+    BallShadowCorner.Parent = BallShadow
 
     local FloatBall = Instance.new("ImageButton")
     FloatBall.Name = "FloatBall"
@@ -237,10 +247,11 @@ function Library:CreateWindow(Config)
     FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     FloatBall.BackgroundTransparency = 0.1
     FloatBall.Image = Config.Icon
+    FloatBall.ZIndex = 1
     FloatBall.Parent = FloatBallFrame
 
     local BallCorner = Instance.new("UICorner")
-    BallCorner.CornerRadius = UDim.new(0, 28)
+    BallCorner.CornerRadius = UDim.new(0.5, 0)
     BallCorner.Parent = FloatBall
 
     local BallStroke = Instance.new("UIStroke")
@@ -249,14 +260,14 @@ function Library:CreateWindow(Config)
     BallStroke.Transparency = 0.6
     BallStroke.Parent = FloatBall
 
-    -- 进场滑入+淡入流体动画
+    -- 进场动画：纯正的淡入+滑入结合（不含任何弹性元素）
     local InitPos = WindowFrame.Position
-    WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35) -- 自下而上滑入
-    TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
-    TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.65}):Play()
+    WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 30)
+    TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
 
-    -- 具备高级阻尼追踪的拖拽系统 (WindowFrame)
+    -- 具备阻尼感的流体化主UI拖动系统
     local Dragging = false
     local DragInput, DragStart, StartPosition
     local TargetPosition = WindowFrame.Position
@@ -284,12 +295,12 @@ function Library:CreateWindow(Config)
         if input == DragInput and Dragging then
             local delta = input.Position - DragStart
             TargetPosition = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + delta.Y)
-            -- 核心阻尼驱动：通过极短时间的 OutQuad 补间渲染阻尼粘滞感
+            -- 使用 0.12 秒微小延迟的补间实现高端阻尼空气感追踪
             TweenService:Create(WindowFrame, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
         end
     end)
 
-    -- 具备高级阻尼追踪的悬浮球拖拽系统
+    -- 具备圆环阴影同步阻尼追踪的悬浮球拖拽系统
     local BallDragging = false
     local BallMoved = false
     local BallDragStart, BallStartPos
@@ -320,62 +331,59 @@ function Library:CreateWindow(Config)
         end
     end)
 
-    -- 悬浮球还原主UI：淡入淡出 + 滑入滑出协同
+    -- 悬浮球点击恢复：组合滑入加淡入
     FloatBall.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if not BallMoved then
-                -- 悬浮球淡出下沉
                 local BallHidePos = FloatBallFrame.Position + UDim2.new(0, 0, 0, 15)
-                TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
-                local BallFade = TweenService:Create(FloatBall, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, BackgroundTransparency = 1})
-                TweenService:Create(BallShadow, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+                TweenService:Create(FloatBallFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
+                local BallFade = TweenService:Create(FloatBall, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, BackgroundTransparency = 1})
+                TweenService:Create(BallShadow, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
                 BallFade:Play()
                 
                 BallFade.Completed:Connect(function()
                     FloatBallFrame.Visible = false
                     WindowFrame.Visible = true
-                    -- 主UI由下至上滑入 + 全局渐变淡入
-                    WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 30)
+                    WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 25)
                     MainFrame.GroupTransparency = 1
                     UI_Shadow.ImageTransparency = 1
                     
-                    TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
-                    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.65}):Play()
+                    TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
+                    TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+                    TweenService:Create(UI_Shadow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
                 end)
             end
         end
     end)
 
-    -- 最小化功能：淡出下沉 + 唤醒悬浮球
+    -- 最小化功能
     MinimizeButton.MouseButton1Click:Connect(function()
-        local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 30)
-        TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
-        TweenService:Create(UI_Shadow, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
-        local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+        local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 25)
+        TweenService:Create(WindowFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
+        TweenService:Create(UI_Shadow, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+        local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
         MainFade:Play()
 
         MainFade.Completed:Connect(function()
             WindowFrame.Visible = false
             FloatBallFrame.Visible = true
-            -- 悬浮球自下方滑入淡出恢复
             FloatBallFrame.Position = BallTargetPos + UDim2.new(0, 0, 0, 15)
             FloatBall.ImageTransparency = 1
             FloatBall.BackgroundTransparency = 1
             BallShadow.ImageTransparency = 1
             
-            TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
-            TweenService:Create(FloatBall, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, BackgroundTransparency = 0.1}):Play()
-            TweenService:Create(BallShadow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.6}):Play()
+            TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
+            TweenService:Create(FloatBall, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, BackgroundTransparency = 0.1}):Play()
+            TweenService:Create(BallShadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.55}):Play()
         end)
     end)
 
-    -- 关闭功能：极致平滑全方位淡出下沉并销毁
+    -- 彻底关闭功能：淡出并安全解构
     CloseButton.MouseButton1Click:Connect(function()
-        local CloseTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 40)
-        TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = CloseTargetPos}):Play()
-        TweenService:Create(UI_Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
-        local FinalClose = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+        local CloseTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 35)
+        TweenService:Create(WindowFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = CloseTargetPos}):Play()
+        TweenService:Create(UI_Shadow, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+        local FinalClose = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
         FinalClose:Play()
         
         FinalClose.Completed:Connect(function()
@@ -431,7 +439,6 @@ function Library:CreateWindow(Config)
         TabText.Text = TabConfig.Title
         TabText.Parent = TabButton
 
-        -- 页签内容载体升级
         local ContentFrame = Instance.new("ScrollingFrame")
         ContentFrame.Name = TabConfig.Title .. "_Content"
         ContentFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -471,22 +478,22 @@ function Library:CreateWindow(Config)
             Window.CurrentTab = Tab
             Tab.Active = true
 
-            TweenService:Create(TabButton, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
-            TweenService:Create(TabButtonStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.7}):Play()
-            TweenService:Create(TabIcon, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(100, 180, 255)}):Play()
-            TweenService:Create(TabText, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+            TweenService:Create(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
+            TweenService:Create(TabButtonStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.7}):Play()
+            TweenService:Create(TabIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(100, 180, 255)}):Play()
+            TweenService:Create(TabText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
             
             ContentFrame.Visible = true
-            ContentFrame.Position = UDim2.new(0, 0, 0, 15) -- 标签组淡入+微滑入
-            TweenService:Create(ContentFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+            ContentFrame.Position = UDim2.new(0, 0, 0, 12)
+            TweenService:Create(ContentFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
         end
 
         function Tab:DeSelect()
             Tab.Active = false
-            TweenService:Create(TabButton, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.95}):Play()
-            TweenService:Create(TabButtonStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.95}):Play()
-            TweenService:Create(TabIcon, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(180, 190, 210)}):Play()
-            TweenService:Create(TabText, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(180, 190, 210)}):Play()
+            TweenService:Create(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.95}):Play()
+            TweenService:Create(TabButtonStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.95}):Play()
+            TweenService:Create(TabIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(180, 190, 210)}):Play()
+            TweenService:Create(TabText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(180, 190, 210)}):Play()
             ContentFrame.Visible = false
         end
 
@@ -558,28 +565,23 @@ function Library:CreateWindow(Config)
             ButtonCorner.CornerRadius = UDim.new(0, 10)
             ButtonCorner.Parent = InteractButton
 
-            -- 修复多次点击累计变小的缺陷：移除非线性的高危弹簧缩放，采用背景响应式反馈
             if not ElementConfig.Locked then
                 InteractButton.MouseButton1Down:Connect(function()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        BackgroundColor3 = Color3.fromRGB(30, 90, 210)
-                    }):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(30, 90, 210)}):Play()
                 end)
 
                 InteractButton.MouseButton1Up:Connect(function()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        BackgroundColor3 = Color3.fromRGB(45, 120, 255)
-                    }):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
                     ElementConfig.Callback()
                 end)
 
                 InteractButton.MouseEnter:Connect(function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.91}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.91}):Play()
                 end)
 
                 InteractButton.MouseLeave:Connect(function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.96}):Play()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.96}):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
                 end)
             end
 
@@ -662,11 +664,11 @@ function Library:CreateWindow(Config)
             OuterSwitch.MouseButton1Click:Connect(function()
                 Toggled = not Toggled
                 if Toggled then
-                    TweenService:Create(OuterSwitch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 210, 130)}):Play()
-                    TweenService:Create(InnerBall, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -23, 0, 3)}):Play()
+                    TweenService:Create(OuterSwitch, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 210, 130)}):Play()
+                    TweenService:Create(InnerBall, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -23, 0, 3)}):Play()
                 else
-                    TweenService:Create(OuterSwitch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(65, 70, 85)}):Play()
-                    TweenService:Create(InnerBall, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 3, 0, 3)}):Play()
+                    TweenService:Create(OuterSwitch, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(65, 70, 85)}):Play()
+                    TweenService:Create(InnerBall, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 3, 0, 3)}):Play()
                 end
                 ElementConfig.Callback(Toggled)
             end)
@@ -766,7 +768,6 @@ function Library:CreateWindow(Config)
                 local PreciseVal = ElementConfig.Min + (Alpha * (ElementConfig.Max - ElementConfig.Min))
                 local RoundedVal = math.floor(PreciseVal + 0.5)
                 
-                -- 滑块内部数值轨使用线性Quad流畅跟手
                 TweenService:Create(SliderFill, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(Alpha, 0, 1, 0)}):Play()
                 ValueLabel.Text = tostring(RoundedVal)
                 ElementConfig.Callback(RoundedVal)
@@ -877,11 +878,11 @@ function Library:CreateWindow(Config)
             local function RefreshLayout()
                 if Extended then
                     local TargetSize = OptionLayout.AbsoluteContentSize.Y + 64
-                    TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
-                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, OptionLayout.AbsoluteContentSize.Y + 10)}):Play()
+                    TweenService:Create(DropdownFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
+                    TweenService:Create(OptionContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, OptionLayout.AbsoluteContentSize.Y + 10)}):Play()
                 else
-                    TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 54)}):Play()
-                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, 0)}):Play()
+                    TweenService:Create(DropdownFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 54)}):Play()
+                    TweenService:Create(OptionContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, 0)}):Play()
                 end
             end
 
@@ -990,11 +991,11 @@ function Library:CreateWindow(Config)
             InputStroke.Parent = InputField
 
             InputField.Focused:Connect(function()
-                TweenService:Create(InputStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(100, 180, 255), Transparency = 0.4}):Play()
+                TweenService:Create(InputStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(100, 180, 255), Transparency = 0.4}):Play()
             end)
 
             InputField.FocusLost:Connect(function(EnterPressed)
-                TweenService:Create(InputStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.9}):Play()
+                TweenService:Create(InputStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.9}):Play()
                 ElementConfig.Callback(InputField.Text, EnterPressed)
             end)
 
