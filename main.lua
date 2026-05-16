@@ -94,13 +94,14 @@ function Library:Notify(options)
             Name = "Container",
             Parent = self.NotificationScreen,
             BackgroundTransparency = 1,
-            Size = UDim2.new(0, 300, 1, -40),
-            Position = UDim2.new(1, -320, 0, 20)
+            Size = UDim2.new(0, 250, 1, -40),
+            Position = UDim2.new(1, -270, 0, 20)
         })
         local uiListLayout = Create("UIListLayout", {
             Parent = self.NotificationContainer,
             SortOrder = Enum.SortOrder.LayoutOrder,
             VerticalAlignment = Enum.VerticalAlignment.Bottom,
+            HorizontalAlignment = Enum.HorizontalAlignment.Right,
             Padding = UDim.new(0, 10)
         })
     end
@@ -109,8 +110,8 @@ function Library:Notify(options)
         Name = "Notification",
         Parent = self.NotificationContainer,
         BackgroundColor3 = self.Theme.MainBackground,
-        Size = UDim2.new(1, 50, 0, 70),
-        Position = UDim2.new(1, 50, 0, 0),
+        Size = UDim2.new(0, 0, 0, 60),
+        Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         ClipsDescendants = true
     })
@@ -118,6 +119,20 @@ function Library:Notify(options)
     local uiCorner = Create("UICorner", {
         Parent = notifFrame,
         CornerRadius = UDim.new(0, 6)
+    })
+
+    local notifShadow = Create("ImageLabel", {
+        Name = "NotifShadow",
+        Parent = notifFrame,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, -15, 0, -15),
+        Size = UDim2.new(1, 30, 1, 30),
+        Image = "rbxassetid://1316045217",
+        ImageColor3 = self.Theme.Shadow,
+        ImageTransparency = 1,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(15, 15, 15, 15),
+        ZIndex = 0
     })
 
     local colorBar = Create("Frame", {
@@ -134,11 +149,11 @@ function Library:Notify(options)
         Parent = notifFrame,
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 15, 0, 10),
-        Size = UDim2.new(1, -25, 0, 20),
+        Size = UDim2.new(0, 225, 0, 20),
         Font = Enum.Font.GothamBold,
         Text = title,
         TextColor3 = self.Theme.TextPrimary,
-        TextSize = 14,
+        TextSize = 13,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTransparency = 1
     })
@@ -148,11 +163,11 @@ function Library:Notify(options)
         Parent = notifFrame,
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 15, 0, 30),
-        Size = UDim2.new(1, -25, 1, -40),
+        Size = UDim2.new(0, 225, 1, -40),
         Font = Enum.Font.Gotham,
         Text = content,
         TextColor3 = self.Theme.TextSecondary,
-        TextSize = 13,
+        TextSize = 12,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Top,
@@ -163,32 +178,34 @@ function Library:Notify(options)
         local icon = Create("ImageLabel", {
             Parent = notifFrame,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 15, 0, 20),
+            Position = UDim2.new(0, 15, 0, 15),
             Size = UDim2.new(0, 30, 0, 30),
             Image = image,
             ImageTransparency = 1
         })
         titleLabel.Position = UDim2.new(0, 55, 0, 10)
-        titleLabel.Size = UDim2.new(1, -65, 0, 20)
+        titleLabel.Size = UDim2.new(0, 185, 0, 20)
         contentLabel.Position = UDim2.new(0, 55, 0, 30)
-        contentLabel.Size = UDim2.new(1, -65, 1, -40)
+        contentLabel.Size = UDim2.new(0, 185, 1, -40)
         Tween(icon, {ImageTransparency = 0}, 0.5)
     end
 
-    Tween(notifFrame, {Size = UDim2.new(1, 0, 0, 70), BackgroundTransparency = 0}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    Tween(colorBar, {BackgroundTransparency = 0}, 0.4)
-    Tween(titleLabel, {TextTransparency = 0}, 0.4)
-    Tween(contentLabel, {TextTransparency = 0}, 0.4)
+    Tween(notifFrame, {Size = UDim2.new(0, 250, 0, 60), BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(notifShadow, {ImageTransparency = 0.4}, 0.5)
+    Tween(colorBar, {BackgroundTransparency = 0}, 0.5)
+    Tween(titleLabel, {TextTransparency = 0}, 0.5)
+    Tween(contentLabel, {TextTransparency = 0}, 0.5)
 
     task.delay(duration, function()
-        Tween(notifFrame, {Size = UDim2.new(1, 50, 0, 70), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-        Tween(colorBar, {BackgroundTransparency = 1}, 0.4)
-        Tween(titleLabel, {TextTransparency = 1}, 0.4)
-        Tween(contentLabel, {TextTransparency = 1}, 0.4)
+        Tween(notifFrame, {Size = UDim2.new(0, 0, 0, 60), BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(notifShadow, {ImageTransparency = 1}, 0.5)
+        Tween(colorBar, {BackgroundTransparency = 1}, 0.5)
+        Tween(titleLabel, {TextTransparency = 1}, 0.5)
+        Tween(contentLabel, {TextTransparency = 1}, 0.5)
         if image then
-            Tween(notifFrame:FindFirstChildOfClass("ImageLabel"), {ImageTransparency = 1}, 0.4)
+            Tween(notifFrame:FindFirstChildOfClass("ImageLabel"), {ImageTransparency = 1}, 0.5)
         end
-        task.wait(0.4)
+        task.wait(0.5)
         notifFrame:Destroy()
     end)
 end
@@ -238,7 +255,7 @@ function Library:CreateWindow(options)
         BackgroundTransparency = 1,
         Position = UDim2.new(0, -15, 0, -15),
         Size = UDim2.new(1, 30, 1, 30),
-        Image = "rbxassetid://4743306716",
+        Image = "rbxassetid://1316045217",
         ImageColor3 = self.Theme.Shadow,
         ImageTransparency = 1,
         ScaleType = Enum.ScaleType.Slice,
@@ -379,7 +396,7 @@ function Library:CreateWindow(options)
         BackgroundTransparency = 1,
         Position = UDim2.new(0, -10, 0, -10),
         Size = UDim2.new(1, 20, 1, 20),
-        Image = "rbxassetid://4743306716",
+        Image = "rbxassetid://1316045217",
         ImageColor3 = self.Theme.Shadow,
         ImageTransparency = 1,
         ScaleType = Enum.ScaleType.Slice,
@@ -409,8 +426,12 @@ function Library:CreateWindow(options)
         Library.Connections = {}
         Tween(MainFrame, {Size = UDim2.new(0, 550, 0, 350), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
         for _, v in pairs(MainFrame:GetDescendants()) do
-            if v:IsA("Frame") or v:IsA("TextLabel") or v:IsA("ImageLabel") or v:IsA("TextButton") or v:IsA("ScrollingFrame") then
-                pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1, ImageTransparency = 1}, 0.2) end)
+            if v:IsA("Frame") or v:IsA("ScrollingFrame") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1}, 0.2) end)
+            elseif v:IsA("TextLabel") or v:IsA("TextButton") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1}, 0.2) end)
+            elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1, ImageTransparency = 1}, 0.2) end)
             end
         end
         task.wait(0.3)
@@ -426,7 +447,13 @@ function Library:CreateWindow(options)
         
         Tween(MainFrame, {Size = UDim2.new(0, 500, 0, 300), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
         for _, v in pairs(MainFrame:GetDescendants()) do
-            pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1, ImageTransparency = 1}, 0.2) end)
+            if v:IsA("Frame") or v:IsA("ScrollingFrame") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1}, 0.2) end)
+            elseif v:IsA("TextLabel") or v:IsA("TextButton") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1}, 0.2) end)
+            elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                pcall(function() Tween(v, {BackgroundTransparency = 1, ImageTransparency = 1}, 0.2) end)
+            end
         end
         
         task.wait(0.3)
@@ -602,8 +629,12 @@ function Library:CreateWindow(options)
 
                 Tween(oldPage, {Position = UDim2.new(-1, -50, 0, 10)}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
                 for _, v in pairs(oldPage:GetDescendants()) do
-                    if v:IsA("Frame") or v:IsA("TextLabel") or v:IsA("ImageLabel") or v:IsA("TextButton") then
-                        pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1, ImageTransparency = 1}, 0.2) end)
+                    if v:IsA("Frame") or v:IsA("ScrollingFrame") then
+                        pcall(function() Tween(v, {BackgroundTransparency = 1}, 0.2) end)
+                    elseif v:IsA("TextLabel") or v:IsA("TextButton") then
+                        pcall(function() Tween(v, {BackgroundTransparency = 1, TextTransparency = 1}, 0.2) end)
+                    elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                        pcall(function() Tween(v, {BackgroundTransparency = 1, ImageTransparency = 1}, 0.2) end)
                     end
                 end
                 task.delay(0.4, function() oldPage.Visible = false end)
@@ -627,7 +658,7 @@ function Library:CreateWindow(options)
                     pcall(function() Tween(v, {BackgroundTransparency = 0}, 0.4) end)
                 elseif v:IsA("TextLabel") or v:IsA("TextButton") then
                     pcall(function() Tween(v, {TextTransparency = 0, BackgroundTransparency = (v.Name == "Ripple" and 1 or 0)}, 0.4) end)
-                elseif v:IsA("ImageLabel") then
+                elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
                     pcall(function() Tween(v, {ImageTransparency = 0}, 0.4) end)
                 end
             end
