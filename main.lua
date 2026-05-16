@@ -190,8 +190,8 @@ function Library:CreateWindow(Config)
     FloatBall.Name = "FloatBall"
     FloatBall.Size = UDim2.new(0, 55, 0, 55)
     FloatBall.Position = UDim2.new(0, 20, 0, 20)
-    FloatBall.BackgroundColor3 = Color3.fromRGB(25, 30, 45)
-    FloatBall.BackgroundTransparency = 0.2
+    FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    FloatBall.BackgroundTransparency = 0.1
     FloatBall.Image = Config.Icon
     FloatBall.Visible = false
     FloatBall.Parent = ScreenGui
@@ -203,7 +203,7 @@ function Library:CreateWindow(Config)
     local BallStroke = Instance.new("UIStroke")
     BallStroke.Thickness = 1.5
     BallStroke.Color = Color3.fromRGB(255, 255, 255)
-    BallStroke.Transparency = 0.7
+    BallStroke.Transparency = 0.6
     BallStroke.Parent = FloatBall
 
     local Dragging = false
@@ -272,17 +272,17 @@ function Library:CreateWindow(Config)
             if not BallMoved then
                 FloatBall.Visible = false
                 MainFrame.Visible = true
-                MainFrame:TweenSize(UDim2.new(0, 680, 0, 440), Enum.EasingToken.Out, Enum.EasingStyle.Back, 0.4, true)
+                MainFrame:TweenSize(UDim2.new(0, 680, 0, 440), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.4, true)
             end
         end
     end)
 
     MinimizeButton.MouseButton1Click:Connect(function()
-        MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingToken.In, Enum.EasingStyle.Quad, 0.3, true, function()
+        MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true, function()
             MainFrame.Visible = false
             FloatBall.Visible = true
             FloatBall.Size = UDim2.new(0, 0, 0, 0)
-            FloatBall:TweenSize(UDim2.new(0, 55, 0, 55), Enum.EasingToken.Out, Enum.EasingStyle.Back, 0.3, true)
+            FloatBall:TweenSize(UDim2.new(0, 55, 0, 55), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 0.3, true)
         end)
     end)
 
@@ -844,7 +844,7 @@ function Library:CreateWindow(Config)
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
-            FrameCorner.Parent = BoxFrame
+            BoxFrame.Parent = ContentFrame
 
             local FrameStroke = Instance.new("UIStroke")
             FrameStroke.Thickness = 1
