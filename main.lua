@@ -37,7 +37,7 @@ function Library:CreateWindow(Config)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.2
+    UI_Shadow.ImageTransparency = 0.3
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
     UI_Shadow.ZIndex = 0
