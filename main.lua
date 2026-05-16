@@ -7,7 +7,7 @@ local Library = {}
 
 function Library:CreateWindow(Config)
     Config.Title = Config.Title or "未命名核心"
-    Config.SubTitle = Config.SubTitle or ""
+    Config.SubTitle = Config.SubTitle or "本地玩家加速器"
     Config.Info = Config.Info or "系统状态: 正常运行"
     Config.Icon = Config.Icon or "rbxassetid://6031763426"
     Config.BackgroundImage = Config.BackgroundImage or ""
@@ -38,7 +38,7 @@ function Library:CreateWindow(Config)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.45
+    UI_Shadow.ImageTransparency = 0.4 -- [修改] UI阴影透明度0.4
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
     UI_Shadow.ZIndex = 0
@@ -49,7 +49,7 @@ function Library:CreateWindow(Config)
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
     MainFrame.Position = UDim2.new(0, 0, 0, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-    MainFrame.BackgroundTransparency = 0.15
+    MainFrame.BackgroundTransparency = 0.55 -- [修改] UI背景透明度0.55
     MainFrame.BorderSizePixel = 0
     MainFrame.GroupTransparency = 1 
     MainFrame.ZIndex = 1
@@ -80,7 +80,7 @@ function Library:CreateWindow(Config)
         BgImage.Size = UDim2.new(1, 0, 1, 0)
         BgImage.BackgroundTransparency = 1
         BgImage.Image = Config.BackgroundImage
-        BgImage.ImageTransparency = 0.5
+        BgImage.ImageTransparency = 0.85
         BgImage.ScaleType = Enum.ScaleType.Crop
         BgImage.Parent = MainFrame
         
@@ -109,8 +109,10 @@ function Library:CreateWindow(Config)
     TitleLabel.Position = UDim2.new(0, 68, 0, 12)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextSize = 18
+    TitleLabel.TextSize = 24 -- [修改] 大字体
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- [新增] 黑色字体阴影
+    TitleLabel.TextStrokeTransparency = 0.3
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Text = Config.Title
     TitleLabel.Parent = TopBar
@@ -118,11 +120,13 @@ function Library:CreateWindow(Config)
     local SubLabel = Instance.new("TextLabel")
     SubLabel.Name = "SubLabel"
     SubLabel.Size = UDim2.new(0, 200, 0, 18)
-    SubLabel.Position = UDim2.new(0, 68, 0, 34)
+    SubLabel.Position = UDim2.new(0, 68, 0, 38)
     SubLabel.BackgroundTransparency = 1
     SubLabel.Font = Enum.Font.GothamMedium
-    SubLabel.TextSize = 13
+    SubLabel.TextSize = 16 -- [修改] 大字体
     SubLabel.TextColor3 = Color3.fromRGB(180, 190, 210)
+    SubLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- [新增] 黑色字体阴影
+    SubLabel.TextStrokeTransparency = 0.3
     SubLabel.TextXAlignment = Enum.TextXAlignment.Left
     SubLabel.Text = Config.SubTitle
     SubLabel.Parent = TopBar
@@ -151,7 +155,7 @@ function Library:CreateWindow(Config)
     SearchIcon.Position = UDim2.new(0, 10, 0, 8)
     SearchIcon.BackgroundTransparency = 1
     SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
-    SearchIcon.Image = "rbxassetid://0" 
+    SearchIcon.Image = "rbxassetid://140161092708960" -- [修改] 搜索图片ID
     SearchIcon.Parent = SearchFrame
 
     local SearchInput = Instance.new("TextBox")
@@ -163,8 +167,10 @@ function Library:CreateWindow(Config)
     SearchInput.PlaceholderText = "搜索功能..."
     SearchInput.PlaceholderColor3 = Color3.fromRGB(110, 120, 140)
     SearchInput.Font = Enum.Font.GothamMedium
-    SearchInput.TextSize = 12
+    SearchInput.TextSize = 14 -- [修改] 稍微调大
     SearchInput.TextColor3 = Color3.fromRGB(240, 245, 255)
+    SearchInput.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    SearchInput.TextStrokeTransparency = 0.4
     SearchInput.TextXAlignment = Enum.TextXAlignment.Left
     SearchInput.ClearTextOnFocus = false
     SearchInput.Parent = SearchFrame
@@ -179,6 +185,8 @@ function Library:CreateWindow(Config)
     CloseButton.Font = Enum.Font.GothamBold
     CloseButton.TextSize = 22
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    CloseButton.TextStrokeTransparency = 0.3
     CloseButton.Parent = TopBar
 
     local CloseCorner = Instance.new("UICorner")
@@ -195,6 +203,8 @@ function Library:CreateWindow(Config)
     MinimizeButton.Font = Enum.Font.GothamBold
     MinimizeButton.TextSize = 18
     MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MinimizeButton.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    MinimizeButton.TextStrokeTransparency = 0.3
     MinimizeButton.Parent = TopBar
 
     local MinimizeCorner = Instance.new("UICorner")
@@ -219,8 +229,10 @@ function Library:CreateWindow(Config)
     InfoLabel.Position = UDim2.new(0, 20, 0, 0)
     InfoLabel.BackgroundTransparency = 1
     InfoLabel.Font = Enum.Font.GothamMedium
-    InfoLabel.TextSize = 12
+    InfoLabel.TextSize = 14 -- [修改] 大字体
     InfoLabel.TextColor3 = Color3.fromRGB(140, 150, 170)
+    InfoLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    InfoLabel.TextStrokeTransparency = 0.3
     InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
     InfoLabel.Text = Config.Info
     InfoLabel.Parent = BottomBar
@@ -263,7 +275,6 @@ function Library:CreateWindow(Config)
     FloatBall.Size = UDim2.new(1, 0, 1, 0)
     FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     FloatBall.BackgroundTransparency = 0.1
-    -- [应用] 调用参数化的 Config.BallImage
     FloatBall.Image = Config.BallImage 
     FloatBall.Parent = FloatBallFrame
 
@@ -281,7 +292,7 @@ function Library:CreateWindow(Config)
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
     TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
     TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
+    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play()
 
     local Dragging = false
     local DragInput, DragStart, StartPosition
@@ -361,7 +372,7 @@ function Library:CreateWindow(Config)
                     
                     TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
                     TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
+                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play()
                 end)
             end
         end
@@ -456,8 +467,10 @@ function Library:CreateWindow(Config)
         TabText.Position = UDim2.new(0, 40, 0, 0)
         TabText.BackgroundTransparency = 1
         TabText.Font = Enum.Font.GothamMedium
-        TabText.TextSize = 14
+        TabText.TextSize = 16 -- [修改]
         TabText.TextColor3 = Color3.fromRGB(180, 190, 210)
+        TabText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        TabText.TextStrokeTransparency = 0.3
         TabText.TextXAlignment = Enum.TextXAlignment.Left
         TabText.Text = TabConfig.Title
         TabText.Parent = TabButton
@@ -555,8 +568,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = ElementConfig.Locked and Color3.fromRGB(130, 130, 140) or Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = ButtonFrame
@@ -567,8 +582,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = ButtonFrame
@@ -581,8 +598,10 @@ function Library:CreateWindow(Config)
             InteractButton.BackgroundTransparency = ElementConfig.Locked and 0.5 or 0.1
             InteractButton.Text = ElementConfig.Locked and "锁死" or "执行"
             InteractButton.Font = Enum.Font.GothamBold
-            InteractButton.TextSize = 13
+            InteractButton.TextSize = 15 -- [修改]
             InteractButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            InteractButton.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            InteractButton.TextStrokeTransparency = 0.3
             InteractButton.AutoButtonColor = false
             InteractButton.Parent = ButtonFrame
 
@@ -650,8 +669,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = ToggleFrame
@@ -662,8 +683,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = ToggleFrame
@@ -740,8 +763,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 8)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = SliderFrame
@@ -752,8 +777,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 26)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 11
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = SliderFrame
@@ -764,8 +791,10 @@ function Library:CreateWindow(Config)
             ValueLabel.Position = UDim2.new(1, -76, 0, 8)
             ValueLabel.BackgroundTransparency = 1
             ValueLabel.Font = Enum.Font.GothamBold
-            ValueLabel.TextSize = 14
+            ValueLabel.TextSize = 16 -- [修改]
             ValueLabel.TextColor3 = Color3.fromRGB(100, 180, 255)
+            ValueLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            ValueLabel.TextStrokeTransparency = 0.3
             ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
             ValueLabel.Text = tostring(ElementConfig.Default)
             ValueLabel.Parent = SliderFrame
@@ -863,8 +892,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = DropdownFrame
@@ -875,8 +906,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = DropdownFrame
@@ -889,8 +922,10 @@ function Library:CreateWindow(Config)
             OpenSelector.BackgroundTransparency = 0.3
             OpenSelector.Text = ElementConfig.Default ~= "" and ElementConfig.Default or "请选择..."
             OpenSelector.Font = Enum.Font.GothamMedium
-            OpenSelector.TextSize = 13
+            OpenSelector.TextSize = 15 -- [修改]
             OpenSelector.TextColor3 = Color3.fromRGB(230, 235, 245)
+            OpenSelector.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            OpenSelector.TextStrokeTransparency = 0.3
             OpenSelector.Parent = DropdownFrame
 
             local SelectorCorner = Instance.new("UICorner")
@@ -934,8 +969,10 @@ function Library:CreateWindow(Config)
                 OptButton.BackgroundTransparency = 0.97
                 OptButton.Text = OptionName
                 OptButton.Font = Enum.Font.GothamMedium
-                OptButton.TextSize = 13
+                OptButton.TextSize = 15 -- [修改]
                 OptButton.TextColor3 = Color3.fromRGB(200, 205, 220)
+                OptButton.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                OptButton.TextStrokeTransparency = 0.3
                 OptButton.Parent = OptionContainer
 
                 local OptCorner = Instance.new("UICorner")
@@ -984,8 +1021,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = BoxFrame
@@ -996,8 +1035,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = BoxFrame
@@ -1012,8 +1053,10 @@ function Library:CreateWindow(Config)
             InputField.PlaceholderText = ElementConfig.Placeholder
             InputField.PlaceholderColor3 = Color3.fromRGB(110, 115, 130)
             InputField.Font = Enum.Font.GothamMedium
-            InputField.TextSize = 13
+            InputField.TextSize = 15 -- [修改]
             InputField.TextColor3 = Color3.fromRGB(255, 255, 255)
+            InputField.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            InputField.TextStrokeTransparency = 0.3
             InputField.ClearTextOnFocus = false
             InputField.Parent = BoxFrame
 
@@ -1073,8 +1116,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(245, 245, 255)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = KeybindFrame
@@ -1085,8 +1130,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(140, 150, 165)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = KeybindFrame
@@ -1099,8 +1146,10 @@ function Library:CreateWindow(Config)
             BindButton.BackgroundTransparency = 0.4
             BindButton.Text = CurrentBind.Name
             BindButton.Font = Enum.Font.GothamBold
-            BindButton.TextSize = 13
+            BindButton.TextSize = 15 -- [修改]
             BindButton.TextColor3 = Color3.fromRGB(100, 180, 255)
+            BindButton.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            BindButton.TextStrokeTransparency = 0.3
             BindButton.Parent = KeybindFrame
 
             local BindCorner = Instance.new("UICorner")
@@ -1157,8 +1206,10 @@ function Library:CreateWindow(Config)
             TitleLabel.Position = UDim2.new(0, 16, 0, 7)
             TitleLabel.BackgroundTransparency = 1
             TitleLabel.Font = Enum.Font.GothamBold
-            TitleLabel.TextSize = 14
+            TitleLabel.TextSize = 16 -- [修改]
             TitleLabel.TextColor3 = Color3.fromRGB(200, 210, 230)
+            TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            TitleLabel.TextStrokeTransparency = 0.3
             TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
             TitleLabel.Text = ElementConfig.Title
             TitleLabel.Parent = ParagraphFrame
@@ -1169,8 +1220,10 @@ function Library:CreateWindow(Config)
             DescLabel.Position = UDim2.new(0, 16, 0, 27)
             DescLabel.BackgroundTransparency = 1
             DescLabel.Font = Enum.Font.GothamMedium
-            DescLabel.TextSize = 12
+            DescLabel.TextSize = 14 -- [修改]
             DescLabel.TextColor3 = Color3.fromRGB(120, 130, 145)
+            DescLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            DescLabel.TextStrokeTransparency = 0.4
             DescLabel.TextXAlignment = Enum.TextXAlignment.Left
             DescLabel.Text = ElementConfig.Desc
             DescLabel.Parent = ParagraphFrame
