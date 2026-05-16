@@ -30,7 +30,6 @@ function Library:CreateWindow(Config)
     WindowFrame.BackgroundTransparency = 1
     WindowFrame.Parent = ScreenGui
 
-    -- [阴影紧凑化] 缩小扩散范围，仅保留10px外延，加深不透明度至0.2
     local UI_Shadow = Instance.new("ImageLabel")
     UI_Shadow.Name = "UI_Shadow"
     UI_Shadow.Size = UDim2.new(1, 20, 1, 20)
@@ -151,7 +150,7 @@ function Library:CreateWindow(Config)
     SearchIcon.Position = UDim2.new(0, 10, 0, 8)
     SearchIcon.BackgroundTransparency = 1
     SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
-    SearchIcon.Image = "rbxassetid://0" 
+    SearchIcon.Image = "rbxassetid://135879865285421" 
     SearchIcon.Parent = SearchFrame
 
     local SearchInput = Instance.new("TextBox")
