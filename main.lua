@@ -30,15 +30,15 @@ function Library:CreateWindow(Config)
     WindowFrame.BackgroundTransparency = 1
     WindowFrame.Parent = ScreenGui
 
-    -- [严格适配] 唯一高强度微阴影，精准包裹 24px 圆角
+    -- [阴影紧凑化] 缩小扩散范围，仅保留10px外延，加深不透明度至0.2
     local UI_Shadow = Instance.new("ImageLabel")
     UI_Shadow.Name = "UI_Shadow"
-    UI_Shadow.Size = UDim2.new(1, 48, 1, 48)
-    UI_Shadow.Position = UDim2.new(0, -24, 0, -24)
+    UI_Shadow.Size = UDim2.new(1, 20, 1, 20)
+    UI_Shadow.Position = UDim2.new(0, -10, 0, -10)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.25 -- 加深阴影强度
+    UI_Shadow.ImageTransparency = 0.2
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
     UI_Shadow.ZIndex = 0
@@ -127,7 +127,6 @@ function Library:CreateWindow(Config)
     SubLabel.Text = Config.SubTitle
     SubLabel.Parent = TopBar
 
-    -- [新增] 功能搜索组件
     local SearchFrame = Instance.new("Frame")
     SearchFrame.Name = "SearchFrame"
     SearchFrame.Size = UDim2.new(0, 160, 0, 32)
@@ -152,10 +151,7 @@ function Library:CreateWindow(Config)
     SearchIcon.Position = UDim2.new(0, 10, 0, 8)
     SearchIcon.BackgroundTransparency = 1
     SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
-    -- ==============================================
-    -- ⬇️ 在此填入你的搜索图标ID ⬇️
     SearchIcon.Image = "rbxassetid://0" 
-    -- ==============================================
     SearchIcon.Parent = SearchFrame
 
     local SearchInput = Instance.new("TextBox")
@@ -254,7 +250,6 @@ function Library:CreateWindow(Config)
     ContainerBounds.BackgroundTransparency = 1
     ContainerBounds.Parent = ContainerFolder
 
-    -- 悬浮球容器 (已去除冗余阴影)
     local FloatBallFrame = Instance.new("Frame")
     FloatBallFrame.Name = "FloatBallFrame"
     FloatBallFrame.Size = UDim2.new(0, 55, 0, 55)
@@ -281,12 +276,12 @@ function Library:CreateWindow(Config)
     BallStroke.Transparency = 0.6
     BallStroke.Parent = FloatBall
 
-    -- 进场动画：阴影透明度同步适配0.25
+    -- 进场动画：同步修改参数为 0.2
     local InitPos = WindowFrame.Position
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
     TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
     TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.25}):Play()
+    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
 
     local Dragging = false
     local DragInput, DragStart, StartPosition
@@ -366,7 +361,7 @@ function Library:CreateWindow(Config)
                     
                     TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
                     TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.25}):Play()
+                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
                 end)
             end
         end
@@ -406,10 +401,9 @@ function Library:CreateWindow(Config)
     local Window = {
         Tabs = {},
         CurrentTab = nil,
-        AllElements = {} -- 用于全局搜索注册
+        AllElements = {}
     }
 
-    -- 绑定搜索框逻辑
     SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
         local TextVal = string.lower(SearchInput.Text)
         for _, ItemData in ipairs(Window.AllElements) do
@@ -543,7 +537,6 @@ function Library:CreateWindow(Config)
             ButtonFrame.BackgroundTransparency = 0.96
             ButtonFrame.Parent = ContentFrame
 
-            -- 注入全局搜索
             table.insert(Window.AllElements, {Frame = ButtonFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
