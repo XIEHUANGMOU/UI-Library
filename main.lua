@@ -94,39 +94,49 @@ function Library:Notify(options)
             Name = "Container",
             Parent = self.NotificationScreen,
             BackgroundTransparency = 1,
-            Size = UDim2.new(0, 250, 1, -40),
-            Position = UDim2.new(1, -270, 0, 20)
+            Size = UDim2.new(0, 230, 1, -40),
+            Position = UDim2.new(1, -250, 0, 20)
         })
         local uiListLayout = Create("UIListLayout", {
             Parent = self.NotificationContainer,
             SortOrder = Enum.SortOrder.LayoutOrder,
             VerticalAlignment = Enum.VerticalAlignment.Bottom,
             HorizontalAlignment = Enum.HorizontalAlignment.Right,
-            Padding = UDim.new(0, 10)
+            Padding = UDim.new(0, 8)
         })
     end
 
+    -- 外部布局容器槽位（用于UIListLayout的平滑折叠计算，关闭不裁剪以便展示完美的微阴影）
     local notifFrame = Create("Frame", {
-        Name = "Notification",
+        Name = "NotificationSlot",
         Parent = self.NotificationContainer,
-        BackgroundColor3 = self.Theme.MainBackground,
-        Size = UDim2.new(0, 0, 0, 60),
-        Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
-        ClipsDescendants = true
+        Size = UDim2.new(1, 0, 0, 48),
+        ClipsDescendants = false
+    })
+
+    -- 内部真正承载内容的实体（用于独立执行高级滑入滑出动画）
+    local notifInner = Create("Frame", {
+        Name = "NotifInner",
+        Parent = notifFrame,
+        BackgroundColor3 = self.Theme.MainBackground,
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(1.5, 0, 0, 0), -- 初始生成于屏幕最右侧外
+        BackgroundTransparency = 0
     })
 
     local uiCorner = Create("UICorner", {
-        Parent = notifFrame,
+        Parent = notifInner,
         CornerRadius = UDim.new(0, 6)
     })
 
+    -- 优化后的通知轻量化柔和阴影 (淡化处理)
     local notifShadow = Create("ImageLabel", {
         Name = "NotifShadow",
-        Parent = notifFrame,
+        Parent = notifInner,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, -15, 0, -15),
-        Size = UDim2.new(1, 30, 1, 30),
+        Position = UDim2.new(0, -12, 0, -12),
+        Size = UDim2.new(1, 24, 1, 24),
         Image = "rbxassetid://1316045217",
         ImageColor3 = self.Theme.Shadow,
         ImageTransparency = 1,
@@ -137,75 +147,72 @@ function Library:Notify(options)
 
     local colorBar = Create("Frame", {
         Name = "ColorBar",
-        Parent = notifFrame,
+        Parent = notifInner,
         BackgroundColor3 = self.Theme.Accent,
         Size = UDim2.new(0, 3, 1, 0),
         BorderSizePixel = 0,
-        BackgroundTransparency = 1
+        BackgroundTransparency = 0
     })
+    Create("UICorner", { Parent = colorBar, CornerRadius = UDim.new(0, 6) })
 
     local titleLabel = Create("TextLabel", {
         Name = "Title",
-        Parent = notifFrame,
+        Parent = notifInner,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 15, 0, 10),
-        Size = UDim2.new(0, 225, 0, 20),
+        Position = UDim2.new(0, 12, 0, 5),
+        Size = UDim2.new(1, -24, 0, 16),
         Font = Enum.Font.GothamBold,
         Text = title,
         TextColor3 = self.Theme.TextPrimary,
-        TextSize = 13,
+        TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
-        TextTransparency = 1
+        TextTransparency = 0
     })
 
     local contentLabel = Create("TextLabel", {
         Name = "Content",
-        Parent = notifFrame,
+        Parent = notifInner,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 15, 0, 30),
-        Size = UDim2.new(0, 225, 1, -40),
+        Position = UDim2.new(0, 12, 0, 22),
+        Size = UDim2.new(1, -24, 0, 22),
         Font = Enum.Font.Gotham,
         Text = content,
         TextColor3 = self.Theme.TextSecondary,
-        TextSize = 12,
+        TextSize = 10,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Top,
-        TextTransparency = 1
+        TextTransparency = 0
     })
 
     if image then
         local icon = Create("ImageLabel", {
-            Parent = notifFrame,
+            Parent = notifInner,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 15, 0, 15),
-            Size = UDim2.new(0, 30, 0, 30),
+            Position = UDim2.new(0, 10, 0.5, -11),
+            Size = UDim2.new(0, 22, 0, 22),
             Image = image,
-            ImageTransparency = 1
+            ImageTransparency = 0
         })
-        titleLabel.Position = UDim2.new(0, 55, 0, 10)
-        titleLabel.Size = UDim2.new(0, 185, 0, 20)
-        contentLabel.Position = UDim2.new(0, 55, 0, 30)
-        contentLabel.Size = UDim2.new(0, 185, 1, -40)
-        Tween(icon, {ImageTransparency = 0}, 0.5)
+        titleLabel.Position = UDim2.new(0, 38, 0, 5)
+        titleLabel.Size = UDim2.new(1, -48, 0, 16)
+        contentLabel.Position = UDim2.new(0, 38, 0, 22)
+        contentLabel.Size = UDim2.new(1, -48, 0, 22)
     end
 
-    Tween(notifFrame, {Size = UDim2.new(0, 250, 0, 60), BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-    Tween(notifShadow, {ImageTransparency = 0.4}, 0.5)
-    Tween(colorBar, {BackgroundTransparency = 0}, 0.5)
-    Tween(titleLabel, {TextTransparency = 0}, 0.5)
-    Tween(contentLabel, {TextTransparency = 0}, 0.5)
+    -- 执行强化的滑入动画 (Quint缓动，右向左滑入，阴影淡显)
+    Tween(notifInner, {Position = UDim2.new(0, 0, 0, 0)}, 0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    Tween(notifShadow, {ImageTransparency = 0.65}, 0.45) -- 保持淡化的阴影
 
     task.delay(duration, function()
-        Tween(notifFrame, {Size = UDim2.new(0, 0, 0, 60), BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-        Tween(notifShadow, {ImageTransparency = 1}, 0.5)
-        Tween(colorBar, {BackgroundTransparency = 1}, 0.5)
-        Tween(titleLabel, {TextTransparency = 1}, 0.5)
-        Tween(contentLabel, {TextTransparency = 1}, 0.5)
-        if image then
-            Tween(notifFrame:FindFirstChildOfClass("ImageLabel"), {ImageTransparency = 1}, 0.5)
-        end
-        task.wait(0.5)
+        -- 执行高级滑出动画与空间折叠逻辑
+        Tween(notifInner, {Position = UDim2.new(1.5, 0, 0, 0)}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        Tween(notifShadow, {ImageTransparency = 1}, 0.3)
+        
+        task.wait(0.15) -- 略微交错，让滑出与垂直缩进完美契合
+        Tween(notifFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        
+        task.wait(0.35)
         notifFrame:Destroy()
     end)
 end
@@ -249,6 +256,7 @@ function Library:CreateWindow(options)
         CornerRadius = UDim.new(0, 8)
     })
 
+    -- 深度调整的主窗口阴影：大幅调整透明度参数使其柔和淡显 (0.6)
     local DropShadow = Create("ImageLabel", {
         Name = "DropShadow",
         Parent = MainFrame,
@@ -375,6 +383,7 @@ function Library:CreateWindow(options)
         ClipsDescendants = true
     })
 
+    -- 悬浮球组件 (根据需求已完整剥离和剔除了所有阴影逻辑)
     local FloatingBall = Create("ImageButton", {
         Name = "FloatingBall",
         Parent = ScreenGui,
@@ -389,20 +398,6 @@ function Library:CreateWindow(options)
         ClipsDescendants = false
     })
     Create("UICorner", { Parent = FloatingBall, CornerRadius = UDim.new(1, 0) })
-    
-    local BallShadow = Create("ImageLabel", {
-        Name = "BallShadow",
-        Parent = FloatingBall,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, -10, 0, -10),
-        Size = UDim2.new(1, 20, 1, 20),
-        Image = "rbxassetid://1316045217",
-        ImageColor3 = self.Theme.Shadow,
-        ImageTransparency = 1,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(15, 15, 15, 15),
-        ZIndex = 0
-    })
 
     MakeDraggable(Topbar, MainFrame)
 
@@ -463,7 +458,6 @@ function Library:CreateWindow(options)
         
         local targetBallPos = UDim2.new(0.95, -25, 0.5, 0)
         Tween(FloatingBall, {Size = UDim2.new(0, 50, 0, 50), Position = targetBallPos, BackgroundTransparency = 0, ImageTransparency = 0}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        Tween(BallShadow, {ImageTransparency = 0.3}, 0.5)
     end)
     table.insert(Library.Connections, minimizeClick)
 
@@ -482,17 +476,17 @@ function Library:CreateWindow(options)
                     if clickDelta < 5 then
                         isMinimized = false
                         Tween(FloatingBall, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, ImageTransparency = 1}, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-                        Tween(BallShadow, {ImageTransparency = 1}, 0.3)
                         task.wait(0.3)
                         FloatingBall.Visible = false
                         MainFrame.Visible = true
                         
+                        -- 主框架返回时激活轻量化柔和阴影 (0.6)
                         Tween(MainFrame, {Size = UDim2.new(0, 600, 0, 400), BackgroundTransparency = 0}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                         Tween(Topbar, {BackgroundTransparency = 0}, 0.4)
                         Tween(TopbarBottomFix, {BackgroundTransparency = 0}, 0.4)
                         Tween(Sidebar, {BackgroundTransparency = 0}, 0.4)
                         Tween(SidebarRightFix, {BackgroundTransparency = 0}, 0.4)
-                        Tween(DropShadow, {ImageTransparency = 0.3}, 0.4)
+                        Tween(DropShadow, {ImageTransparency = 0.6}, 0.4)
                         Tween(TitleLabel, {TextTransparency = 0}, 0.4)
                         Tween(CloseBtn, {TextTransparency = 0}, 0.4)
                         Tween(MinimizeBtn, {TextTransparency = 0}, 0.4)
@@ -533,8 +527,9 @@ function Library:CreateWindow(options)
     table.insert(Library.Connections, ballChanged)
     table.insert(Library.Connections, ballStepped)
 
+    -- 初始化展现时激活轻量化淡雅阴影 (0.6)
     Tween(MainFrame, {BackgroundTransparency = 0}, 0.5)
-    Tween(DropShadow, {ImageTransparency = 0.3}, 0.5)
+    Tween(DropShadow, {ImageTransparency = 0.6}, 0.5)
     Tween(Topbar, {BackgroundTransparency = 0}, 0.5)
     Tween(TopbarBottomFix, {BackgroundTransparency = 0}, 0.5)
     Tween(Sidebar, {BackgroundTransparency = 0}, 0.5)
