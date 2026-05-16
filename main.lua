@@ -587,17 +587,19 @@ function Library:CreateWindow(Config)
             if Window.CurrentTab == Tab then return end
             
             if Window.CurrentTab then
-                Tween(Window.CurrentTab.Button, {BackgroundColor3 = Library.Theme.Background}, 0.3)
-                Tween(Window.CurrentTab.Label, {TextColor3 = Library.Theme.TextDark}, 0.3)
-                Tween(Window.CurrentTab.Indicator, {BackgroundTransparency = 1, Size = UDim2.new(0, 3, 0, 0)}, 0.3)
-                if Window.CurrentTab.Icon then
-                    Tween(Window.CurrentTab.Icon, {ImageColor3 = Library.Theme.TextDark}, 0.3)
+                local OldTab = Window.CurrentTab
+                Tween(OldTab.Button, {BackgroundColor3 = Library.Theme.Background}, 0.3)
+                Tween(OldTab.Label, {TextColor3 = Library.Theme.TextDark}, 0.3)
+                Tween(OldTab.Indicator, {BackgroundTransparency = 1, Size = UDim2.new(0, 3, 0, 0)}, 0.3)
+                if OldTab.Icon then
+                    Tween(OldTab.Icon, {ImageColor3 = Library.Theme.TextDark}, 0.3)
                 end
                 
-                local OldContent = Window.CurrentTab.Content
+                local OldContent = OldTab.Content
                 local FadeOut = Tween(OldContent, {Position = UDim2.new(-0.1, 0, 0, 0)}, 0.2)
                 FadeOut.Completed:Connect(function()
-                    if Window.CurrentTab ~= Tab then
+                    -- 修复 Bug：正确判断当前页面是不是旧页面，如果是新页面则隐藏旧页面
+                    if Window.CurrentTab ~= OldTab then
                         OldContent.Visible = false
                     end
                 end)
