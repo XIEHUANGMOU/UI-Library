@@ -164,13 +164,13 @@ function Library:Notify(config)
     contentLabel.Text = content
     contentLabel.Parent = card
 
-    TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingStyle.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+    TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
 
     task.delay(duration, function()
-        local tweenOut = TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingStyle.In), {Position = UDim2.new(1, 10, 0, 0)})
+        local tweenOut = TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 0, 0)})
         tweenOut:Play()
         tweenOut.Completed:Connect(function()
-            local collapse = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {Size = UDim2.new(1, 0, 0, 0)})
+            local collapse = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 0)})
             collapse:Play()
             collapse.Completed:Connect(function()
                 container:Destroy()
@@ -369,7 +369,7 @@ function Library.CreateWindow(titleText)
         origSize = MainFrame.Size
         origPos = MainFrame.Position
 
-        local tweenMain = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingStyle.InOut), {
+        local tweenMain = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {
             Size = UDim2.new(0, 0, 0, 0),
             Position = UDim2.new(origPos.X.Scale, FloatingBall.Position.X.Offset + 25, origPos.Y.Scale, FloatingBall.Position.Y.Offset + 25)
         })
@@ -378,7 +378,7 @@ function Library.CreateWindow(titleText)
             MainFrame.Visible = false
             FloatingBall.Visible = true
             FloatingBall.Size = UDim2.new(0, 0, 0, 0)
-            TweenService:Create(FloatingBall, TweenInfo.new(0.4, Enum.EasingStyle.Elastic, Enum.EasingStyle.Out), {
+            TweenService:Create(FloatingBall, TweenInfo.new(0.4, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 50, 0, 50)
             }):Play()
         end)
@@ -388,14 +388,14 @@ function Library.CreateWindow(titleText)
         if not isMinimized then return end
         isMinimized = false
 
-        TweenService:Create(FloatingBall, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingStyle.In), {
+        TweenService:Create(FloatingBall, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), {
             Size = UDim2.new(0, 0, 0, 0)
         }):Play()
 
         task.delay(0.2, function()
             FloatingBall.Visible = false
             MainFrame.Visible = true
-            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingStyle.Out), {
+            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
                 Size = origSize,
                 Position = origPos
             }):Play()
@@ -432,10 +432,10 @@ function Library.CreateWindow(titleText)
 
     local function addMicroAnims(btn, normalColor, hoverColor)
         local h = btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = hoverColor}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = hoverColor}):Play()
         end)
         local l = btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = normalColor}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = normalColor}):Play()
         end)
         table.insert(Library.Connections, h)
         table.insert(Library.Connections, l)
@@ -513,13 +513,13 @@ function Library.CreateWindow(titleText)
                 local prevLabel = Window.CurrentTab.BtnLabel
                 local prevIcon = Window.CurrentTab.IconImg
 
-                TweenService:Create(prevBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundTransparency = 1}):Play()
-                TweenService:Create(prevLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {TextColor3 = Library.Theme.TextMuted}):Play()
+                TweenService:Create(prevBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(prevLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Library.Theme.TextMuted}):Play()
                 if prevIcon then
-                    TweenService:Create(prevIcon, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {ImageColor3 = Library.Theme.TextMuted}):Play()
+                    TweenService:Create(prevIcon, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Library.Theme.TextMuted}):Play()
                 end
 
-                TweenService:Create(prevPage, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingStyle.In), {
+                TweenService:Create(prevPage, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                     GroupTransparency = 1,
                     Position = UDim2.new(0, -20, 0, 10)
                 }):Play()
@@ -531,13 +531,13 @@ function Library.CreateWindow(titleText)
             TabPage.Position = UDim2.new(0, 30, 0, 10)
             TabPage.GroupTransparency = 1
 
-            TweenService:Create(tabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundTransparency = 0.9, BackgroundColor3 = Library.Theme.Accent}):Play()
-            TweenService:Create(btnLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {TextColor3 = Library.Theme.Text}):Play()
+            TweenService:Create(tabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.9, BackgroundColor3 = Library.Theme.Accent}):Play()
+            TweenService:Create(btnLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Library.Theme.Text}):Play()
             if Tab.IconImg then
-                TweenService:Create(Tab.IconImg, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {ImageColor3 = Library.Theme.Accent}):Play()
+                TweenService:Create(Tab.IconImg, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Library.Theme.Accent}):Play()
             end
 
-            TweenService:Create(TabPage, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingStyle.Out), {
+            TweenService:Create(TabPage, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
                 GroupTransparency = 0,
                 Position = UDim2.new(0, 10, 0, 10)
             }):Play()
@@ -550,12 +550,12 @@ function Library.CreateWindow(titleText)
 
         local h = tabButton.MouseEnter:Connect(function()
             if Window.CurrentTab ~= Tab then
-                TweenService:Create(tabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundTransparency = 0.95, BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+                TweenService:Create(tabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.95, BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
             end
         end)
         local l = tabButton.MouseLeave:Connect(function()
             if Window.CurrentTab ~= Tab then
-                TweenService:Create(tabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(tabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
             end
         end)
         table.insert(Library.Connections, h)
@@ -607,19 +607,19 @@ function Library.CreateWindow(titleText)
             btnText.Parent = btnFrame
 
             local cbConn = clickBtn.MouseButton1Click:Connect(function()
-                TweenService:Create(btnFrame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.Accent}):Play()
+                TweenService:Create(btnFrame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.Accent}):Play()
                 task.delay(0.1, function()
-                    TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
+                    TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
                 end)
                 if callback then callback() end
             end)
             table.insert(Library.Connections, cbConn)
 
             local enter = clickBtn.MouseEnter:Connect(function()
-                TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
+                TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
             end)
             local leave = clickBtn.MouseLeave:Connect(function()
-                TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.ElementBg}):Play()
+                TweenService:Create(btnFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.ElementBg}):Play()
             end)
             table.insert(Library.Connections, enter)
             table.insert(Library.Connections, leave)
@@ -680,11 +680,11 @@ function Library.CreateWindow(titleText)
 
             local function updateToggle()
                 if toggleState then
-                    TweenService:Create(switchBg, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.Accent}):Play()
-                    TweenService:Create(switchBall, TweenInfo.new(0.25, Enum.EasingStyle.Exponential, Enum.EasingStyle.Out), {Position = UDim2.new(1, -17, 0.5, -7)}):Play()
+                    TweenService:Create(switchBg, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.Accent}):Play()
+                    TweenService:Create(switchBall, TweenInfo.new(0.25, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.new(1, -17, 0.5, -7)}):Play()
                 else
-                    TweenService:Create(switchBg, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
-                    TweenService:Create(switchBall, TweenInfo.new(0.25, Enum.EasingStyle.Exponential, Enum.EasingStyle.Out), {Position = UDim2.new(0, 3, 0.5, -7)}):Play()
+                    TweenService:Create(switchBg, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
+                    TweenService:Create(switchBall, TweenInfo.new(0.25, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.new(0, 3, 0.5, -7)}):Play()
                 end
                 if callback then callback(toggleState) end
             end
@@ -696,10 +696,10 @@ function Library.CreateWindow(titleText)
             table.insert(Library.Connections, toggleConn)
 
             local enter = clickBtn.MouseEnter:Connect(function()
-                TweenService:Create(toggleFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
+                TweenService:Create(toggleFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.ElementHover}):Play()
             end)
             local leave = clickBtn.MouseLeave:Connect(function()
-                TweenService:Create(toggleFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {BackgroundColor3 = Library.Theme.ElementBg}):Play()
+                TweenService:Create(toggleFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Library.Theme.ElementBg}):Play()
             end)
             table.insert(Library.Connections, enter)
             table.insert(Library.Connections, leave)
@@ -772,7 +772,7 @@ function Library.CreateWindow(titleText)
                 local relativeX = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
                 local val = math.floor(min + (max - min) * relativeX)
                 valText.Text = tostring(val)
-                TweenService:Create(sliderFill, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingStyle.Out), {Size = UDim2.new(relativeX, 0, 1, 0)}):Play()
+                TweenService:Create(sliderFill, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(relativeX, 0, 1, 0)}):Play()
                 if callback then callback(val) end
             end
 
