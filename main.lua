@@ -23,7 +23,6 @@ function Library:CreateWindow(Config)
         ScreenGui.Parent = CoreGui
     end
 
-    -- 顶层包装盒：用于承载主窗体与阴影层
     local WindowFrame = Instance.new("Frame")
     WindowFrame.Name = "WindowFrame"
     WindowFrame.Size = UDim2.new(0, 680, 0, 440)
@@ -31,23 +30,20 @@ function Library:CreateWindow(Config)
     WindowFrame.BackgroundTransparency = 1
     WindowFrame.Parent = ScreenGui
 
-    -- 精致微阴影外层：严格适配主 UI 边框，无任何冗余溢出
+    -- [严格适配] 唯一高强度微阴影，精准包裹 24px 圆角
     local UI_Shadow = Instance.new("ImageLabel")
     UI_Shadow.Name = "UI_Shadow"
-    -- 紧凑型尺寸适配：四周仅微膨胀 6 像素，完美匹配 24 像素圆角
-    UI_Shadow.Size = UDim2.new(1, 12, 1, 12)
-    UI_Shadow.Position = UDim2.new(0, -6, 0, -6)
+    UI_Shadow.Size = UDim2.new(1, 48, 1, 48)
+    UI_Shadow.Position = UDim2.new(0, -24, 0, -24)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.5 -- 适中微阴影透明度
+    UI_Shadow.ImageTransparency = 0.25 -- 加深阴影强度
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
-    -- 精准切片，防止圆角处产生大面积冗余阴影块
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    UI_Shadow.ZIndex = 0 -- 严格低于主UI
+    UI_Shadow.ZIndex = 0
     UI_Shadow.Parent = WindowFrame
 
-    -- 主框架：CanvasGroup
     local MainFrame = Instance.new("CanvasGroup")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -55,8 +51,8 @@ function Library:CreateWindow(Config)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
     MainFrame.BackgroundTransparency = 0.15
     MainFrame.BorderSizePixel = 0
-    MainFrame.GroupTransparency = 1 -- 初始全透明，用于淡入
-    MainFrame.ZIndex = 1 -- 严格高于阴影
+    MainFrame.GroupTransparency = 1 
+    MainFrame.ZIndex = 1
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
@@ -109,7 +105,7 @@ function Library:CreateWindow(Config)
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "TitleLabel"
-    TitleLabel.Size = UDim2.new(0, 300, 0, 24)
+    TitleLabel.Size = UDim2.new(0, 200, 0, 24)
     TitleLabel.Position = UDim2.new(0, 68, 0, 12)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
@@ -121,7 +117,7 @@ function Library:CreateWindow(Config)
 
     local SubLabel = Instance.new("TextLabel")
     SubLabel.Name = "SubLabel"
-    SubLabel.Size = UDim2.new(0, 300, 0, 18)
+    SubLabel.Size = UDim2.new(0, 200, 0, 18)
     SubLabel.Position = UDim2.new(0, 68, 0, 34)
     SubLabel.BackgroundTransparency = 1
     SubLabel.Font = Enum.Font.GothamMedium
@@ -130,6 +126,52 @@ function Library:CreateWindow(Config)
     SubLabel.TextXAlignment = Enum.TextXAlignment.Left
     SubLabel.Text = Config.SubTitle
     SubLabel.Parent = TopBar
+
+    -- [新增] 功能搜索组件
+    local SearchFrame = Instance.new("Frame")
+    SearchFrame.Name = "SearchFrame"
+    SearchFrame.Size = UDim2.new(0, 160, 0, 32)
+    SearchFrame.Position = UDim2.new(1, -265, 0, 16)
+    SearchFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
+    SearchFrame.BackgroundTransparency = 0.5
+    SearchFrame.Parent = TopBar
+
+    local SearchCorner = Instance.new("UICorner")
+    SearchCorner.CornerRadius = UDim.new(0, 8)
+    SearchCorner.Parent = SearchFrame
+
+    local SearchStroke = Instance.new("UIStroke")
+    SearchStroke.Thickness = 1
+    SearchStroke.Color = Color3.fromRGB(255, 255, 255)
+    SearchStroke.Transparency = 0.85
+    SearchStroke.Parent = SearchFrame
+
+    local SearchIcon = Instance.new("ImageLabel")
+    SearchIcon.Name = "SearchIcon"
+    SearchIcon.Size = UDim2.new(0, 16, 0, 16)
+    SearchIcon.Position = UDim2.new(0, 10, 0, 8)
+    SearchIcon.BackgroundTransparency = 1
+    SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
+    -- ==============================================
+    -- ⬇️ 在此填入你的搜索图标ID ⬇️
+    SearchIcon.Image = "rbxassetid://0" 
+    -- ==============================================
+    SearchIcon.Parent = SearchFrame
+
+    local SearchInput = Instance.new("TextBox")
+    SearchInput.Name = "SearchInput"
+    SearchInput.Size = UDim2.new(1, -36, 1, 0)
+    SearchInput.Position = UDim2.new(0, 32, 0, 0)
+    SearchInput.BackgroundTransparency = 1
+    SearchInput.Text = ""
+    SearchInput.PlaceholderText = "搜索功能..."
+    SearchInput.PlaceholderColor3 = Color3.fromRGB(110, 120, 140)
+    SearchInput.Font = Enum.Font.GothamMedium
+    SearchInput.TextSize = 12
+    SearchInput.TextColor3 = Color3.fromRGB(240, 245, 255)
+    SearchInput.TextXAlignment = Enum.TextXAlignment.Left
+    SearchInput.ClearTextOnFocus = false
+    SearchInput.Parent = SearchFrame
 
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
@@ -212,34 +254,14 @@ function Library:CreateWindow(Config)
     ContainerBounds.BackgroundTransparency = 1
     ContainerBounds.Parent = ContainerFolder
 
-    -- 悬浮球容器
+    -- 悬浮球容器 (已去除冗余阴影)
     local FloatBallFrame = Instance.new("Frame")
     FloatBallFrame.Name = "FloatBallFrame"
-    FloatBallFrame.Size = UDim2.new(0, 56, 0, 56)
+    FloatBallFrame.Size = UDim2.new(0, 55, 0, 55)
     FloatBallFrame.Position = UDim2.new(0, 30, 0, 30)
     FloatBallFrame.BackgroundTransparency = 1
     FloatBallFrame.Visible = false
     FloatBallFrame.Parent = ScreenGui
-
-    -- 悬浮球纯圆形微阴影层 (拒绝正方形冗余)
-    local BallShadow = Instance.new("ImageLabel")
-    BallShadow.Name = "BallShadow"
-    -- 微缩紧凑包裹：边缘仅向外漫反射 4 像素
-    BallShadow.Size = UDim2.new(1, 8, 1, 8)
-    BallShadow.Position = UDim2.new(0, -4, 0, -4)
-    BallShadow.BackgroundTransparency = 1
-    BallShadow.Image = "rbxassetid://1316045217"
-    BallShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    BallShadow.ImageTransparency = 0.55
-    BallShadow.ScaleType = Enum.ScaleType.Slice
-    BallShadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    BallShadow.ZIndex = 0 -- 低于悬浮球
-    BallShadow.Parent = FloatBallFrame
-
-    -- 强制使悬浮球阴影变为纯圆环轮廓，完全切除正方形尖角
-    local BallShadowCorner = Instance.new("UICorner")
-    BallShadowCorner.CornerRadius = UDim.new(0.5, 0)
-    BallShadowCorner.Parent = BallShadow
 
     local FloatBall = Instance.new("ImageButton")
     FloatBall.Name = "FloatBall"
@@ -247,11 +269,10 @@ function Library:CreateWindow(Config)
     FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     FloatBall.BackgroundTransparency = 0.1
     FloatBall.Image = Config.Icon
-    FloatBall.ZIndex = 1
     FloatBall.Parent = FloatBallFrame
 
     local BallCorner = Instance.new("UICorner")
-    BallCorner.CornerRadius = UDim.new(0.5, 0)
+    BallCorner.CornerRadius = UDim.new(0, 28)
     BallCorner.Parent = FloatBall
 
     local BallStroke = Instance.new("UIStroke")
@@ -260,14 +281,13 @@ function Library:CreateWindow(Config)
     BallStroke.Transparency = 0.6
     BallStroke.Parent = FloatBall
 
-    -- 进场动画：纯正的淡入+滑入结合（不含任何弹性元素）
+    -- 进场动画：阴影透明度同步适配0.25
     local InitPos = WindowFrame.Position
-    WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 30)
-    TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
-    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
+    WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
+    TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.25}):Play()
 
-    -- 具备阻尼感的流体化主UI拖动系统
     local Dragging = false
     local DragInput, DragStart, StartPosition
     local TargetPosition = WindowFrame.Position
@@ -295,12 +315,10 @@ function Library:CreateWindow(Config)
         if input == DragInput and Dragging then
             local delta = input.Position - DragStart
             TargetPosition = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + delta.Y)
-            -- 使用 0.12 秒微小延迟的补间实现高端阻尼空气感追踪
             TweenService:Create(WindowFrame, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
         end
     end)
 
-    -- 具备圆环阴影同步阻尼追踪的悬浮球拖拽系统
     local BallDragging = false
     local BallMoved = false
     local BallDragStart, BallStartPos
@@ -331,37 +349,34 @@ function Library:CreateWindow(Config)
         end
     end)
 
-    -- 悬浮球点击恢复：组合滑入加淡入
     FloatBall.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if not BallMoved then
                 local BallHidePos = FloatBallFrame.Position + UDim2.new(0, 0, 0, 15)
-                TweenService:Create(FloatBallFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
-                local BallFade = TweenService:Create(FloatBall, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, BackgroundTransparency = 1})
-                TweenService:Create(BallShadow, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+                TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
+                local BallFade = TweenService:Create(FloatBall, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, BackgroundTransparency = 1})
                 BallFade:Play()
                 
                 BallFade.Completed:Connect(function()
                     FloatBallFrame.Visible = false
                     WindowFrame.Visible = true
-                    WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 25)
+                    WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 30)
                     MainFrame.GroupTransparency = 1
                     UI_Shadow.ImageTransparency = 1
                     
-                    TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
-                    TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
+                    TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
+                    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.25}):Play()
                 end)
             end
         end
     end)
 
-    -- 最小化功能
     MinimizeButton.MouseButton1Click:Connect(function()
-        local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 25)
-        TweenService:Create(WindowFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
-        TweenService:Create(UI_Shadow, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
-        local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+        local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 30)
+        TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
+        TweenService:Create(UI_Shadow, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+        local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
         MainFade:Play()
 
         MainFade.Completed:Connect(function()
@@ -370,20 +385,17 @@ function Library:CreateWindow(Config)
             FloatBallFrame.Position = BallTargetPos + UDim2.new(0, 0, 0, 15)
             FloatBall.ImageTransparency = 1
             FloatBall.BackgroundTransparency = 1
-            BallShadow.ImageTransparency = 1
             
-            TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
-            TweenService:Create(FloatBall, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, BackgroundTransparency = 0.1}):Play()
-            TweenService:Create(BallShadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.55}):Play()
+            TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
+            TweenService:Create(FloatBall, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, BackgroundTransparency = 0.1}):Play()
         end)
     end)
 
-    -- 彻底关闭功能：淡出并安全解构
     CloseButton.MouseButton1Click:Connect(function()
-        local CloseTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 35)
-        TweenService:Create(WindowFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = CloseTargetPos}):Play()
-        TweenService:Create(UI_Shadow, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
-        local FinalClose = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+        local CloseTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 40)
+        TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = CloseTargetPos}):Play()
+        TweenService:Create(UI_Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+        local FinalClose = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
         FinalClose:Play()
         
         FinalClose.Completed:Connect(function()
@@ -393,8 +405,25 @@ function Library:CreateWindow(Config)
 
     local Window = {
         Tabs = {},
-        CurrentTab = nil
+        CurrentTab = nil,
+        AllElements = {} -- 用于全局搜索注册
     }
+
+    -- 绑定搜索框逻辑
+    SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+        local TextVal = string.lower(SearchInput.Text)
+        for _, ItemData in ipairs(Window.AllElements) do
+            if TextVal == "" then
+                ItemData.Frame.Visible = true
+            else
+                if string.find(string.lower(ItemData.Title), TextVal) or string.find(string.lower(ItemData.Desc), TextVal) then
+                    ItemData.Frame.Visible = true
+                else
+                    ItemData.Frame.Visible = false
+                end
+            end
+        end
+    end)
 
     function Window:CreateTab(TabConfig)
         TabConfig.Title = TabConfig.Title or "主页"
@@ -478,22 +507,22 @@ function Library:CreateWindow(Config)
             Window.CurrentTab = Tab
             Tab.Active = true
 
-            TweenService:Create(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
-            TweenService:Create(TabButtonStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.7}):Play()
-            TweenService:Create(TabIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(100, 180, 255)}):Play()
-            TweenService:Create(TabText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+            TweenService:Create(TabButton, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
+            TweenService:Create(TabButtonStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.7}):Play()
+            TweenService:Create(TabIcon, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(100, 180, 255)}):Play()
+            TweenService:Create(TabText, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
             
             ContentFrame.Visible = true
-            ContentFrame.Position = UDim2.new(0, 0, 0, 12)
-            TweenService:Create(ContentFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+            ContentFrame.Position = UDim2.new(0, 0, 0, 15)
+            TweenService:Create(ContentFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
         end
 
         function Tab:DeSelect()
             Tab.Active = false
-            TweenService:Create(TabButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.95}):Play()
-            TweenService:Create(TabButtonStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.95}):Play()
-            TweenService:Create(TabIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(180, 190, 210)}):Play()
-            TweenService:Create(TabText, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(180, 190, 210)}):Play()
+            TweenService:Create(TabButton, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.95}):Play()
+            TweenService:Create(TabButtonStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 0.95}):Play()
+            TweenService:Create(TabIcon, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageColor3 = Color3.fromRGB(180, 190, 210)}):Play()
+            TweenService:Create(TabText, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextColor3 = Color3.fromRGB(180, 190, 210)}):Play()
             ContentFrame.Visible = false
         end
 
@@ -513,6 +542,9 @@ function Library:CreateWindow(Config)
             ButtonFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ButtonFrame.BackgroundTransparency = 0.96
             ButtonFrame.Parent = ContentFrame
+
+            -- 注入全局搜索
+            table.insert(Window.AllElements, {Frame = ButtonFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
@@ -567,21 +599,25 @@ function Library:CreateWindow(Config)
 
             if not ElementConfig.Locked then
                 InteractButton.MouseButton1Down:Connect(function()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(30, 90, 210)}):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(30, 90, 210)
+                    }):Play()
                 end)
 
                 InteractButton.MouseButton1Up:Connect(function()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(45, 120, 255)
+                    }):Play()
                     ElementConfig.Callback()
                 end)
 
                 InteractButton.MouseEnter:Connect(function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.91}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.91}):Play()
                 end)
 
                 InteractButton.MouseLeave:Connect(function()
-                    TweenService:Create(ButtonFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.96}):Play()
-                    TweenService:Create(InteractButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.96}):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 120, 255)}):Play()
                 end)
             end
 
@@ -602,6 +638,8 @@ function Library:CreateWindow(Config)
             ToggleFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ToggleFrame.BackgroundTransparency = 0.96
             ToggleFrame.Parent = ContentFrame
+
+            table.insert(Window.AllElements, {Frame = ToggleFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
@@ -664,11 +702,11 @@ function Library:CreateWindow(Config)
             OuterSwitch.MouseButton1Click:Connect(function()
                 Toggled = not Toggled
                 if Toggled then
-                    TweenService:Create(OuterSwitch, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 210, 130)}):Play()
-                    TweenService:Create(InnerBall, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -23, 0, 3)}):Play()
+                    TweenService:Create(OuterSwitch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 210, 130)}):Play()
+                    TweenService:Create(InnerBall, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -23, 0, 3)}):Play()
                 else
-                    TweenService:Create(OuterSwitch, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(65, 70, 85)}):Play()
-                    TweenService:Create(InnerBall, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 3, 0, 3)}):Play()
+                    TweenService:Create(OuterSwitch, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(65, 70, 85)}):Play()
+                    TweenService:Create(InnerBall, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 3, 0, 3)}):Play()
                 end
                 ElementConfig.Callback(Toggled)
             end)
@@ -690,6 +728,8 @@ function Library:CreateWindow(Config)
             SliderFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             SliderFrame.BackgroundTransparency = 0.96
             SliderFrame.Parent = ContentFrame
+
+            table.insert(Window.AllElements, {Frame = SliderFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
@@ -812,6 +852,8 @@ function Library:CreateWindow(Config)
             DropdownFrame.ClipsDescendants = true
             DropdownFrame.Parent = ContentFrame
 
+            table.insert(Window.AllElements, {Frame = DropdownFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
+
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
             FrameCorner.Parent = DropdownFrame
@@ -878,11 +920,11 @@ function Library:CreateWindow(Config)
             local function RefreshLayout()
                 if Extended then
                     local TargetSize = OptionLayout.AbsoluteContentSize.Y + 64
-                    TweenService:Create(DropdownFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
-                    TweenService:Create(OptionContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, OptionLayout.AbsoluteContentSize.Y + 10)}):Play()
+                    TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
+                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, OptionLayout.AbsoluteContentSize.Y + 10)}):Play()
                 else
-                    TweenService:Create(DropdownFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 54)}):Play()
-                    TweenService:Create(OptionContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, 0)}):Play()
+                    TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 54)}):Play()
+                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, 0)}):Play()
                 end
             end
 
@@ -930,6 +972,8 @@ function Library:CreateWindow(Config)
             BoxFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             BoxFrame.BackgroundTransparency = 0.96
             BoxFrame.Parent = ContentFrame
+
+            table.insert(Window.AllElements, {Frame = BoxFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
@@ -991,11 +1035,11 @@ function Library:CreateWindow(Config)
             InputStroke.Parent = InputField
 
             InputField.Focused:Connect(function()
-                TweenService:Create(InputStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(100, 180, 255), Transparency = 0.4}):Play()
+                TweenService:Create(InputStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(100, 180, 255), Transparency = 0.4}):Play()
             end)
 
             InputField.FocusLost:Connect(function(EnterPressed)
-                TweenService:Create(InputStroke, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.9}):Play()
+                TweenService:Create(InputStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.9}):Play()
                 ElementConfig.Callback(InputField.Text, EnterPressed)
             end)
 
@@ -1017,6 +1061,8 @@ function Library:CreateWindow(Config)
             KeybindFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             KeybindFrame.BackgroundTransparency = 0.96
             KeybindFrame.Parent = ContentFrame
+
+            table.insert(Window.AllElements, {Frame = KeybindFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
@@ -1099,6 +1145,8 @@ function Library:CreateWindow(Config)
             ParagraphFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ParagraphFrame.BackgroundTransparency = 0.98
             ParagraphFrame.Parent = ContentFrame
+
+            table.insert(Window.AllElements, {Frame = ParagraphFrame, Title = ElementConfig.Title, Desc = ElementConfig.Desc})
 
             local FrameCorner = Instance.new("UICorner")
             FrameCorner.CornerRadius = UDim.new(0, 14)
