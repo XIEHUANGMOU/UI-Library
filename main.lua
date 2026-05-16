@@ -7,10 +7,11 @@ local Library = {}
 
 function Library:CreateWindow(Config)
     Config.Title = Config.Title or "未命名核心"
-    Config.SubTitle = Config.SubTitle or "本地玩家加速器"
+    Config.SubTitle = Config.SubTitle or ""
     Config.Info = Config.Info or "系统状态: 正常运行"
     Config.Icon = Config.Icon or "rbxassetid://6031763426"
     Config.BackgroundImage = Config.BackgroundImage or ""
+    Config.BallImage = Config.BallImage ~= nil and Config.BallImage or Config.Icon
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "LiquidGlass_UiEngine"
@@ -37,7 +38,7 @@ function Library:CreateWindow(Config)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.3
+    UI_Shadow.ImageTransparency = 0.45
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
     UI_Shadow.ZIndex = 0
@@ -79,7 +80,7 @@ function Library:CreateWindow(Config)
         BgImage.Size = UDim2.new(1, 0, 1, 0)
         BgImage.BackgroundTransparency = 1
         BgImage.Image = Config.BackgroundImage
-        BgImage.ImageTransparency = 0.85
+        BgImage.ImageTransparency = 0.5
         BgImage.ScaleType = Enum.ScaleType.Crop
         BgImage.Parent = MainFrame
         
@@ -150,7 +151,7 @@ function Library:CreateWindow(Config)
     SearchIcon.Position = UDim2.new(0, 10, 0, 8)
     SearchIcon.BackgroundTransparency = 1
     SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
-    SearchIcon.Image = "rbxassetid://135879865285421" 
+    SearchIcon.Image = "rbxassetid://0" 
     SearchIcon.Parent = SearchFrame
 
     local SearchInput = Instance.new("TextBox")
@@ -262,7 +263,8 @@ function Library:CreateWindow(Config)
     FloatBall.Size = UDim2.new(1, 0, 1, 0)
     FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     FloatBall.BackgroundTransparency = 0.1
-    FloatBall.Image = Config.Icon
+    -- [应用] 调用参数化的 Config.BallImage
+    FloatBall.Image = Config.BallImage 
     FloatBall.Parent = FloatBallFrame
 
     local BallCorner = Instance.new("UICorner")
@@ -275,7 +277,6 @@ function Library:CreateWindow(Config)
     BallStroke.Transparency = 0.6
     BallStroke.Parent = FloatBall
 
-    -- 进场动画：同步修改参数为 0.2
     local InitPos = WindowFrame.Position
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
     TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
