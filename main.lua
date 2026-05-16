@@ -191,6 +191,7 @@ function Library:Notify(Config)
         TextTransparency = 1
     })
 
+    -- 修复：通知UI矩形阴影，使用正确的 SliceCenter 切图以避免渲染崩溃
     local Shadow = Create("ImageLabel", {
         Name = "Shadow",
         Parent = NotifyFrame,
@@ -202,13 +203,12 @@ function Library:Notify(Config)
         ImageColor3 = Library.Theme.Shadow,
         ImageTransparency = 1,
         ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(49, 49, 450, 450)
+        SliceCenter = Rect.new(120, 120, 136, 136)
     })
 
     local BreathingAnim = TweenService:Create(ColorStrip, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)})
     BreathingAnim:Play()
 
-    -- 优化后的滑入与渐显动画
     Tween(NotifyFrame, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
     Tween(TitleLabel, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
     Tween(ContentLabel, {TextTransparency = 0}, 0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -220,7 +220,6 @@ function Library:Notify(Config)
 
     task.delay(Duration, function()
         BreathingAnim:Cancel()
-        -- 优化后的滑出与渐隐动画
         local OutAnim = Tween(NotifyFrame, {Position = UDim2.new(1, 80, 0, 0), BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
         Tween(TitleLabel, {TextTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
         Tween(ContentLabel, {TextTransparency = 1}, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
@@ -269,18 +268,19 @@ function Library:CreateWindow(Config)
         CornerRadius = UDim.new(0, 10)
     })
 
+    -- 修复：主窗口矩形阴影，使用正确的 SliceCenter 完美包裹边框
     local MainShadow = Create("ImageLabel", {
         Name = "Shadow",
         Parent = MainFrame,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, -25, 0, -25),
-        Size = UDim2.new(1, 50, 1, 50),
+        Position = UDim2.new(0, -15, 0, -15),
+        Size = UDim2.new(1, 30, 1, 30),
         ZIndex = -1,
         Image = "rbxassetid://1316045217",
         ImageColor3 = Library.Theme.Shadow,
         ImageTransparency = 0.3,
         ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(49, 49, 450, 450)
+        SliceCenter = Rect.new(120, 120, 136, 136)
     })
 
     local TopBar = Create("Frame", {
@@ -424,6 +424,7 @@ function Library:CreateWindow(Config)
         CornerRadius = UDim.new(1, 0)
     })
 
+    -- 修复：悬浮球圆形阴影，改用 ScaleType.Stretch 避免变成正方形，完美包裹圆形边框
     local BallShadow = Create("ImageLabel", {
         Name = "Shadow",
         Parent = FloatingBall,
@@ -434,8 +435,7 @@ function Library:CreateWindow(Config)
         Image = "rbxassetid://1316045217",
         ImageColor3 = Library.Theme.Shadow,
         ImageTransparency = 0.3,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(49, 49, 450, 450)
+        ScaleType = Enum.ScaleType.Stretch 
     })
 
     local BallIcon = Create("ImageLabel", {
