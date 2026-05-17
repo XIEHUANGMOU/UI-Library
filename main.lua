@@ -257,7 +257,7 @@ UI_Shadow.Parent = WindowFrame
     BottomBar.Parent = MainFrame
 
     local BottomCorner = Instance.new("UICorner")
-    BottomCorner.CornerRadius = UDim.new(0, 24)
+    BottomCorner.CornerRadius = UDim.new(0, 2)
     BottomCorner.Parent = BottomBar
 
     local InfoLabel = Instance.new("TextLabel")
