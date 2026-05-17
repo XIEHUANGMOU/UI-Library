@@ -69,7 +69,7 @@ function Library:CreateWindow(Config)
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 24)
+    MainCorner.CornerRadius = UDim.new(0, 2)
     MainCorner.Parent = MainFrame
 
     local MainStroke = Instance.new("UIStroke")
