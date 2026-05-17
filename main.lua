@@ -93,7 +93,7 @@ UI_Shadow.Parent = WindowFrame
         BgImage.Size = UDim2.new(1, 0, 1, 0)
         BgImage.BackgroundTransparency = 1
         BgImage.Image = Config.BackgroundImage
-        BgImage.ImageTransparency = 0.4
+        BgImage.ImageTransparency = 0.55
         BgImage.ScaleType = Enum.ScaleType.Crop
         BgImage.Parent = MainFrame
         
