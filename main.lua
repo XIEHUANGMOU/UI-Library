@@ -45,17 +45,21 @@ function Library:CreateWindow(Config)
     WindowFrame.Parent = ScreenGui
 
     local UI_Shadow = Instance.new("ImageLabel")
-    UI_Shadow.Name = "UI_Shadow"
-    UI_Shadow.Size = UDim2.new(1, 20, 1, 20)
-    UI_Shadow.Position = UDim2.new(0, -10, 0, -10)
-    UI_Shadow.BackgroundTransparency = 1
-    UI_Shadow.Image = "rbxassetid://1316045217"
-    UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.5
-    UI_Shadow.ScaleType = Enum.ScaleType.Slice
-    UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    UI_Shadow.ZIndex = 0
-    UI_Shadow.Parent = WindowFrame
+UI_Shadow.Name = "UI_Shadow"
+UI_Shadow.Size = UDim2.new(1, 20, 1, 20)
+UI_Shadow.Position = UDim2.new(0, -10, 0, -10)
+UI_Shadow.BackgroundTransparency = 1
+UI_Shadow.Image = "rbxassetid://1316045217"
+UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+UI_Shadow.ImageTransparency = 0.5
+UI_Shadow.ScaleType = Enum.ScaleType.Slice
+UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
+UI_Shadow.ZIndex = 0
+UI_Shadow.Parent = WindowFrame
+
+local ShadowCorner = Instance.new("UICorner")
+ShadowCorner.CornerRadius = UDim.new(0, 24)
+ShadowCorner.Parent = UI_Shadow
 
     local MainFrame = Instance.new("CanvasGroup")
     MainFrame.Name = "MainFrame"
@@ -69,7 +73,7 @@ function Library:CreateWindow(Config)
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 2)
+    MainCorner.CornerRadius = UDim.new(0, 24)
     MainCorner.Parent = MainFrame
 
     local MainStroke = Instance.new("UIStroke")
