@@ -2,7 +2,9 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
+
 local Library = {}
+
 function Library:CreateWindow(Config)
     Config.Title = Config.Title or "未命名核心"
     Config.SubTitle = Config.SubTitle or "本地玩家加速器"
@@ -10,11 +12,15 @@ function Library:CreateWindow(Config)
     Config.Icon = Config.Icon or "rbxassetid://6031763426"
     Config.BackgroundImage = Config.BackgroundImage or ""
     Config.BallImage = Config.BallImage ~= nil and Config.BallImage or Config.Icon
+    Config.UIFG = Config.UIFG or "Default"
+
+    local IsMac = Config.UIFG == "Mac"
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "LiquidGlass_UiEngine"
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.ResetOnSpawn = false
+    
     if RunService:IsStudio() then
         ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     else
@@ -35,10 +41,10 @@ function Library:CreateWindow(Config)
     UI_Shadow.BackgroundTransparency = 1
     UI_Shadow.Image = "rbxassetid://1316045217"
     UI_Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    UI_Shadow.ImageTransparency = 0.3
+    UI_Shadow.ImageTransparency = 0.5
     UI_Shadow.ScaleType = Enum.ScaleType.Slice
     UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
-    UI_Shadow.ZIndex = 999999998
+    UI_Shadow.ZIndex = 0
     UI_Shadow.Parent = WindowFrame
 
     local MainFrame = Instance.new("CanvasGroup")
@@ -46,10 +52,10 @@ function Library:CreateWindow(Config)
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
     MainFrame.Position = UDim2.new(0, 0, 0, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
-    MainFrame.BackgroundTransparency = 0.15
+    MainFrame.BackgroundTransparency = 0.55
     MainFrame.BorderSizePixel = 0
     MainFrame.GroupTransparency = 1 
-    MainFrame.ZIndex = 999999999
+    MainFrame.ZIndex = 1
     MainFrame.Parent = WindowFrame
 
     local MainCorner = Instance.new("UICorner")
@@ -77,7 +83,7 @@ function Library:CreateWindow(Config)
         BgImage.Size = UDim2.new(1, 0, 1, 0)
         BgImage.BackgroundTransparency = 1
         BgImage.Image = Config.BackgroundImage
-        BgImage.ImageTransparency = 0.6
+        BgImage.ImageTransparency = 0.85
         BgImage.ScaleType = Enum.ScaleType.Crop
         BgImage.Parent = MainFrame
         
@@ -95,7 +101,7 @@ function Library:CreateWindow(Config)
     local IconLabel = Instance.new("ImageLabel")
     IconLabel.Name = "IconLabel"
     IconLabel.Size = UDim2.new(0, 36, 0, 36)
-    IconLabel.Position = UDim2.new(0, 20, 0, 15)
+    IconLabel.Position = IsMac and UDim2.new(0, 100, 0, 15) or UDim2.new(0, 20, 0, 15)
     IconLabel.BackgroundTransparency = 1
     IconLabel.Image = Config.Icon
     IconLabel.Parent = TopBar
@@ -103,7 +109,7 @@ function Library:CreateWindow(Config)
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "TitleLabel"
     TitleLabel.Size = UDim2.new(0, 200, 0, 24)
-    TitleLabel.Position = UDim2.new(0, 68, 0, 12)
+    TitleLabel.Position = IsMac and UDim2.new(0, 148, 0, 12) or UDim2.new(0, 68, 0, 12)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.TextSize = 18
@@ -115,7 +121,7 @@ function Library:CreateWindow(Config)
     local SubLabel = Instance.new("TextLabel")
     SubLabel.Name = "SubLabel"
     SubLabel.Size = UDim2.new(0, 200, 0, 18)
-    SubLabel.Position = UDim2.new(0, 68, 0, 34)
+    SubLabel.Position = IsMac and UDim2.new(0, 148, 0, 34) or UDim2.new(0, 68, 0, 34)
     SubLabel.BackgroundTransparency = 1
     SubLabel.Font = Enum.Font.GothamMedium
     SubLabel.TextSize = 13
@@ -148,7 +154,7 @@ function Library:CreateWindow(Config)
     SearchIcon.Position = UDim2.new(0, 10, 0, 8)
     SearchIcon.BackgroundTransparency = 1
     SearchIcon.ImageColor3 = Color3.fromRGB(150, 160, 180)
-    SearchIcon.Image = "rbxassetid://140161092708960" 
+    SearchIcon.Image = "rbxassetid://140161092708960"
     SearchIcon.Parent = SearchFrame
 
     local SearchInput = Instance.new("TextBox")
@@ -169,10 +175,10 @@ function Library:CreateWindow(Config)
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Size = UDim2.new(0, 32, 0, 32)
-    CloseButton.Position = UDim2.new(1, -45, 0, 16)
+    CloseButton.Position = IsMac and UDim2.new(0, 15, 0, 16) or UDim2.new(1, -45, 0, 16)
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
     CloseButton.BackgroundTransparency = 0.2
-    CloseButton.Text = "×"
+    CloseButton.Text = IsMac and "" or "×"
     CloseButton.Font = Enum.Font.GothamBold
     CloseButton.TextSize = 22
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -182,13 +188,22 @@ function Library:CreateWindow(Config)
     CloseCorner.CornerRadius = UDim.new(0, 16)
     CloseCorner.Parent = CloseButton
 
+    if IsMac then
+        local CloseImage = Instance.new("ImageLabel")
+        CloseImage.Name = "CloseImage"
+        CloseImage.Size = UDim2.new(1, 0, 1, 0)
+        CloseImage.BackgroundTransparency = 1
+        CloseImage.Image = "rbxassetid://91061623080109"
+        CloseImage.Parent = CloseButton
+    end
+
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Size = UDim2.new(0, 32, 0, 32)
-    MinimizeButton.Position = UDim2.new(1, -85, 0, 16)
+    MinimizeButton.Position = IsMac and UDim2.new(0, 55, 0, 16) or UDim2.new(1, -85, 0, 16)
     MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 180, 50)
     MinimizeButton.BackgroundTransparency = 0.2
-    MinimizeButton.Text = "−"
+    MinimizeButton.Text = IsMac and "" or "−"
     MinimizeButton.Font = Enum.Font.GothamBold
     MinimizeButton.TextSize = 18
     MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -197,6 +212,15 @@ function Library:CreateWindow(Config)
     local MinimizeCorner = Instance.new("UICorner")
     MinimizeCorner.CornerRadius = UDim.new(0, 16)
     MinimizeCorner.Parent = MinimizeButton
+
+    if IsMac then
+        local MinImage = Instance.new("ImageLabel")
+        MinImage.Name = "MinImage"
+        MinImage.Size = UDim2.new(1, 0, 1, 0)
+        MinImage.BackgroundTransparency = 1
+        MinImage.Image = "rbxassetid://92767748272191"
+        MinImage.Parent = MinimizeButton
+    end
 
     local BottomBar = Instance.new("Frame")
     BottomBar.Name = "BottomBar"
@@ -260,7 +284,6 @@ function Library:CreateWindow(Config)
     FloatBall.Size = UDim2.new(1, 0, 1, 0)
     FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     FloatBall.BackgroundTransparency = 0.1
-    -- [应用] 调用参数化的 Config.BallImage
     FloatBall.Image = Config.BallImage 
     FloatBall.Parent = FloatBallFrame
 
@@ -278,7 +301,7 @@ function Library:CreateWindow(Config)
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
     TweenService:Create(WindowFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = InitPos}):Play()
     TweenService:Create(MainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
+    TweenService:Create(UI_Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
 
     local Dragging = false
     local DragInput, DragStart, StartPosition
@@ -358,7 +381,7 @@ function Library:CreateWindow(Config)
                     
                     TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
                     TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.2}):Play()
+                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
                 end)
             end
         end
