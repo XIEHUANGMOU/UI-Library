@@ -14,6 +14,16 @@ function Library:CreateWindow(Config)
     Config.BallImage = Config.BallImage ~= nil and Config.BallImage or Config.Icon
     Config.UIFG = Config.UIFG or "Default"
 
+    local OpenBtnConfig = Config.OpenButton or {}
+    OpenBtnConfig.Title = OpenBtnConfig.Title or Config.Title
+    OpenBtnConfig.Icon = OpenBtnConfig.Icon or ""
+    OpenBtnConfig.CornerRadius = OpenBtnConfig.CornerRadius or UDim.new(0, 16)
+    OpenBtnConfig.StrokeThickness = OpenBtnConfig.StrokeThickness or 2
+    OpenBtnConfig.Color = OpenBtnConfig.Color or ColorSequence.new(Color3.fromRGB(255, 255, 255))
+    OpenBtnConfig.OnlyMobile = OpenBtnConfig.OnlyMobile or false
+    OpenBtnConfig.Enabled = OpenBtnConfig.Enabled ~= nil and OpenBtnConfig.Enabled or true
+    OpenBtnConfig.Draggable = OpenBtnConfig.Draggable ~= nil and OpenBtnConfig.Draggable or true
+
     local IsMac = Config.UIFG == "Mac"
 
     local ScreenGui = Instance.new("ScreenGui")
@@ -204,6 +214,10 @@ function Library:CreateWindow(Config)
     MinimizeCorner.CornerRadius = UDim.new(0, 16)
     MinimizeCorner.Parent = MinimizeButton
 
+    if not OpenBtnConfig.Enabled then
+        MinimizeButton.Visible = false
+    end
+
     if IsMac then
         local CloseImage = Instance.new("ImageLabel")
         CloseImage.Name = "CloseImage"
@@ -285,7 +299,7 @@ function Library:CreateWindow(Config)
 
     local FloatBallFrame = Instance.new("CanvasGroup")
     FloatBallFrame.Name = "FloatBallFrame"
-    FloatBallFrame.Size = UDim2.new(0, 160, 0, 40)
+    FloatBallFrame.Size = UDim2.new(0, 180, 0, 40)
     FloatBallFrame.Position = UDim2.new(0, 30, 0, 30)
     FloatBallFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
     FloatBallFrame.BackgroundTransparency = 0.35
@@ -295,14 +309,22 @@ function Library:CreateWindow(Config)
     FloatBallFrame.Parent = ScreenGui
 
     local BallCorner = Instance.new("UICorner")
-    BallCorner.CornerRadius = UDim.new(0, 12)
+    BallCorner.CornerRadius = OpenBtnConfig.CornerRadius
     BallCorner.Parent = FloatBallFrame
 
     local BallStroke = Instance.new("UIStroke")
-    BallStroke.Thickness = 1.5
-    BallStroke.Color = Color3.fromRGB(255, 255, 255)
-    BallStroke.Transparency = 0.7
+    BallStroke.Thickness = OpenBtnConfig.StrokeThickness
+    BallStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     BallStroke.Parent = FloatBallFrame
+
+    if typeof(OpenBtnConfig.Color) == "ColorSequence" then
+        local StrokeGradient = Instance.new("UIGradient")
+        StrokeGradient.Color = OpenBtnConfig.Color
+        StrokeGradient.Rotation = 45
+        StrokeGradient.Parent = BallStroke
+    elseif typeof(OpenBtnConfig.Color) == "Color3" then
+        BallStroke.Color = OpenBtnConfig.Color
+    end
 
     local DragHandle = Instance.new("ImageButton")
     DragHandle.Name = "DragHandle"
@@ -330,17 +352,38 @@ function Library:CreateWindow(Config)
     Divider.BorderSizePixel = 0
     Divider.Parent = FloatBallFrame
 
+    local OpenClickButton = Instance.new("TextButton")
+    OpenClickButton.Name = "OpenClickButton"
+    OpenClickButton.Size = UDim2.new(1, -37, 1, 0)
+    OpenClickButton.Position = UDim2.new(0, 37, 0, 0)
+    OpenClickButton.BackgroundTransparency = 1
+    OpenClickButton.Text = ""
+    OpenClickButton.Parent = FloatBallFrame
+
     local BallTitle = Instance.new("TextLabel")
     BallTitle.Name = "BallTitle"
-    BallTitle.Size = UDim2.new(1, -48, 1, 0)
-    BallTitle.Position = UDim2.new(0, 44, 0, 0)
+    BallTitle.Size = UDim2.new(1, -16, 1, 0)
+    BallTitle.Position = UDim2.new(0, 8, 0, 0)
     BallTitle.BackgroundTransparency = 1
     BallTitle.Font = Enum.Font.GothamBold
     BallTitle.TextSize = 13
     BallTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     BallTitle.TextXAlignment = Enum.TextXAlignment.Left
-    BallTitle.Text = Config.Title
-    BallTitle.Parent = FloatBallFrame
+    BallTitle.Text = OpenBtnConfig.Title
+    BallTitle.Parent = OpenClickButton
+
+    if OpenBtnConfig.Icon and OpenBtnConfig.Icon ~= "" then
+        local RightIcon = Instance.new("ImageLabel")
+        RightIcon.Name = "RightIcon"
+        RightIcon.Size = UDim2.new(0, 18, 0, 18)
+        RightIcon.Position = UDim2.new(1, -26, 0.5, -9)
+        RightIcon.BackgroundTransparency = 1
+        RightIcon.Image = OpenBtnConfig.Icon
+        RightIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        RightIcon.Parent = OpenClickButton
+        
+        BallTitle.Size = UDim2.new(1, -34, 1, 0)
+    end
 
     local InitPos = WindowFrame.Position
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
@@ -380,14 +423,12 @@ function Library:CreateWindow(Config)
     end)
 
     local BallDragging = false
-    local BallMoved = false
     local BallDragStart, BallStartPos
     local BallTargetPos = FloatBallFrame.Position
 
     DragHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if OpenBtnConfig.Draggable and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             BallDragging = true
-            BallMoved = false
             BallDragStart = input.Position
             BallStartPos = FloatBallFrame.Position
             input.Changed:Connect(function()
@@ -399,55 +440,61 @@ function Library:CreateWindow(Config)
     end)
 
     DragHandle.InputChanged:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and BallDragging then
+        if OpenBtnConfig.Draggable and BallDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - BallDragStart
-            if delta.Magnitude > 6 then
-                BallMoved = true
-            end
             BallTargetPos = UDim2.new(BallStartPos.X.Scale, BallStartPos.X.Offset + delta.X, BallStartPos.Y.Scale, BallStartPos.Y.Offset + delta.Y)
             TweenService:Create(FloatBallFrame, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
         end
     end)
 
-    DragHandle.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            if not BallMoved then
-                local BallHidePos = FloatBallFrame.Position + UDim2.new(0, 0, 0, 15)
-                TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
-                local BallFade = TweenService:Create(FloatBallFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
-                BallFade:Play()
-                
-                BallFade.Completed:Connect(function()
-                    FloatBallFrame.Visible = false
-                    WindowFrame.Visible = true
-                    WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 30)
-                    MainFrame.GroupTransparency = 1
-                    UI_Shadow.ImageTransparency = 1
-                    
-                    TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
-                    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-                    TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
-                end)
-            end
-        end
+    OpenClickButton.MouseButton1Click:Connect(function()
+        local BallHidePos = FloatBallFrame.Position + UDim2.new(0, 0, 0, 15)
+        TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
+        local BallFade = TweenService:Create(FloatBallFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+        BallFade:Play()
+        
+        BallFade.Completed:Connect(function()
+            FloatBallFrame.Visible = false
+            WindowFrame.Visible = true
+            WindowFrame.Position = TargetPosition + UDim2.new(0, 0, 0, 30)
+            MainFrame.GroupTransparency = 1
+            UI_Shadow.ImageTransparency = 1
+            
+            TweenService:Create(WindowFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = TargetPosition}):Play()
+            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+            TweenService:Create(UI_Shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0.5}):Play()
+        end)
     end)
 
     MinimizeButton.MouseButton1Click:Connect(function()
-        local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 30)
-        TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
-        TweenService:Create(UI_Shadow, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
-        local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
-        MainFade:Play()
+        if OpenBtnConfig.Enabled then
+            local ShowBall = true
+            if OpenBtnConfig.OnlyMobile and not UIS.TouchEnabled then
+                ShowBall = false
+            end
 
-        MainFade.Completed:Connect(function()
-            WindowFrame.Visible = false
-            FloatBallFrame.Visible = true
-            FloatBallFrame.Position = BallTargetPos + UDim2.new(0, 0, 0, 15)
-            FloatBallFrame.GroupTransparency = 1
-            
-            TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
-            TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-        end)
+            local MinTargetPos = WindowFrame.Position + UDim2.new(0, 0, 0, 30)
+            TweenService:Create(WindowFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = MinTargetPos}):Play()
+            TweenService:Create(UI_Shadow, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1}):Play()
+            local MainFade = TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
+            MainFade:Play()
+
+            MainFade.Completed:Connect(function()
+                WindowFrame.Visible = false
+                if ShowBall then
+                    FloatBallFrame.Visible = true
+                    FloatBallFrame.Position = BallTargetPos + UDim2.new(0, 0, 0, 15)
+                    FloatBallFrame.GroupTransparency = 1
+                    
+                    TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
+                    TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+                else
+                    ScreenGui:Destroy()
+                end
+            end)
+        else
+            ScreenGui:Destroy()
+        end
     end)
 
     CloseButton.MouseButton1Click:Connect(function()
