@@ -6,10 +6,10 @@ local RunService = game:GetService("RunService")
 local Library = {}
 
 function Library:CreateWindow(Config)
-    Config.Title = Config.Title or "未命名核心"
-    Config.SubTitle = Config.SubTitle or "本地玩家加速器"
-    Config.Info = Config.Info or "系统状态: 正常运行"
-    Config.Icon = Config.Icon or "rbxassetid://6031763426"
+    Config.Title = Config.Title or "未命名UI"
+    Config.SubTitle = Config.SubTitle or "副标题"
+    Config.Info = Config.Info or "底部栏"
+    Config.Icon = Config.Icon or "rbxassetid://1"
     Config.BackgroundImage = Config.BackgroundImage or ""
     Config.BallImage = Config.BallImage ~= nil and Config.BallImage or Config.Icon
     Config.UIFG = Config.UIFG or "Default"
@@ -752,7 +752,7 @@ function Library:CreateWindow(Config)
 
         function Tab:Toggle(ElementConfig)
             ElementConfig.Title = ElementConfig.Title or "开关组件"
-            ElementConfig.Desc = ElementConfig.Desc or "控制布尔状态的开启与关闭"
+            ElementConfig.Desc = ElementConfig.Desc or "控制功能开启与关闭"
             ElementConfig.Default = ElementConfig.Default or false
             ElementConfig.Callback = ElementConfig.Callback or function() end
 
@@ -842,7 +842,7 @@ function Library:CreateWindow(Config)
 
         function Tab:Slider(ElementConfig)
             ElementConfig.Title = ElementConfig.Title or "滑块组件"
-            ElementConfig.Desc = ElementConfig.Desc or "在线性区间内调节连续数值"
+            ElementConfig.Desc = ElementConfig.Desc or "调节数值"
             ElementConfig.Min = ElementConfig.Min or 0
             ElementConfig.Max = ElementConfig.Max or 100
             ElementConfig.Default = ElementConfig.Default or 50
