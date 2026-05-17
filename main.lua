@@ -19,7 +19,7 @@ function Library:CreateWindow(Config)
     OpenBtnConfig.Icon = OpenBtnConfig.Icon or ""
     OpenBtnConfig.CornerRadius = OpenBtnConfig.CornerRadius or UDim.new(0, 16)
     OpenBtnConfig.StrokeThickness = OpenBtnConfig.StrokeThickness or 2
-    OpenBtnConfig.Color = OpenBtnConfig.Color or ColorSequence.new(Color3.fromRGB(255, 255, 255))
+    OpenBtnConfig.Color = OpenBtnConfig.Color
     OpenBtnConfig.OnlyMobile = OpenBtnConfig.OnlyMobile or false
     OpenBtnConfig.Enabled = OpenBtnConfig.Enabled ~= nil and OpenBtnConfig.Enabled or true
     OpenBtnConfig.Draggable = OpenBtnConfig.Draggable ~= nil and OpenBtnConfig.Draggable or true
