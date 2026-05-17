@@ -283,31 +283,64 @@ function Library:CreateWindow(Config)
     ContainerBounds.BackgroundTransparency = 1
     ContainerBounds.Parent = ContainerFolder
 
-    local FloatBallFrame = Instance.new("Frame")
+    local FloatBallFrame = Instance.new("CanvasGroup")
     FloatBallFrame.Name = "FloatBallFrame"
-    FloatBallFrame.Size = UDim2.new(0, 55, 0, 55)
+    FloatBallFrame.Size = UDim2.new(0, 160, 0, 40)
     FloatBallFrame.Position = UDim2.new(0, 30, 0, 30)
-    FloatBallFrame.BackgroundTransparency = 1
+    FloatBallFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 35)
+    FloatBallFrame.BackgroundTransparency = 0.35
+    FloatBallFrame.GroupTransparency = 0
+    FloatBallFrame.ClipsDescendants = true
     FloatBallFrame.Visible = false
     FloatBallFrame.Parent = ScreenGui
 
-    local FloatBall = Instance.new("ImageButton")
-    FloatBall.Name = "FloatBall"
-    FloatBall.Size = UDim2.new(1, 0, 1, 0)
-    FloatBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    FloatBall.BackgroundTransparency = 0.1
-    FloatBall.Image = Config.BallImage 
-    FloatBall.Parent = FloatBallFrame
-
     local BallCorner = Instance.new("UICorner")
-    BallCorner.CornerRadius = UDim.new(0, 28)
-    BallCorner.Parent = FloatBall
+    BallCorner.CornerRadius = UDim.new(0, 12)
+    BallCorner.Parent = FloatBallFrame
 
     local BallStroke = Instance.new("UIStroke")
     BallStroke.Thickness = 1.5
     BallStroke.Color = Color3.fromRGB(255, 255, 255)
-    BallStroke.Transparency = 0.6
-    BallStroke.Parent = FloatBall
+    BallStroke.Transparency = 0.7
+    BallStroke.Parent = FloatBallFrame
+
+    local DragHandle = Instance.new("ImageButton")
+    DragHandle.Name = "DragHandle"
+    DragHandle.Size = UDim2.new(0, 36, 1, 0)
+    DragHandle.Position = UDim2.new(0, 0, 0, 0)
+    DragHandle.BackgroundTransparency = 1
+    DragHandle.AutoButtonColor = false
+    DragHandle.Parent = FloatBallFrame
+
+    local HandleIcon = Instance.new("ImageLabel")
+    HandleIcon.Name = "HandleIcon"
+    HandleIcon.Size = UDim2.new(0, 18, 0, 18)
+    HandleIcon.Position = UDim2.new(0.5, -9, 0.5, -9)
+    HandleIcon.BackgroundTransparency = 1
+    HandleIcon.Image = "rbxassetid://97423170859199"
+    HandleIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    HandleIcon.Parent = DragHandle
+
+    local Divider = Instance.new("Frame")
+    Divider.Name = "Divider"
+    Divider.Size = UDim2.new(0, 1, 1, -12)
+    Divider.Position = UDim2.new(0, 36, 0, 6)
+    Divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Divider.BackgroundTransparency = 0.6
+    Divider.BorderSizePixel = 0
+    Divider.Parent = FloatBallFrame
+
+    local BallTitle = Instance.new("TextLabel")
+    BallTitle.Name = "BallTitle"
+    BallTitle.Size = UDim2.new(1, -48, 1, 0)
+    BallTitle.Position = UDim2.new(0, 44, 0, 0)
+    BallTitle.BackgroundTransparency = 1
+    BallTitle.Font = Enum.Font.GothamBold
+    BallTitle.TextSize = 13
+    BallTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BallTitle.TextXAlignment = Enum.TextXAlignment.Left
+    BallTitle.Text = Config.Title
+    BallTitle.Parent = FloatBallFrame
 
     local InitPos = WindowFrame.Position
     WindowFrame.Position = InitPos + UDim2.new(0, 0, 0, 35)
@@ -351,7 +384,7 @@ function Library:CreateWindow(Config)
     local BallDragStart, BallStartPos
     local BallTargetPos = FloatBallFrame.Position
 
-    FloatBall.InputBegan:Connect(function(input)
+    DragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             BallDragging = true
             BallMoved = false
@@ -365,7 +398,7 @@ function Library:CreateWindow(Config)
         end
     end)
 
-    FloatBall.InputChanged:Connect(function(input)
+    DragHandle.InputChanged:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and BallDragging then
             local delta = input.Position - BallDragStart
             if delta.Magnitude > 6 then
@@ -376,12 +409,12 @@ function Library:CreateWindow(Config)
         end
     end)
 
-    FloatBall.InputEnded:Connect(function(input)
+    DragHandle.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if not BallMoved then
                 local BallHidePos = FloatBallFrame.Position + UDim2.new(0, 0, 0, 15)
                 TweenService:Create(FloatBallFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = BallHidePos}):Play()
-                local BallFade = TweenService:Create(FloatBall, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, BackgroundTransparency = 1})
+                local BallFade = TweenService:Create(FloatBallFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {GroupTransparency = 1})
                 BallFade:Play()
                 
                 BallFade.Completed:Connect(function()
@@ -410,11 +443,10 @@ function Library:CreateWindow(Config)
             WindowFrame.Visible = false
             FloatBallFrame.Visible = true
             FloatBallFrame.Position = BallTargetPos + UDim2.new(0, 0, 0, 15)
-            FloatBall.ImageTransparency = 1
-            FloatBall.BackgroundTransparency = 1
+            FloatBallFrame.GroupTransparency = 1
             
             TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = BallTargetPos}):Play()
-            TweenService:Create(FloatBall, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, BackgroundTransparency = 0.1}):Play()
+            TweenService:Create(FloatBallFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
         end)
     end)
 
