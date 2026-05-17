@@ -133,10 +133,10 @@ function Library:CreateWindow(Config)
     local SearchFrame = Instance.new("Frame")
     SearchFrame.Name = "SearchFrame"
     SearchFrame.Size = UDim2.new(0, 160, 0, 32)
-    SearchFrame.Position = UDim2.new(1, -265, 0, 16)
+    SearchFrame.Position = UDim2.new(0, 12, 0, 72)
     SearchFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
     SearchFrame.BackgroundTransparency = 0.5
-    SearchFrame.Parent = TopBar
+    SearchFrame.Parent = MainFrame
 
     local SearchCorner = Instance.new("UICorner")
     SearchCorner.CornerRadius = UDim.new(0, 8)
@@ -188,15 +188,6 @@ function Library:CreateWindow(Config)
     CloseCorner.CornerRadius = UDim.new(0, 16)
     CloseCorner.Parent = CloseButton
 
-    if IsMac then
-        local CloseImage = Instance.new("ImageLabel")
-        CloseImage.Name = "CloseImage"
-        CloseImage.Size = UDim2.new(1, 0, 1, 0)
-        CloseImage.BackgroundTransparency = 1
-        CloseImage.Image = "rbxassetid://91061623080109"
-        CloseImage.Parent = CloseButton
-    end
-
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Size = UDim2.new(0, 32, 0, 32)
@@ -214,12 +205,33 @@ function Library:CreateWindow(Config)
     MinimizeCorner.Parent = MinimizeButton
 
     if IsMac then
+        local CloseImage = Instance.new("ImageLabel")
+        CloseImage.Name = "CloseImage"
+        CloseImage.Size = UDim2.new(0, 16, 0, 16)
+        CloseImage.Position = UDim2.new(0.5, -8, 0.5, -8)
+        CloseImage.BackgroundTransparency = 1
+        CloseImage.Image = "rbxassetid://91061623080109"
+        CloseImage.ImageTransparency = 1
+        CloseImage.Parent = CloseButton
+
         local MinImage = Instance.new("ImageLabel")
         MinImage.Name = "MinImage"
-        MinImage.Size = UDim2.new(1, 0, 1, 0)
+        MinImage.Size = UDim2.new(0, 16, 0, 16)
+        MinImage.Position = UDim2.new(0.5, -8, 0.5, -8)
         MinImage.BackgroundTransparency = 1
         MinImage.Image = "rbxassetid://92767748272191"
+        MinImage.ImageTransparency = 1
         MinImage.Parent = MinimizeButton
+
+        local function FadeMacIcons(TargetTransparency)
+            TweenService:Create(CloseImage, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = TargetTransparency}):Play()
+            TweenService:Create(MinImage, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = TargetTransparency}):Play()
+        end
+
+        CloseButton.MouseEnter:Connect(function() FadeMacIcons(0) end)
+        CloseButton.MouseLeave:Connect(function() FadeMacIcons(1) end)
+        MinimizeButton.MouseEnter:Connect(function() FadeMacIcons(0) end)
+        MinimizeButton.MouseLeave:Connect(function() FadeMacIcons(1) end)
     end
 
     local BottomBar = Instance.new("Frame")
@@ -248,8 +260,8 @@ function Library:CreateWindow(Config)
 
     local SideBar = Instance.new("ScrollingFrame")
     SideBar.Name = "SideBar"
-    SideBar.Size = UDim2.new(0, 160, 1, -105)
-    SideBar.Position = UDim2.new(0, 12, 0, 65)
+    SideBar.Size = UDim2.new(0, 160, 1, -152)
+    SideBar.Position = UDim2.new(0, 12, 0, 114)
     SideBar.BackgroundTransparency = 1
     SideBar.CanvasSize = UDim2.new(0, 0, 0, 0)
     SideBar.ScrollBarThickness = 0
