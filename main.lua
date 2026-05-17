@@ -121,7 +121,7 @@ function Library:CreateWindow(Config)
     local SubLabel = Instance.new("TextLabel")
     SubLabel.Name = "SubLabel"
     SubLabel.Size = UDim2.new(0, 200, 0, 18)
-    SubLabel.Position = IsMac security and UDim2.new(0, 148, 0, 34) or UDim2.new(0, 68, 0, 34)
+    SubLabel.Position = IsMac and UDim2.new(0, 148, 0, 34) or UDim2.new(0, 68, 0, 34)
     SubLabel.BackgroundTransparency = 1
     SubLabel.Font = Enum.Font.GothamMedium
     SubLabel.TextSize = 13
@@ -133,16 +133,10 @@ function Library:CreateWindow(Config)
     local SearchFrame = Instance.new("Frame")
     SearchFrame.Name = "SearchFrame"
     SearchFrame.Size = UDim2.new(0, 160, 0, 32)
-    SearchFrame.Position = UDim2.new(0, 12, 0, 15)
+    SearchFrame.Position = UDim2.new(0, 12, 0, 72)
     SearchFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 26)
     SearchFrame.BackgroundTransparency = 0.5
     SearchFrame.Parent = MainFrame
-
-    if IsMac then
-        SearchFrame.Position = UDim2.new(0, 360, 0, 16)
-    else
-        SearchFrame.Position = UDim2.new(1, -220, 0, 16)
-    end
 
     local SearchCorner = Instance.new("UICorner")
     SearchCorner.CornerRadius = UDim.new(0, 8)
@@ -213,8 +207,8 @@ function Library:CreateWindow(Config)
     if IsMac then
         local CloseImage = Instance.new("ImageLabel")
         CloseImage.Name = "CloseImage"
-        CloseImage.Size = UDim2.new(0, 12, 0, 12)
-        CloseImage.Position = UDim2.new(0.5, -6, 0.5, -6)
+        CloseImage.Size = UDim2.new(0, 14, 0, 14)
+        CloseImage.Position = UDim2.new(0.5, -7, 0.5, -7)
         CloseImage.BackgroundTransparency = 1
         CloseImage.Image = "rbxassetid://91061623080109"
         CloseImage.ImageTransparency = 1
@@ -222,8 +216,8 @@ function Library:CreateWindow(Config)
 
         local MinImage = Instance.new("ImageLabel")
         MinImage.Name = "MinImage"
-        MinImage.Size = UDim2.new(0, 12, 0, 12)
-        MinImage.Position = UDim2.new(0.5, -6, 0.5, -6)
+        MinImage.Size = UDim2.new(0, 14, 0, 14)
+        MinImage.Position = UDim2.new(0.5, -7, 0.5, -7)
         MinImage.BackgroundTransparency = 1
         MinImage.Image = "rbxassetid://92767748272191"
         MinImage.ImageTransparency = 1
@@ -266,8 +260,8 @@ function Library:CreateWindow(Config)
 
     local SideBar = Instance.new("ScrollingFrame")
     SideBar.Name = "SideBar"
-    SideBar.Size = UDim2.new(0, 160, 1, -110)
-    SideBar.Position = UDim2.new(0, 12, 0, 72)
+    SideBar.Size = UDim2.new(0, 160, 1, -152)
+    SideBar.Position = UDim2.new(0, 12, 0, 114)
     SideBar.BackgroundTransparency = 1
     SideBar.CanvasSize = UDim2.new(0, 0, 0, 0)
     SideBar.ScrollBarThickness = 0
@@ -613,48 +607,53 @@ function Library:CreateWindow(Config)
 
             local InteractButton = Instance.new("TextButton")
             InteractButton.Name = "Interact"
-            InteractButton.Size = UDim2.new(0, 32, 0, 32)
-            InteractButton.Position = UDim2.new(1, -48, 0, 11)
+            InteractButton.Size = UDim2.new(0, 34, 0, 34)
+            InteractButton.Position = UDim2.new(1, -50, 0, 10)
             InteractButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            InteractButton.BackgroundTransparency = ElementConfig.Locked and 0.5 or 0
-            InteractButton.Text = ElementConfig.Locked and "锁" or ""
+            InteractButton.BackgroundTransparency = 0
+            InteractButton.Text = ""
             InteractButton.Font = Enum.Font.GothamBold
-            InteractButton.TextSize = 12
-            InteractButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             InteractButton.AutoButtonColor = false
             InteractButton.Parent = ButtonFrame
 
             local ButtonCorner = Instance.new("UICorner")
-            ButtonCorner.CornerRadius = UDim.new(0, 16)
+            ButtonCorner.CornerRadius = UDim.new(0, 17)
             ButtonCorner.Parent = InteractButton
 
             local ButtonGradient = Instance.new("UIGradient")
-            ButtonGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 240, 220)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 180, 90))
-            })
             ButtonGradient.Rotation = 45
+            if ElementConfig.Locked then
+                ButtonGradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(75, 80, 90)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 55, 65))
+                })
+            else
+                ButtonGradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 220, 180)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 150, 210))
+                })
+            end
             ButtonGradient.Parent = InteractButton
 
-            if not ElementConfig.Locked then
-                local ButtonIcon = Instance.new("ImageLabel")
-                ButtonIcon.Name = "Icon"
-                ButtonIcon.Size = UDim2.new(0, 16, 0, 16)
-                ButtonIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
-                ButtonIcon.BackgroundTransparency = 1
-                ButtonIcon.Image = "rbxassetid://97001987725758"
-                ButtonIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                ButtonIcon.Parent = InteractButton
+            local ButtonIcon = Instance.new("ImageLabel")
+            ButtonIcon.Name = "ButtonIcon"
+            ButtonIcon.Size = UDim2.new(0, 18, 0, 18)
+            ButtonIcon.Position = UDim2.new(0.5, -9, 0.5, -9)
+            ButtonIcon.BackgroundTransparency = 1
+            ButtonIcon.Image = "rbxassetid://97001987725758"
+            ButtonIcon.ImageColor3 = ElementConfig.Locked and Color3.fromRGB(150, 155, 165) or Color3.fromRGB(255, 255, 255)
+            ButtonIcon.Parent = InteractButton
 
+            if not ElementConfig.Locked then
                 InteractButton.MouseButton1Down:Connect(function()
-                    TweenService:Create(ButtonGradient, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Rotation = 90
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundTransparency = 0.25
                     }):Play()
                 end)
 
                 InteractButton.MouseButton1Up:Connect(function()
-                    TweenService:Create(ButtonGradient, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Rotation = 45
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        BackgroundTransparency = 0
                     }):Play()
                     ElementConfig.Callback()
                 end)
@@ -665,7 +664,7 @@ function Library:CreateWindow(Config)
 
                 InteractButton.MouseLeave:Connect(function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.96}):Play()
-                    TweenService:Create(ButtonGradient, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Rotation = 45}):Play()
+                    TweenService:Create(InteractButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
                 end)
             end
 
@@ -838,9 +837,11 @@ function Library:CreateWindow(Config)
             TrackCorner.CornerRadius = UDim.new(0, 3)
             TrackCorner.Parent = SliderTrack
 
+            local InitialAlpha = (ElementConfig.Default - ElementConfig.Min) / (ElementConfig.Max - ElementConfig.Min)
+
             local SliderFill = Instance.new("Frame")
             SliderFill.Name = "Fill"
-            SliderFill.Size = UDim2.new((ElementConfig.Default - ElementConfig.Min) / (ElementConfig.Max - ElementConfig.Min), 0, 1, 0)
+            SliderFill.Size = UDim2.new(InitialAlpha, 0, 1, 0)
             SliderFill.BackgroundColor3 = Color3.fromRGB(45, 130, 255)
             SliderFill.BorderSizePixel = 0
             SliderFill.Parent = SliderTrack
@@ -850,33 +851,23 @@ function Library:CreateWindow(Config)
             FillCorner.Parent = SliderFill
 
             local SliderKnob = Instance.new("Frame")
-            SliderKnob.Name = "Knob"
-            SliderKnob.Size = UDim2.new(0, 10, 0, 10)
-            SliderKnob.Position = UDim2.new(1, 0, 0.5, 0)
-            SliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
+            SliderKnob.Name = "SliderKnob"
+            SliderKnob.Size = UDim2.new(0, 14, 0, 14)
+            SliderKnob.Position = UDim2.new(InitialAlpha, -7, 0.5, -7)
             SliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SliderKnob.Parent = SliderFill
+            SliderKnob.ZIndex = 3
+            SliderKnob.Parent = SliderTrack
 
             local KnobCorner = Instance.new("UICorner")
-            KnobCorner.CornerRadius = UDim.new(0, 5)
+            KnobCorner.CornerRadius = UDim.new(0, 7)
             KnobCorner.Parent = SliderKnob
 
-            local KnobRing = Instance.new("Frame")
-            KnobRing.Name = "Ring"
-            KnobRing.Size = UDim2.new(0, 18, 0, 18)
-            KnobRing.Position = UDim2.new(0.5, -9, 0.5, -9)
-            KnobRing.BackgroundTransparency = 1
-            KnobRing.Parent = SliderKnob
-
-            local RingCorner = Instance.new("UICorner")
-            RingCorner.CornerRadius = UDim.new(0, 9)
-            RingCorner.Parent = KnobRing
-
-            local RingStroke = Instance.new("UIStroke")
-            RingStroke.Thickness = 1.5
-            RingStroke.Color = Color3.fromRGB(45, 130, 255)
-            RingStroke.Transparency = 0.3
-            RingStroke.Parent = KnobRing
+            local KnobStroke = Instance.new("UIStroke")
+            KnobStroke.Thickness = 3.5
+            KnobStroke.Color = Color3.fromRGB(45, 130, 255)
+            KnobStroke.Transparency = 0.4
+            KnobStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            KnobStroke.Parent = SliderKnob
 
             local ActiveSliding = false
 
@@ -886,6 +877,7 @@ function Library:CreateWindow(Config)
                 local RoundedVal = math.floor(PreciseVal + 0.5)
                 
                 TweenService:Create(SliderFill, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(Alpha, 0, 1, 0)}):Play()
+                TweenService:Create(SliderKnob, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(Alpha, -7, 0.5, -7)}):Play()
                 ValueLabel.Text = tostring(RoundedVal)
                 ElementConfig.Callback(RoundedVal)
             end
@@ -987,9 +979,9 @@ function Library:CreateWindow(Config)
             OptionContainer.Position = UDim2.new(0, 16, 0, 54)
             OptionContainer.BackgroundTransparency = 1
             OptionContainer.ClipsDescendants = true
-            OptionContainer.ScrollBarThickness = 3
+            OptionContainer.ScrollBarThickness = 2
             OptionContainer.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
-            OptionContainer.ScrollBarImageTransparency = 0.7
+            OptionContainer.ScrollBarImageTransparency = 0.6
             OptionContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
             OptionContainer.Parent = DropdownFrame
 
@@ -998,16 +990,17 @@ function Library:CreateWindow(Config)
             OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
             OptionLayout.Parent = OptionContainer
 
+            OptionLayout.Changed:Connect(function()
+                OptionContainer.CanvasSize = UDim2.new(0, 0, 0, OptionLayout.AbsoluteContentSize.Y)
+            end)
+
             local function RefreshLayout()
                 if Extended then
-                    local RealContentHeight = OptionLayout.AbsoluteContentSize.Y + 10
-                    local MaxAllowedHeight = 120
-                    local ContainerHeight = math.min(RealContentHeight, MaxAllowedHeight)
-                    local TargetSize = ContainerHeight + 64
-                    
-                    OptionContainer.CanvasSize = UDim2.new(0, 0, 0, RealContentHeight)
+                    local ContentHeight = OptionLayout.AbsoluteContentSize.Y
+                    local DisplayHeight = math.min(ContentHeight, 120)
+                    local TargetSize = DisplayHeight + 64
                     TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, TargetSize)}):Play()
-                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, ContainerHeight)}):Play()
+                    TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, DisplayHeight + 4)}):Play()
                 else
                     TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 54)}):Play()
                     TweenService:Create(OptionContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -32, 0, 0)}):Play()
@@ -1022,7 +1015,7 @@ function Library:CreateWindow(Config)
             for Index, OptionName in ipairs(ElementConfig.Options) do
                 local OptButton = Instance.new("TextButton")
                 OptButton.Name = OptionName .. "_Opt"
-                OptButton.Size = UDim2.new(1, -6, 0, 30)
+                OptButton.Size = UDim2.new(1, 0, 0, 30)
                 OptButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 OptButton.BackgroundTransparency = 0.97
                 OptButton.Text = OptionName
