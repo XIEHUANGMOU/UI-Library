@@ -57,10 +57,6 @@ UI_Shadow.SliceCenter = Rect.new(35, 35, 93, 93)
 UI_Shadow.ZIndex = 0
 UI_Shadow.Parent = WindowFrame
 
-local ShadowCorner = Instance.new("UICorner")
-ShadowCorner.CornerRadius = UDim.new(0, 24)
-ShadowCorner.Parent = UI_Shadow
-
     local MainFrame = Instance.new("CanvasGroup")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(1, 0, 1, 0)
