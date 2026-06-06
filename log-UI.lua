@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HackerLogUI"
 ScreenGui.Enabled = false
-ScreenGui.Parent = nil
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 800, 0, 500)
@@ -112,7 +112,6 @@ CloseButton.Parent = MainFrame
 local tabs = {}
 local activeTab = 1
 local tabButtons = {}
-
 local currentTween = nil
 
 local function refreshDisplay(searchTerm)
@@ -121,7 +120,6 @@ local function refreshDisplay(searchTerm)
             child:Destroy()
         end
     end
-    
     if #tabs == 0 then return end
     local currentLogs = tabs[activeTab] and tabs[activeTab].data or {}
     local searchLower = searchTerm and searchTerm:lower() or ""
@@ -142,7 +140,6 @@ local function refreshDisplay(searchTerm)
         end
     end
     LogList.CanvasSize = UDim2.new(0, 0, 0, yOffset)
-    
     local visibleCount = 0
     for _, child in ipairs(LogList:GetChildren()) do
         if child:IsA("TextLabel") then
