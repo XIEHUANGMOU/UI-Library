@@ -1,5 +1,8 @@
 local HackerLogUI = {}
 
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HackerLogUI"
 ScreenGui.Enabled = false
@@ -7,8 +10,9 @@ ScreenGui.Parent = nil
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 800, 0, 500)
-MainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
+MainFrame.Position = UDim2.new(0.5, -400, 1, 0)
 MainFrame.BackgroundColor3 = Color3.new(0.05, 0.05, 0.07)
+MainFrame.BackgroundTransparency = 1
 MainFrame.BorderSizePixel = 1
 MainFrame.BorderColor3 = Color3.new(0.4, 0.45, 0.5)
 MainFrame.ClipsDescendants = true
@@ -104,13 +108,12 @@ CloseButton.TextColor3 = Color3.new(0.85, 0.9, 0.95)
 CloseButton.TextSize = 14
 CloseButton.Font = Enum.Font.SourceSansBold
 CloseButton.Parent = MainFrame
-CloseButton.MouseButton1Click:Connect(function()
-    HackerLogUI.Hide()
-end)
 
 local tabs = {}
 local activeTab = 1
 local tabButtons = {}
+
+local currentTween = nil
 
 local function refreshDisplay(searchTerm)
     for _, child in ipairs(LogList:GetChildren()) do
@@ -229,20 +232,65 @@ local function onInputEnded(input)
     end
 end
 
-game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
-game:GetService("UserInputService").InputChanged:Connect(onInputChanged)
-game:GetService("UserInputService").InputEnded:Connect(onInputEnded)
+UserInputService.InputBegan:Connect(onInputBegan)
+UserInputService.InputChanged:Connect(onInputChanged)
+UserInputService.InputEnded:Connect(onInputEnded)
 
-function HackerLogUI.Show()
-    if not ScreenGui.Parent then
-        ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    end
+local function animateShow()
+    if currentTween then currentTween:Cancel() end
     ScreenGui.Enabled = true
+    local targetPos = UDim2.new(0.5, -400, 0.5, -250)
+    local targetTrans = 0.15
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local posTween = TweenService:Create(MainFrame, tweenInfo, {Position = targetPos})
+    local transTween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = targetTrans})
+    posTween:Play()
+    transTween:Play()
+    currentTween = posTween
+    posTween.Completed:Connect(function() currentTween = nil end)
 end
 
-function HackerLogUI.Hide()
-    ScreenGui.Enabled = false
+local function animateHide(callback)
+    if currentTween then currentTween:Cancel() end
+    local targetPos = UDim2.new(0.5, -400, 1, 0)
+    local targetTrans = 1
+    local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    local posTween = TweenService:Create(MainFrame, tweenInfo, {Position = targetPos})
+    local transTween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = targetTrans})
+    posTween:Play()
+    transTween:Play()
+    currentTween = posTween
+    posTween.Completed:Connect(function()
+        currentTween = nil
+        ScreenGui.Enabled = false
+        if callback then callback() end
+    end)
 end
+
+function HackerLogUI.Show(animate)
+    if animate == false then
+        if currentTween then currentTween:Cancel() end
+        MainFrame.Position = UDim2.new(0.5, -400, 0.5, -250)
+        MainFrame.BackgroundTransparency = 0.15
+        ScreenGui.Enabled = true
+    else
+        animateShow()
+    end
+end
+
+function HackerLogUI.Hide(animate, callback)
+    if animate == false then
+        if currentTween then currentTween:Cancel() end
+        ScreenGui.Enabled = false
+        if callback then callback() end
+    else
+        animateHide(callback)
+    end
+end
+
+CloseButton.MouseButton1Click:Connect(function()
+    HackerLogUI.Hide(true)
+end)
 
 function HackerLogUI.SetTabs(newTabs)
     tabs = newTabs
