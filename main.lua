@@ -75,6 +75,22 @@ IconImg.Visible = false
 IconImg.ZIndex = 2
 IconImg.Parent = TopBar
 
+local HeaderContainer = Instance.new("Frame")
+HeaderContainer.Name = "HeaderContainer"
+HeaderContainer.Position = UDim2.new(0, 15, 0, 5)
+HeaderContainer.Size = UDim2.new(1, -120, 0, 20)
+HeaderContainer.BackgroundTransparency = 1
+HeaderContainer.ZIndex = 2
+HeaderContainer.Parent = TopBar
+
+local HeaderLayout = Instance.new("UIListLayout")
+HeaderLayout.FillDirection = Enum.FillDirection.Horizontal
+HeaderLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+HeaderLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+HeaderLayout.SortOrder = Enum.SortOrder.LayoutOrder
+HeaderLayout.Padding = UDim.new(0, 6)
+HeaderLayout.Parent = HeaderContainer
+
 local function createShadowText(parent, size, position, font, textSize, alignment, name)
 	local shadow = Instance.new("TextLabel")
 	shadow.Name = name .. "_Shadow"
@@ -109,25 +125,28 @@ local function createShadowText(parent, size, position, font, textSize, alignmen
 	return main, shadow
 end
 
-local Title, TitleShadow = createShadowText(TopBar, UDim2.new(1, -250, 0, 20), UDim2.new(0, 15, 0, 5), Enum.Font.Code, 14, Enum.TextXAlignment.Left, "Title")
-local Subtitle, SubtitleShadow = createShadowText(TopBar, UDim2.new(1, -250, 0, 15), UDim2.new(0, 15, 0, 23), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Subtitle")
-Subtitle.TextColor3 = Color3.fromRGB(130, 130, 130)
+local Title, TitleShadow = createShadowText(HeaderContainer, UDim2.new(0, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 14, Enum.TextXAlignment.Left, "Title")
+Title.LayoutOrder = 1
+TitleShadow.LayoutOrder = 1
 
 local TagListContainer = Instance.new("Frame")
 TagListContainer.Name = "TagListContainer"
-TagListContainer.Size = UDim2.new(0, 160, 0, 24)
-TagListContainer.Position = UDim2.new(1, -235, 0, 10)
+TagListContainer.Size = UDim2.new(0, 0, 1, 0)
 TagListContainer.BackgroundTransparency = 1
 TagListContainer.ZIndex = 2
-TagListContainer.Parent = TopBar
+TagListContainer.LayoutOrder = 2
+TagListContainer.Parent = HeaderContainer
 
 local TagListLayout = Instance.new("UIListLayout")
 TagListLayout.FillDirection = Enum.FillDirection.Horizontal
-TagListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+TagListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 TagListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 TagListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TagListLayout.Padding = UDim.new(0, 5)
 TagListLayout.Parent = TagListContainer
+
+local Subtitle, SubtitleShadow = createShadowText(TopBar, UDim2.new(1, -120, 0, 15), UDim2.new(0, 15, 0, 23), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Subtitle")
+Subtitle.TextColor3 = Color3.fromRGB(130, 130, 130)
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 35, 0, 45)
@@ -226,6 +245,29 @@ local themes = {
 	["Yellow"] = Color3.fromRGB(255, 215, 0),
 	["White"] = Color3.fromRGB(240, 240, 240)
 }
+
+local function updateHeaderLayoutSize()
+	local titleWidth = Title.TextBounds.X
+	Title.Size = UDim2.new(0, titleWidth, 1, 0)
+	TitleShadow.Size = UDim2.new(0, titleWidth, 1, 0)
+	
+	local totalTagsWidth = 0
+	local tagCount = 0
+	for _, child in ipairs(TagListContainer:GetChildren()) do
+		if child:IsA("Frame") then
+			totalTagsWidth = totalTagsWidth + child.Size.X.Offset
+			tagCount = tagCount + 1
+		end
+	end
+	if tagCount > 1 then
+		totalTagsWidth = totalTagsWidth + ((tagCount - 1) * TagListLayout.Padding.Offset)
+	end
+	TagListContainer.Size = UDim2.new(0, totalTagsWidth, 1, 0)
+end
+
+Title:GetPropertyChangedSignal("Text"):Connect(updateHeaderLayoutSize)
+Title:GetPropertyChangedSignal("TextBounds"):Connect(updateHeaderLayoutSize)
+TagListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateHeaderLayoutSize)
 
 local function applyColorUpdate(color)
 	currentAccentColor = color
@@ -401,6 +443,7 @@ local function openUI()
 	moveTween.Completed:Connect(function()
 		transparencyValue:Destroy()
 		isAnimating = false
+		updateHeaderLayoutSize()
 	end)
 end
 
@@ -590,14 +633,14 @@ function HMOU_UI:CreateWindow(config)
 	if iconAsset ~= "" then
 		IconImg.Image = iconAsset
 		IconImg.Visible = true
-		Title.Position = UDim2.new(0, 42, 0, 5)
-		TitleShadow.Position = UDim2.new(0, 43, 0, 6)
+		HeaderContainer.Position = UDim2.new(0, 42, 0, 5)
+		HeaderContainer.Size = UDim2.new(1, -147, 0, 20)
 		Subtitle.Position = UDim2.new(0, 42, 0, 23)
 		SubtitleShadow.Position = UDim2.new(0, 43, 0, 24)
 	else
 		IconImg.Visible = false
-		Title.Position = UDim2.new(0, 15, 0, 5)
-		TitleShadow.Position = UDim2.new(0, 16, 0, 6)
+		HeaderContainer.Position = UDim2.new(0, 15, 0, 5)
+		HeaderContainer.Size = UDim2.new(1, -120, 0, 20)
 		Subtitle.Position = UDim2.new(0, 15, 0, 23)
 		SubtitleShadow.Position = UDim2.new(0, 16, 0, 24)
 	end
@@ -609,12 +652,7 @@ function HMOU_UI:CreateWindow(config)
 	else
 		Subtitle.Visible = false
 		SubtitleShadow.Visible = false
-		Title.Position = UDim2.new(Title.Position.X.Scale, Title.Position.X.Offset, 0, 12)
-		TitleShadow.Position = UDim2.new(TitleShadow.Position.X.Scale, TitleShadow.Position.X.Offset, 0, 13)
-	end
-
-	if bgUrl ~= "" and writefile and getcustomasset then
-		handleMediaBackground(bgUrl)
+		HeaderContainer.Position = UDim2.new(HeaderContainer.Position.X.Scale, HeaderContainer.Position.X.Offset, 0, 12)
 	end
 
 	applyThemeStyle(themeStyle)
@@ -635,7 +673,6 @@ function WindowClass:CreateTag(config)
 	
 	local tagFrame = Instance.new("Frame")
 	tagFrame.Name = "Tag_" .. text
-	tagFrame.Size = UDim2.new(0, 60, 1, 0)
 	tagFrame.ZIndex = 2
 	
 	local tagCorner = Instance.new("UICorner")
@@ -678,9 +715,11 @@ function WindowClass:CreateTag(config)
 	tempText.Font = Enum.Font.Code
 	tempText.TextSize = 10
 	tempText.Text = text
-	local bounds = tempText.TextBounds
-	tagFrame.Size = UDim2.new(0, bounds.X + 12, 0, 16)
+	local textWidth = tempText.TextBounds.X
+	tagFrame.Size = UDim2.new(0, textWidth + 10, 0, 15)
 	tempText:Destroy()
+	
+	updateHeaderLayoutSize()
 	
 	if MainFrame.Visible then
 		tagFrame.BackgroundTransparency = tagFrame:GetAttribute("BaseTransparency")
@@ -705,11 +744,13 @@ function WindowClass:CreateTag(config)
 		temp.Font = Enum.Font.Code
 		temp.TextSize = 10
 		temp.Text = newText
-		tagFrame.Size = UDim2.new(0, temp.TextBounds.X + 12, 0, 16)
+		tagFrame.Size = UDim2.new(0, temp.TextBounds.X + 10, 0, 15)
 		temp:Destroy()
+		updateHeaderLayoutSize()
 	end
 	function tagObj:Destroy()
 		tagFrame:Destroy()
+		updateHeaderLayoutSize()
 	end
 	return tagObj
 end
