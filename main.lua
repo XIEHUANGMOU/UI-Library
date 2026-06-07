@@ -1,7 +1,7 @@
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
-local ContentProvider = game:GetService("ContentProvider")
+local HttpService = game:GetService("HttpService")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HMOU_UI_Core"
@@ -31,13 +31,12 @@ MainFrame.Position = UDim2.new(0.5, -275, 0.6, -175)
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
-local BgMedia = Instance.new("ImageLabel")
-BgMedia.Name = "BgMedia"
-BgMedia.Size = UDim2.new(1, 0, 1, 0)
-BgMedia.BackgroundTransparency = 1
-BgMedia.ZIndex = 0
-BgMedia.ImageTransparency = 1
-BgMedia.Parent = MainFrame
+local BgMediaContainer = Instance.new("Frame")
+BgMediaContainer.Name = "BgMediaContainer"
+BgMediaContainer.Size = UDim2.new(1, 0, 1, 0)
+BgMediaContainer.BackgroundTransparency = 1
+BgMediaContainer.ZIndex = 0
+BgMediaContainer.Parent = MainFrame
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 6)
@@ -183,82 +182,33 @@ WidgetBorder.Thickness = 1
 WidgetBorder.Color = Color3.fromRGB(0, 255, 100)
 WidgetBorder.Parent = ToggleWidget
 
-local mediaLoopThread = nil
-local currentMediaConfig = nil
-
-local function clearMediaLoop()
-	if mediaLoopThread then
-		task.cancel(mediaLoopThread)
-		mediaLoopThread = nil
-	end
-end
-
-local function handleMediaAsset(config)
-	clearMediaLoop()
-	currentMediaConfig = config
-	
-	if not config or not config.Asset or #config.Asset == 0 then
-		BgMedia.Image = ""
-		return
-	end
-	
-	local targetOpacity = config.Opacity or 1
-	local finalTransparency = 1 - targetOpacity
-
-	if type(config.Asset) == "table" then
-		if #config.Asset == 1 then
-			BgMedia.Image = config.Asset[1]
-			if MainFrame.Visible then
-				BgMedia.ImageTransparency = finalTransparency
-			end
-		else
-			local fps = config.FPS or 30
-			local delayTime = 1 / fps
-			mediaLoopThread = task.spawn(function()
-				local frameIndex = 1
-				while true do
-					BgMedia.Image = config.Asset[frameIndex]
-					if MainFrame.Visible then
-						BgMedia.ImageTransparency = finalTransparency
-					end
-					frameIndex = frameIndex + 1
-					if frameIndex > #config.Asset then
-						frameIndex = 1
-					end
-					task.wait(delayTime)
-				end
-			end)
-		end
-	elseif type(config.Asset) == "string" then
-		BgMedia.Image = config.Asset
-		if MainFrame.Visible then
-			BgMedia.ImageTransparency = finalTransparency
-		end
-	end
-end
-
 local function changeGroupTransparency(transparency)
-	local hasBg = (currentMediaConfig ~= nil and currentMediaConfig.Asset ~= nil)
-	local targetBgTrans = 1
-	if hasBg then
-		local baseOpacity = currentMediaConfig.Opacity or 1
-		targetBgTrans = 1 - (baseOpacity * (1 - transparency))
-	end
-	
-	MainFrame.BackgroundTransparency = hasBg and (0.3 + (0.7 * transparency)) or transparency
-	BgMedia.ImageTransparency = targetBgTrans
-	
 	MainBorder.Transparency = transparency
-	TopBar.BackgroundTransparency = hasBg and (0.4 + (0.6 * transparency)) or transparency
 	TopBorder.BackgroundTransparency = transparency
 	Title.TextTransparency = transparency
 	Subtitle.TextTransparency = transparency
 	IconImg.ImageTransparency = transparency
 	CloseBtn.TextTransparency = transparency
 	HideBtn.TextTransparency = transparency
-	Sidebar.BackgroundTransparency = hasBg and (0.5 + (0.5 * transparency)) or transparency
 	SidebarBorder.BackgroundTransparency = transparency
 	
+	local targetBgTrans = transparency == 1 and 1 or 0.15
+	local targetSideTrans = transparency == 1 and 1 or 0.25
+	local targetBarTrans = transparency == 1 and 1 or 0.3
+	
+	MainFrame.BackgroundTransparency = transparency == 1 and 1 or targetBgTrans
+	Sidebar.BackgroundTransparency = transparency == 1 and 1 or targetSideTrans
+	TopBar.BackgroundTransparency = transparency == 1 and 1 or targetBarTrans
+	
+	local mediaChild = BgMediaContainer:GetChildren()[1]
+	if mediaChild then
+		if mediaChild:IsA("ImageLabel") then
+			mediaChild.ImageTransparency = transparency
+		elseif mediaChild:IsA("VideoFrame") then
+			mediaChild.Volume = transparency == 1 and 0 or 1
+		end
+	end
+
 	for _, child in ipairs(TabContainer:GetChildren()) do
 		if child:IsA("TextButton") then
 			child.TextTransparency = transparency
@@ -269,10 +219,10 @@ local function changeGroupTransparency(transparency)
 		if page:IsA("ScrollingFrame") then
 			for _, element in ipairs(page:GetChildren()) do
 				if element:IsA("TextButton") then
-					element.BackgroundTransparency = transparency == 1 and 1 or (element:GetAttribute("BaseTransparency") or 0)
+					element.BackgroundTransparency = transparency == 1 and 1 or 0.4
 					element.TextTransparency = transparency
 					local stroke = element:FindFirstChildOfClass("UIStroke")
-					if stroke then stroke.Transparency = transparency end
+					if stroke then stroke.Transparency = transparency == 1 and 1 or 0.6 end
 					local label = element:FindFirstChildOfClass("TextLabel")
 					if label then label.TextTransparency = transparency end
 					local indicator = element:FindFirstChild("IndicatorLabel")
@@ -336,7 +286,6 @@ local function closeUI(destroys)
 		transparencyValue:Destroy()
 		isAnimating = false
 		if destroys then
-			clearMediaLoop()
 			ScreenGui:Destroy()
 		else
 			ToggleWidget.Visible = true
@@ -429,6 +378,54 @@ ToggleWidget.MouseButton1Click:Connect(function()
 	openUI()
 end)
 
+local function handleMediaBackground(url)
+	if not url or url == "" then return end
+	BgMediaContainer:ClearAllChildren()
+
+	local isVideo = string.match(string.lower(url), "%.mp4") or string.match(string.lower(url), "%.mov") or string.match(string.lower(url), "%.webm")
+	local ext = isVideo and ".mp4" or ".png"
+	local fileName = "hmou_bg_" .. string.sub(HttpService:GenerateGUID(false), 1, 8) .. ext
+
+	local originalTitle = Title.Text
+	if isVideo then
+		Title.Text = "系统提示 // 正在下载背景视频，请稍候..."
+	end
+
+	task.spawn(function()
+		local success, response = pcall(function()
+			return game:HttpGet(url)
+		end)
+
+		if success and response then
+			pcall(function()
+				writefile(fileName, response)
+			end)
+			
+			task.spawn(function()
+				if isVideo then
+					local video = Instance.new("VideoFrame")
+					video.Size = UDim2.new(1, 0, 1, 0)
+					video.BackgroundTransparency = 1
+					video.Video = getcustomasset(fileName)
+					video.Looped = true
+					video.ZIndex = 0
+					video.Parent = BgMediaContainer
+					video:Play()
+				else
+					local image = Instance.new("ImageLabel")
+					image.Size = UDim2.new(1, 0, 1, 0)
+					image.BackgroundTransparency = 1
+					image.Image = getcustomasset(fileName)
+					image.ScaleType = Enum.ScaleType.Crop
+					image.ZIndex = 0
+					image.Parent = BgMediaContainer
+				end
+			end)
+		end
+		Title.Text = originalTitle
+	end)
+end
+
 local HMOU_UI = {}
 HMOU_UI.__index = HMOU_UI
 
@@ -443,6 +440,7 @@ function HMOU_UI:CreateWindow(config)
 	local titleText = config.Title or "HMOU UI"
 	local iconAsset = config.Icon or ""
 	local authorText = config.Author or ""
+	local bgUrl = config.Background or ""
 
 	Title.Text = titleText
 	
@@ -465,8 +463,8 @@ function HMOU_UI:CreateWindow(config)
 		Title.Position = UDim2.new(Title.Position.X.Scale, Title.Position.X.Offset, 0, 12)
 	end
 
-	if config.Background then
-		handleMediaAsset(config.Background)
+	if bgUrl ~= "" and writefile and getcustomasset then
+		handleMediaBackground(bgUrl)
 	end
 
 	openUI()
@@ -491,6 +489,7 @@ function WindowClass:CreateTab(config)
 	tabBtn.TextSize = 13
 	tabBtn.Font = Enum.Font.Code
 	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+	tabBtn.ZIndex = 2
 	tabBtn.Parent = TabContainer
 
 	local page = Instance.new("ScrollingFrame")
@@ -501,6 +500,7 @@ function WindowClass:CreateTab(config)
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
 	page.ScrollBarThickness = 2
 	page.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 100)
+	page.ZIndex = 2
 	page.Parent = PageContainer
 
 	local pageLayout = Instance.new("UIListLayout")
@@ -519,7 +519,7 @@ function WindowClass:CreateTab(config)
 	end)
 
 	tabBtn.MouseButton1Click:Connect(function()
-		if MainFrame.BackgroundTransparency > 0.95 then return end
+		if MainFrame.BackgroundTransparency > 0.5 then return end
 		for _, t in ipairs(core.tabs) do
 			TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
 			t.Text = " [ ] " .. string.sub(t.Text, 6)
@@ -546,22 +546,6 @@ function WindowClass:CreateTab(config)
 	return tabInstance
 end
 
-function WindowClass:SetBackground(mediaConfig)
-	handleMediaAsset(mediaConfig)
-end
-
-function WindowClass:SetTitle(newTitle)
-	Title.Text = newTitle
-end
-
-function WindowClass:Close()
-	closeUI(true)
-end
-
-function WindowClass:Minimize()
-	closeUI(false)
-end
-
 function TabClass:CreateButton(config)
 	config = config or {}
 	local text = config.Name or "按钮"
@@ -576,7 +560,8 @@ function TabClass:CreateButton(config)
 	btn.TextSize = 13
 	btn.Font = Enum.Font.Code
 	btn.TextXAlignment = Enum.TextXAlignment.Left
-	btn:SetAttribute("BaseTransparency", 0)
+	btn.BackgroundTransparency = 0.4
+	btn.ZIndex = 2
 	btn.Parent = page
 
 	local btnCorner = Instance.new("UICorner")
@@ -586,21 +571,22 @@ function TabClass:CreateButton(config)
 	local btnBorder = Instance.new("UIStroke")
 	btnBorder.Thickness = 1
 	btnBorder.Color = Color3.fromRGB(30, 30, 30)
+	btnBorder.Transparency = 0.6
 	btnBorder.Parent = btn
 
 	btn.MouseEnter:Connect(function()
-		if MainFrame.BackgroundTransparency > 0.95 then return end
-		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100), Transparency = 0}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20), BackgroundTransparency = 0.2}):Play()
 	end)
 
 	btn.MouseLeave:Connect(function()
-		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
-		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(15, 15, 15)}):Play()
+		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30), Transparency = 0.6}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(15, 15, 15), BackgroundTransparency = 0.4}):Play()
 	end)
 
 	btn.MouseButton1Click:Connect(function()
-		if MainFrame.BackgroundTransparency > 0.95 then return end
+		if MainFrame.BackgroundTransparency > 0.5 then return end
 		btn.Text = " >> " .. text
 		task.delay(0.1, function() btn.Text = " > " .. text end)
 		if callback then callback() end
@@ -619,7 +605,8 @@ function TabClass:CreateToggle(config)
 	toggleBtn.Size = UDim2.new(1, 0, 0, 32)
 	toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 	toggleBtn.Text = ""
-	toggleBtn:SetAttribute("BaseTransparency", 0)
+	toggleBtn.BackgroundTransparency = 0.4
+	toggleBtn.ZIndex = 2
 	toggleBtn.Parent = page
 
 	local toggleCorner = Instance.new("UICorner")
@@ -629,6 +616,7 @@ function TabClass:CreateToggle(config)
 	local toggleBorder = Instance.new("UIStroke")
 	toggleBorder.Thickness = 1
 	toggleBorder.Color = Color3.fromRGB(30, 30, 30)
+	toggleBorder.Transparency = 0.6
 	toggleBorder.Parent = toggleBtn
 
 	local label = Instance.new("TextLabel")
@@ -640,6 +628,7 @@ function TabClass:CreateToggle(config)
 	label.TextSize = 13
 	label.Font = Enum.Font.Code
 	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.ZIndex = 2
 	label.Parent = toggleBtn
 
 	local indicator = Instance.new("TextLabel")
@@ -652,6 +641,7 @@ function TabClass:CreateToggle(config)
 	indicator.TextSize = 13
 	indicator.Font = Enum.Font.Code
 	indicator.TextXAlignment = Enum.TextXAlignment.Right
+	indicator.ZIndex = 2
 	indicator.Parent = toggleBtn
 
 	local function updateToggle()
@@ -661,16 +651,16 @@ function TabClass:CreateToggle(config)
 	end
 
 	toggleBtn.MouseEnter:Connect(function()
-		if MainFrame.BackgroundTransparency > 0.95 then return end
-		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100), Transparency = 0}):Play()
 	end)
 
 	toggleBtn.MouseLeave:Connect(function()
-		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
+		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30), Transparency = 0.6}):Play()
 	end)
 
 	toggleBtn.MouseButton1Click:Connect(function()
-		if MainFrame.BackgroundTransparency > 0.95 then return end
+		if MainFrame.BackgroundTransparency > 0.5 then return end
 		state = not state
 		updateToggle()
 	end)
