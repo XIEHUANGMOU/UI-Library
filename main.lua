@@ -43,7 +43,7 @@ MainBorder.Parent = MainFrame
 
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
-TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 TopBar.BorderSizePixel = 0
 TopBar.BackgroundTransparency = 1
@@ -57,9 +57,16 @@ TopBorder.BorderSizePixel = 0
 TopBorder.BackgroundTransparency = 1
 TopBorder.Parent = TopBar
 
+local IconImg = Instance.new("ImageLabel")
+IconImg.Size = UDim2.new(0, 24, 0, 24)
+IconImg.Position = UDim2.new(0, 12, 0, 10)
+IconImg.BackgroundTransparency = 1
+IconImg.Visible = false
+IconImg.Parent = TopBar
+
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -70, 1, 0)
-Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Size = UDim2.new(1, -120, 0, 20)
+Title.Position = UDim2.new(0, 15, 0, 5)
 Title.BackgroundTransparency = 1
 Title.TextColor3 = Color3.fromRGB(0, 255, 100)
 Title.TextSize = 14
@@ -68,8 +75,19 @@ Title.Font = Enum.Font.Code
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TopBar
 
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -120, 0, 15)
+Subtitle.Position = UDim2.new(0, 15, 0, 23)
+Subtitle.BackgroundTransparency = 1
+Subtitle.TextColor3 = Color3.fromRGB(100, 100, 100)
+Subtitle.TextSize = 11
+Subtitle.TextTransparency = 1
+Subtitle.Font = Enum.Font.Code
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = TopBar
+
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Size = UDim2.new(0, 35, 0, 45)
 CloseBtn.Position = UDim2.new(1, -35, 0, 0)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "[X]"
@@ -80,7 +98,7 @@ CloseBtn.Font = Enum.Font.Code
 CloseBtn.Parent = TopBar
 
 local HideBtn = Instance.new("TextButton")
-HideBtn.Size = UDim2.new(0, 35, 0, 35)
+HideBtn.Size = UDim2.new(0, 35, 0, 45)
 HideBtn.Position = UDim2.new(1, -70, 0, 0)
 HideBtn.BackgroundTransparency = 1
 HideBtn.Text = "[-]"
@@ -92,8 +110,8 @@ HideBtn.Parent = TopBar
 
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
-Sidebar.Position = UDim2.new(0, 0, 0, 35)
-Sidebar.Size = UDim2.new(0, 130, 1, -35)
+Sidebar.Position = UDim2.new(0, 0, 0, 45)
+Sidebar.Size = UDim2.new(0, 130, 1, -45)
 Sidebar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
 Sidebar.BorderSizePixel = 0
 Sidebar.BackgroundTransparency = 1
@@ -121,8 +139,8 @@ TabLayout.Padding = UDim.new(0, 2)
 TabLayout.Parent = TabContainer
 
 local PageContainer = Instance.new("Frame")
-PageContainer.Position = UDim2.new(0, 130, 0, 35)
-PageContainer.Size = UDim2.new(1, -130, 1, -35)
+PageContainer.Position = UDim2.new(0, 130, 0, 45)
+PageContainer.Size = UDim2.new(1, -130, 1, -45)
 PageContainer.BackgroundTransparency = 1
 PageContainer.Parent = MainFrame
 
@@ -153,6 +171,8 @@ local function changeGroupTransparency(transparency)
 	TopBar.BackgroundTransparency = transparency
 	TopBorder.BackgroundTransparency = transparency
 	Title.TextTransparency = transparency
+	Subtitle.TextTransparency = transparency
+	IconImg.ImageTransparency = transparency
 	CloseBtn.TextTransparency = transparency
 	HideBtn.TextTransparency = transparency
 	Sidebar.BackgroundTransparency = transparency
@@ -336,24 +356,45 @@ WindowClass.__index = WindowClass
 local TabClass = {}
 TabClass.__index = TabClass
 
-function HMOU_UI.new()
-	local self = setmetatable({}, HMOU_UI)
-	self.tabs = {}
-	self.pages = {}
-	return self
-end
+function HMOU_UI:CreateWindow(config)
+	config = config or {}
+	local titleText = config.Title or "HMOU UI"
+	local iconAsset = config.Icon or ""
+	local authorText = config.Author or ""
 
-function HMOU_UI:CreateWindow(titleText)
 	Title.Text = titleText
+	
+	if iconAsset ~= "" then
+		IconImg.Image = iconAsset
+		IconImg.Visible = true
+		Title.Position = UDim2.new(0, 42, 0, 5)
+		Subtitle.Position = UDim2.new(0, 42, 0, 23)
+	else
+		IconImg.Visible = false
+		Title.Position = UDim2.new(0, 15, 0, 5)
+		Subtitle.Position = UDim2.new(0, 15, 0, 23)
+	end
+
+	if authorText ~= "" then
+		Subtitle.Text = authorText
+		Subtitle.Visible = true
+	else
+		Subtitle.Visible = false
+		Title.Position = UDim2.new(Title.Position.X.Scale, Title.Position.X.Offset, 0, 12)
+	end
+
 	openUI()
 	
 	local windowInstance = setmetatable({}, WindowClass)
-	windowInstance.core = self
+	windowInstance.tabs = {}
+	windowInstance.pages = {}
 	return windowInstance
 end
 
-function WindowClass:CreateTab(name)
-	local core = self.core
+function WindowClass:CreateTab(config)
+	config = config or {}
+	local name = config.Name or "新栏目"
+	local core = self
 	
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.Size = UDim2.new(1, -10, 0, 32)
@@ -419,19 +460,10 @@ function WindowClass:CreateTab(name)
 	return tabInstance
 end
 
-function WindowClass:SetTitle(newTitle)
-	Title.Text = newTitle
-end
-
-function WindowClass:Close()
-	closeUI(true)
-end
-
-function WindowClass:Minimize()
-	closeUI(false)
-end
-
-function TabClass:CreateButton(text, callback)
+function TabClass:CreateButton(config)
+	config = config or {}
+	local text = config.Name or "按钮"
+	local callback = config.Callback
 	local page = self.page
 	
 	local btn = Instance.new("TextButton")
@@ -473,9 +505,13 @@ function TabClass:CreateButton(text, callback)
 	end)
 end
 
-function TabClass:CreateToggle(text, default, callback)
+function TabClass:CreateToggle(config)
+	config = config or {}
+	local text = config.Name or "开关"
+	local default = config.Default or false
+	local callback = config.Callback
 	local page = self.page
-	local state = default or false
+	local state = default
 	
 	local toggleBtn = Instance.new("TextButton")
 	toggleBtn.Size = UDim2.new(1, 0, 0, 32)
