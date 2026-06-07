@@ -102,7 +102,7 @@ local function createShadowText(parent, size, position, font, textSize, alignmen
 	main.ZIndex = parent.ZIndex + 1
 	main.Parent = parent
 
-	local textSync = main:GetPropertyChangedSignal("Text"):Connect(function()
+	main:GetPropertyChangedSignal("Text"):Connect(function()
 		shadow.Text = main.Text
 	end)
 	
@@ -240,6 +240,13 @@ local function applyColorUpdate(color)
 					if mainText and not indicator then
 						mainText.TextColor3 = color
 					end
+				elseif element:IsA("Frame") and element.Name == "TagElement" then
+					if element:GetAttribute("FollowTheme") == true then
+						local stroke = element:FindFirstChildOfClass("UIStroke")
+						local tagMain = element:FindFirstChild("Tag_Main")
+						if stroke then stroke.Color = color end
+						if tagMain then tagMain.TextColor3 = color end
+					end
 				end
 			end
 		end
@@ -328,6 +335,18 @@ local function changeGroupTransparency(transparency)
 							end
 						end
 					end
+				elseif element:IsA("Frame") and element.Name == "TagElement" then
+					element.BackgroundTransparency = transparency == 1 and 1 or 0.85
+					local stroke = element:FindFirstChildOfClass("UIStroke")
+					if stroke then stroke.Transparency = transparency == 1 and 1 or 0.5 end
+					local m = element:FindFirstChild("Tag_Main")
+					local s = element:FindFirstChild("Tag_Shadow")
+					if m and s then
+						m.TextTransparency = textTrans
+						s.TextTransparency = shadowTrans
+					end
+					local icon = element:FindFirstChild("TagIcon")
+					if icon then icon.ImageTransparency = textTrans end
 				end
 			end
 		end
@@ -774,6 +793,75 @@ function TabClass:CreateToggle(config)
 		state = not state
 		updateToggle()
 	end)
+end
+
+function TabClass:CreateTag(config)
+	config = config or {}
+	local titleText = config.Title or "Featured"
+	local iconAsset = config.Icon or ""
+	local customColor = config.Color
+	local page = self.page
+
+	local tagFrame = Instance.new("Frame")
+	tagFrame.Name = "TagElement"
+	tagFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	tagFrame.BackgroundTransparency = 0.85
+	tagFrame.ZIndex = 2
+	tagFrame.Parent = page
+
+	local tagCorner = Instance.new("UICorner")
+	tagCorner.CornerRadius = UDim.new(0, 4)
+	tagCorner.Parent = tagFrame
+
+	local tagStroke = Instance.new("UIStroke")
+	tagStroke.Thickness = 1
+	tagStroke.Transparency = 0.5
+	tagStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	tagStroke.Parent = tagFrame
+
+	local hasIcon = iconAsset ~= ""
+	local textOffsetX = hasIcon and 24 or 8
+
+	local mLabel, sLabel = createShadowText(tagFrame, UDim2.new(1, -textOffsetX - 8, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Tag")
+	mLabel.Text = titleText
+
+	local iconImg = nil
+	if hasIcon then
+		iconImg = Instance.new("ImageLabel")
+		iconImg.Name = "TagIcon"
+		iconImg.Size = UDim2.new(0, 12, 0, 12)
+		iconImg.Position = UDim2.new(0, 7, 0.5, -6)
+		iconImg.BackgroundTransparency = 1
+		iconImg.Image = iconAsset
+		iconImg.ZIndex = 3
+		iconImg.Parent = tagFrame
+	end
+
+	if customColor then
+		tagFrame:SetAttribute("FollowTheme", false)
+		tagStroke.Color = customColor
+		mLabel.TextColor3 = customColor
+		if iconImg then iconImg.ImageColor3 = customColor end
+	else
+		tagFrame:SetAttribute("FollowTheme", true)
+		tagStroke.Color = currentAccentColor
+		mLabel.TextColor3 = currentAccentColor
+		if iconImg then iconImg.ImageColor3 = currentAccentColor end
+		
+		tagFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+			if iconImg then iconImg.ImageColor3 = currentAccentColor end
+		end)
+	end
+
+	local textBound = game:GetService("TextService"):GetTextSize(titleText, 11, Enum.Font.Code, Vector2.new(1000, 20))
+	local finalWidth = textOffsetX + textBound.X + 10
+	tagFrame.Size = UDim2.new(0, math.clamp(finalWidth, 45, 380), 0, 20)
+
+	if MainFrame.BackgroundTransparency <= 0.5 then
+		mLabel.TextTransparency = 0
+		sLabel.TextTransparency = 0.3
+		if iconImg then iconImg.ImageTransparency = 0 end
+	end
 end
 
 return HMOU_UI
