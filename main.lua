@@ -3,7 +3,7 @@ local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "HackerUI_Core"
+ScreenGui.Name = "HMOU_UI_Core"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -327,210 +327,215 @@ ToggleWidget.MouseButton1Click:Connect(function()
 	openUI()
 end)
 
-local WindUI = {tabs = {}, pages = {}}
+local HMOU_UI = {}
+HMOU_UI.__index = HMOU_UI
 
-function WindUI:CreateWindow(config)
-	local titleText = config.Title or "控制面板"
-	local widgetText = config.WidgetText or "点我"
-	
-	Title.Text = titleText
-	ToggleWidget.Text = widgetText
-	
-	if config.Size and typeof(config.Size) == "UDim2" then
-		MainFrame.Size = config.Size
-		MainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset/2, 0.5, -config.Size.Y.Offset/2)
-	end
-	
-	openUI()
-	
-	local windowMethods = {}
-	
-	function windowMethods:Tab(tabConfig)
-		local name = tabConfig.Title or "未知栏目"
-		
-		local tabBtn = Instance.new("TextButton")
-		tabBtn.Size = UDim2.new(1, -10, 0, 32)
-		tabBtn.Position = UDim2.new(0, 5, 0, 0)
-		tabBtn.BackgroundTransparency = 1
-		tabBtn.Text = " [ ] " .. name
-		tabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-		tabBtn.TextSize = 13
-		tabBtn.Font = Enum.Font.Code
-		tabBtn.TextXAlignment = Enum.TextXAlignment.Left
-		tabBtn.Parent = TabContainer
+local WindowClass = {}
+WindowClass.__index = WindowClass
 
-		local page = Instance.new("ScrollingFrame")
-		page.Size = UDim2.new(1, 0, 1, 0)
-		page.BackgroundTransparency = 1
-		page.BorderSizePixel = 0
-		page.Visible = false
-		page.CanvasSize = UDim2.new(0, 0, 0, 0)
-		page.ScrollBarThickness = 2
-		page.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 100)
-		page.Parent = PageContainer
+local TabClass = {}
+TabClass.__index = TabClass
 
-		local pageLayout = Instance.new("UIListLayout")
-		pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		pageLayout.Padding = UDim.new(0, 6)
-		pageLayout.Parent = page
-		
-		local pagePadding = Instance.new("UIPadding")
-		pagePadding.PaddingTop = UDim.new(0, 10)
-		pagePadding.PaddingLeft = UDim.new(0, 15)
-		pagePadding.PaddingRight = UDim.new(0, 15)
-		pagePadding.Parent = page
-
-		pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-			page.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
-		end)
-
-		tabBtn.MouseButton1Click:Connect(function()
-			if MainFrame.BackgroundTransparency > 0.5 then return end
-			for _, t in ipairs(WindUI.tabs) do
-				TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
-				t.Text = " [ ] " .. string.sub(t.Text, 6)
-			end
-			for _, p in ipairs(WindUI.pages) do
-				p.Visible = false
-			end
-			TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(0, 255, 100)}):Play()
-			tabBtn.Text = " [*] " .. name
-			page.Visible = true
-		end)
-
-		table.insert(WindUI.tabs, tabBtn)
-		table.insert(WindUI.pages, page)
-
-		if #WindUI.tabs == 1 then
-			tabBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
-			tabBtn.Text = " [*] " .. name
-			page.Visible = true
-		end
-
-		local elements = {}
-
-		function elements:Button(btnConfig)
-			local text = btnConfig.Title or "按钮"
-			local callback = btnConfig.Callback
-			
-			local btn = Instance.new("TextButton")
-			btn.Size = UDim2.new(1, 0, 0, 32)
-			btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-			btn.Text = " > " .. text
-			btn.TextColor3 = Color3.fromRGB(0, 255, 100)
-			btn.TextSize = 13
-			btn.Font = Enum.Font.Code
-			btn.TextXAlignment = Enum.TextXAlignment.Left
-			btn:SetAttribute("BaseTransparency", 0)
-			btn.Parent = page
-
-			local btnCorner = Instance.new("UICorner")
-			btnCorner.CornerRadius = UDim.new(0, 4)
-			btnCorner.Parent = btn
-
-			local btnBorder = Instance.new("UIStroke")
-			btnBorder.Thickness = 1
-			btnBorder.Color = Color3.fromRGB(30, 30, 30)
-			btnBorder.Parent = btn
-
-			btn.MouseEnter:Connect(function()
-				if MainFrame.BackgroundTransparency > 0.5 then return end
-				TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
-				TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
-			end)
-
-			btn.MouseLeave:Connect(function()
-				TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
-				TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(15, 15, 15)}):Play()
-			end)
-
-			btn.MouseButton1Click:Connect(function()
-				if MainFrame.BackgroundTransparency > 0.5 then return end
-				btn.Text = " >> " .. text
-				task.delay(0.1, function() btn.Text = " > " .. text end)
-				if callback then callback() end
-			end)
-			
-			return btn
-		end
-
-		function elements:Toggle(toggleConfig)
-			local text = toggleConfig.Title or "开关"
-			local default = toggleConfig.Value or false
-			local callback = toggleConfig.Callback
-			local state = default
-			
-			local toggleBtn = Instance.new("TextButton")
-			toggleBtn.Size = UDim2.new(1, 0, 0, 32)
-			toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-			toggleBtn.Text = ""
-			toggleBtn:SetAttribute("BaseTransparency", 0)
-			toggleBtn.Parent = page
-
-			local toggleCorner = Instance.new("UICorner")
-			toggleCorner.CornerRadius = UDim.new(0, 4)
-			toggleCorner.Parent = toggleBtn
-
-			local toggleBorder = Instance.new("UIStroke")
-			toggleBorder.Thickness = 1
-			toggleBorder.Color = Color3.fromRGB(30, 30, 30)
-			toggleBorder.Parent = toggleBtn
-
-			local label = Instance.new("TextLabel")
-			label.Size = UDim2.new(1, -50, 1, 0)
-			label.Position = UDim2.new(0, 10, 0, 0)
-			label.BackgroundTransparency = 1
-			label.Text = text
-			label.TextColor3 = Color3.fromRGB(200, 200, 200)
-			label.TextSize = 13
-			label.Font = Enum.Font.Code
-			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Parent = toggleBtn
-
-			local indicator = Instance.new("TextLabel")
-			indicator.Name = "IndicatorLabel"
-			indicator.Size = UDim2.new(0, 40, 1, 0)
-			indicator.Position = UDim2.new(1, -45, 0, 0)
-			indicator.BackgroundTransparency = 1
-			indicator.Text = state and "[开启]" or "[关闭]"
-			indicator.TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
-			indicator.TextSize = 13
-			indicator.Font = Enum.Font.Code
-			indicator.TextXAlignment = Enum.TextXAlignment.Right
-			indicator.Parent = toggleBtn
-
-			local function updateToggle()
-				indicator.Text = state and "[开启]" or "[关闭]"
-				TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)}):Play()
-				if callback then callback(state) end
-			end
-
-			toggleBtn.MouseEnter:Connect(function()
-				if MainFrame.BackgroundTransparency > 0.5 then return end
-				TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
-			end)
-
-			toggleBtn.MouseLeave:Connect(function()
-				TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
-			end)
-
-			toggleBtn.MouseButton1Click:Connect(function()
-				if MainFrame.BackgroundTransparency > 0.5 then return end
-				state = not state
-				updateToggle()
-			end)
-			
-			return toggleBtn
-		end
-
-		return elements
-	end
-	
-	function windowMethods:Close()
-		closeUI(true)
-	end
-	
-	return windowMethods
+function HMOU_UI.new()
+	local self = setmetatable({}, HMOU_UI)
+	self.tabs = {}
+	self.pages = {}
+	return self
 end
 
-return WindUI
+function HMOU_UI:CreateWindow(titleText)
+	Title.Text = titleText
+	openUI()
+	
+	local windowInstance = setmetatable({}, WindowClass)
+	windowInstance.core = self
+	return windowInstance
+end
+
+function WindowClass:CreateTab(name)
+	local core = self.core
+	
+	local tabBtn = Instance.new("TextButton")
+	tabBtn.Size = UDim2.new(1, -10, 0, 32)
+	tabBtn.Position = UDim2.new(0, 5, 0, 0)
+	tabBtn.BackgroundTransparency = 1
+	tabBtn.Text = " [ ] " .. name
+	tabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+	tabBtn.TextSize = 13
+	tabBtn.Font = Enum.Font.Code
+	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+	tabBtn.Parent = TabContainer
+
+	local page = Instance.new("ScrollingFrame")
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.BorderSizePixel = 0
+	page.Visible = false
+	page.CanvasSize = UDim2.new(0, 0, 0, 0)
+	page.ScrollBarThickness = 2
+	page.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 100)
+	page.Parent = PageContainer
+
+	local pageLayout = Instance.new("UIListLayout")
+	pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	pageLayout.Padding = UDim.new(0, 6)
+	pageLayout.Parent = page
+	
+	local pagePadding = Instance.new("UIPadding")
+	pagePadding.PaddingTop = UDim.new(0, 10)
+	pagePadding.PaddingLeft = UDim.new(0, 15)
+	pagePadding.PaddingRight = UDim.new(0, 15)
+	pagePadding.Parent = page
+
+	pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		page.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
+	end)
+
+	tabBtn.MouseButton1Click:Connect(function()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		for _, t in ipairs(core.tabs) do
+			TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+			t.Text = " [ ] " .. string.sub(t.Text, 6)
+		end
+		for _, p in ipairs(core.pages) do
+			p.Visible = false
+		end
+		TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+		tabBtn.Text = " [*] " .. name
+		page.Visible = true
+	end)
+
+	table.insert(core.tabs, tabBtn)
+	table.insert(core.pages, page)
+
+	if #core.tabs == 1 then
+		tabBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
+		tabBtn.Text = " [*] " .. name
+		page.Visible = true
+	end
+
+	local tabInstance = setmetatable({}, TabClass)
+	tabInstance.page = page
+	return tabInstance
+end
+
+function WindowClass:SetTitle(newTitle)
+	Title.Text = newTitle
+end
+
+function WindowClass:Close()
+	closeUI(true)
+end
+
+function WindowClass:Minimize()
+	closeUI(false)
+end
+
+function TabClass:CreateButton(text, callback)
+	local page = self.page
+	
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 32)
+	btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	btn.Text = " > " .. text
+	btn.TextColor3 = Color3.fromRGB(0, 255, 100)
+	btn.TextSize = 13
+	btn.Font = Enum.Font.Code
+	btn.TextXAlignment = Enum.TextXAlignment.Left
+	btn:SetAttribute("BaseTransparency", 0)
+	btn.Parent = page
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 4)
+	btnCorner.Parent = btn
+
+	local btnBorder = Instance.new("UIStroke")
+	btnBorder.Thickness = 1
+	btnBorder.Color = Color3.fromRGB(30, 30, 30)
+	btnBorder.Parent = btn
+
+	btn.MouseEnter:Connect(function()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+	end)
+
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(15, 15, 15)}):Play()
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		btn.Text = " >> " .. text
+		task.delay(0.1, function() btn.Text = " > " .. text end)
+		if callback then callback() end
+	end)
+end
+
+function TabClass:CreateToggle(text, default, callback)
+	local page = self.page
+	local state = default or false
+	
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Size = UDim2.new(1, 0, 0, 32)
+	toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+	toggleBtn.Text = ""
+	toggleBtn:SetAttribute("BaseTransparency", 0)
+	toggleBtn.Parent = page
+
+	local toggleCorner = Instance.new("UICorner")
+	toggleCorner.CornerRadius = UDim.new(0, 4)
+	toggleCorner.Parent = toggleBtn
+
+	local toggleBorder = Instance.new("UIStroke")
+	toggleBorder.Thickness = 1
+	toggleBorder.Color = Color3.fromRGB(30, 30, 30)
+	toggleBorder.Parent = toggleBtn
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -50, 1, 0)
+	label.Position = UDim2.new(0, 10, 0, 0)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(200, 200, 200)
+	label.TextSize = 13
+	label.Font = Enum.Font.Code
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = toggleBtn
+
+	local indicator = Instance.new("TextLabel")
+	indicator.Name = "IndicatorLabel"
+	indicator.Size = UDim2.new(0, 40, 1, 0)
+	indicator.Position = UDim2.new(1, -45, 0, 0)
+	indicator.BackgroundTransparency = 1
+	indicator.Text = state and "[开启]" or "[关闭]"
+	indicator.TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+	indicator.TextSize = 13
+	indicator.Font = Enum.Font.Code
+	indicator.TextXAlignment = Enum.TextXAlignment.Right
+	indicator.Parent = toggleBtn
+
+	local function updateToggle()
+		indicator.Text = state and "[开启]" or "[关闭]"
+		TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)}):Play()
+		if callback then callback(state) end
+	end
+
+	toggleBtn.MouseEnter:Connect(function()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100)}):Play()
+	end)
+
+	toggleBtn.MouseLeave:Connect(function()
+		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30)}):Play()
+	end)
+
+	toggleBtn.MouseButton1Click:Connect(function()
+		if MainFrame.BackgroundTransparency > 0.5 then return end
+		state = not state
+		updateToggle()
+	end)
+end
+
+return HMOU_UI
