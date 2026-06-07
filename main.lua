@@ -327,15 +327,27 @@ ToggleWidget.MouseButton1Click:Connect(function()
 	openUI()
 end)
 
-local library = {tabs = {}, pages = {}}
+local WindUI = {tabs = {}, pages = {}}
 
-function library:CreateWindow(titleText)
+function WindUI:CreateWindow(config)
+	local titleText = config.Title or "控制面板"
+	local widgetText = config.WidgetText or "点我"
+	
 	Title.Text = titleText
+	ToggleWidget.Text = widgetText
+	
+	if config.Size and typeof(config.Size) == "UDim2" then
+		MainFrame.Size = config.Size
+		MainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset/2, 0.5, -config.Size.Y.Offset/2)
+	end
+	
 	openUI()
 	
 	local windowMethods = {}
 	
-	function windowMethods:CreateTab(name)
+	function windowMethods:Tab(tabConfig)
+		local name = tabConfig.Title or "未知栏目"
+		
 		local tabBtn = Instance.new("TextButton")
 		tabBtn.Size = UDim2.new(1, -10, 0, 32)
 		tabBtn.Position = UDim2.new(0, 5, 0, 0)
@@ -374,11 +386,11 @@ function library:CreateWindow(titleText)
 
 		tabBtn.MouseButton1Click:Connect(function()
 			if MainFrame.BackgroundTransparency > 0.5 then return end
-			for _, t in ipairs(library.tabs) do
+			for _, t in ipairs(WindUI.tabs) do
 				TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
 				t.Text = " [ ] " .. string.sub(t.Text, 6)
 			end
-			for _, p in ipairs(library.pages) do
+			for _, p in ipairs(WindUI.pages) do
 				p.Visible = false
 			end
 			TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(0, 255, 100)}):Play()
@@ -386,10 +398,10 @@ function library:CreateWindow(titleText)
 			page.Visible = true
 		end)
 
-		table.insert(library.tabs, tabBtn)
-		table.insert(library.pages, page)
+		table.insert(WindUI.tabs, tabBtn)
+		table.insert(WindUI.pages, page)
 
-		if #library.tabs == 1 then
+		if #WindUI.tabs == 1 then
 			tabBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
 			tabBtn.Text = " [*] " .. name
 			page.Visible = true
@@ -397,7 +409,10 @@ function library:CreateWindow(titleText)
 
 		local elements = {}
 
-		function elements:CreateButton(text, callback)
+		function elements:Button(btnConfig)
+			local text = btnConfig.Title or "按钮"
+			local callback = btnConfig.Callback
+			
 			local btn = Instance.new("TextButton")
 			btn.Size = UDim2.new(1, 0, 0, 32)
 			btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -435,10 +450,15 @@ function library:CreateWindow(titleText)
 				task.delay(0.1, function() btn.Text = " > " .. text end)
 				if callback then callback() end
 			end)
+			
+			return btn
 		end
 
-		function elements:CreateToggle(text, default, callback)
-			local state = default or false
+		function elements:Toggle(toggleConfig)
+			local text = toggleConfig.Title or "开关"
+			local default = toggleConfig.Value or false
+			local callback = toggleConfig.Callback
+			local state = default
 			
 			local toggleBtn = Instance.new("TextButton")
 			toggleBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -499,12 +519,18 @@ function library:CreateWindow(titleText)
 				state = not state
 				updateToggle()
 			end)
+			
+			return toggleBtn
 		end
 
 		return elements
 	end
 	
+	function windowMethods:Close()
+		closeUI(true)
+	end
+	
 	return windowMethods
 end
 
-return library
+return WindUI
