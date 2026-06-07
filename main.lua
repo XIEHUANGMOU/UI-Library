@@ -2,6 +2,7 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HMOU_UI_Core"
@@ -20,10 +21,64 @@ local function protectGui()
 end
 protectGui()
 
+local Themes = {
+	["绿色"] = {
+		Primary = Color3.fromRGB(0, 255, 100),
+		Background = Color3.fromRGB(10, 10, 10),
+		Sidebar = Color3.fromRGB(12, 12, 12),
+		TopBar = Color3.fromRGB(15, 15, 15),
+		Text = Color3.fromRGB(0, 255, 100),
+		ToggleOff = Color3.fromRGB(255, 50, 50)
+	},
+	["蓝色"] = {
+		Primary = Color3.fromRGB(0, 150, 255),
+		Background = Color3.fromRGB(10, 12, 18),
+		Sidebar = Color3.fromRGB(12, 15, 22),
+		TopBar = Color3.fromRGB(15, 18, 26),
+		Text = Color3.fromRGB(0, 150, 255),
+		ToggleOff = Color3.fromRGB(255, 50, 50)
+	},
+	["紫色"] = {
+		Primary = Color3.fromRGB(160, 50, 255),
+		Background = Color3.fromRGB(12, 10, 15),
+		Sidebar = Color3.fromRGB(15, 12, 20),
+		TopBar = Color3.fromRGB(18, 15, 25),
+		Text = Color3.fromRGB(160, 50, 255),
+		ToggleOff = Color3.fromRGB(255, 50, 50)
+	},
+	["红色"] = {
+		Primary = Color3.fromRGB(255, 50, 50),
+		Background = Color3.fromRGB(15, 10, 10),
+		Sidebar = Color3.fromRGB(18, 12, 12),
+		TopBar = Color3.fromRGB(22, 15, 15),
+		Text = Color3.fromRGB(255, 50, 50),
+		ToggleOff = Color3.fromRGB(150, 150, 150)
+	},
+	["暗黑"] = {
+		Primary = Color3.fromRGB(200, 200, 200),
+		Background = Color3.fromRGB(5, 5, 5),
+		Sidebar = Color3.fromRGB(8, 8, 8),
+		TopBar = Color3.fromRGB(12, 12, 12),
+		Text = Color3.fromRGB(220, 220, 220),
+		ToggleOff = Color3.fromRGB(100, 100, 100)
+	},
+	["琥珀"] = {
+		Primary = Color3.fromRGB(255, 170, 0),
+		Background = Color3.fromRGB(14, 12, 10),
+		Sidebar = Color3.fromRGB(18, 15, 12),
+		TopBar = Color3.fromRGB(22, 18, 15),
+		Text = Color3.fromRGB(255, 170, 0),
+		ToggleOff = Color3.fromRGB(255, 50, 50)
+	}
+}
+
+local CurrentTheme = Themes["绿色"]
+local RainbowObjects = {}
+local RainbowConnection = nil
+
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 550, 0, 350)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.BackgroundTransparency = 1
@@ -44,7 +99,6 @@ MainCorner.Parent = MainFrame
 
 local MainBorder = Instance.new("UIStroke")
 MainBorder.Thickness = 1
-MainBorder.Color = Color3.fromRGB(0, 255, 100)
 MainBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainBorder.Transparency = 1
 MainBorder.Parent = MainFrame
@@ -52,7 +106,6 @@ MainBorder.Parent = MainFrame
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 45)
-TopBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 TopBar.BorderSizePixel = 0
 TopBar.BackgroundTransparency = 1
 TopBar.ZIndex = 2
@@ -61,7 +114,6 @@ TopBar.Parent = MainFrame
 local TopBorder = Instance.new("Frame")
 TopBorder.Size = UDim2.new(1, 0, 0, 1)
 TopBorder.Position = UDim2.new(0, 0, 1, -1)
-TopBorder.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
 TopBorder.BorderSizePixel = 0
 TopBorder.BackgroundTransparency = 1
 TopBorder.Parent = TopBar
@@ -78,7 +130,6 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -120, 0, 20)
 Title.Position = UDim2.new(0, 15, 0, 5)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(0, 255, 100)
 Title.TextSize = 14
 Title.TextTransparency = 1
 Title.Font = Enum.Font.Code
@@ -103,7 +154,6 @@ CloseBtn.Size = UDim2.new(0, 35, 0, 45)
 CloseBtn.Position = UDim2.new(1, -35, 0, 0)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "[X]"
-CloseBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
 CloseBtn.TextSize = 14
 CloseBtn.TextTransparency = 1
 CloseBtn.Font = Enum.Font.Code
@@ -115,7 +165,6 @@ HideBtn.Size = UDim2.new(0, 35, 0, 45)
 HideBtn.Position = UDim2.new(1, -70, 0, 0)
 HideBtn.BackgroundTransparency = 1
 HideBtn.Text = "[-]"
-HideBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
 HideBtn.TextSize = 14
 HideBtn.TextTransparency = 1
 HideBtn.Font = Enum.Font.Code
@@ -126,7 +175,6 @@ local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Position = UDim2.new(0, 0, 0, 45)
 Sidebar.Size = UDim2.new(0, 130, 1, -45)
-Sidebar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
 Sidebar.BorderSizePixel = 0
 Sidebar.BackgroundTransparency = 1
 Sidebar.ZIndex = 2
@@ -135,7 +183,6 @@ Sidebar.Parent = MainFrame
 local SidebarBorder = Instance.new("Frame")
 SidebarBorder.Size = UDim2.new(0, 1, 1, 0)
 SidebarBorder.Position = UDim2.new(1, -1, 0, 0)
-SidebarBorder.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
 SidebarBorder.BorderSizePixel = 0
 SidebarBorder.BackgroundTransparency = 1
 SidebarBorder.Parent = Sidebar
@@ -165,9 +212,7 @@ local ToggleWidget = Instance.new("TextButton")
 ToggleWidget.Name = "ToggleWidget"
 ToggleWidget.Size = UDim2.new(0, 40, 0, 40)
 ToggleWidget.Position = UDim2.new(0, 20, 0, 20)
-ToggleWidget.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 ToggleWidget.Text = "点我"
-ToggleWidget.TextColor3 = Color3.fromRGB(0, 255, 100)
 ToggleWidget.TextSize = 14
 ToggleWidget.Font = Enum.Font.Code
 ToggleWidget.Visible = false
@@ -179,8 +224,45 @@ WidgetCorner.Parent = ToggleWidget
 
 local WidgetBorder = Instance.new("UIStroke")
 WidgetBorder.Thickness = 1
-WidgetBorder.Color = Color3.fromRGB(0, 255, 100)
 WidgetBorder.Parent = ToggleWidget
+
+local function updateRainbowLoop()
+	if #RainbowObjects == 0 then
+		if RainbowConnection then
+			RainbowConnection:Disconnect()
+			RainbowConnection = nil
+		end
+		return
+	end
+	if not RainbowConnection then
+		RainbowConnection = RunService.RenderStepped:Connect(function()
+			local hue = (tick() % 4) / 4
+			local rainbowColor = Color3.fromHSV(hue, 1, 1)
+			for obj, prop in pairs(RainbowObjects) do
+				if obj and obj.Parent then
+					obj[prop] = rainbowColor
+				else
+					RainbowObjects[obj] = nil
+				end
+			end
+		end)
+	end
+end
+
+local function applyElementTheme(obj, prop, isRainbow)
+	if isRainbow then
+		RainbowObjects[obj] = prop
+		updateRainbowLoop()
+	else
+		RainbowObjects[obj] = nil
+		updateRainbowLoop()
+		if CurrentTheme[prop] then
+			obj[prop] = CurrentTheme[prop]
+		elseif prop == "Color" or prop == "TextColor3" or prop == "BackgroundColor3" then
+			obj[prop] = CurrentTheme.Primary
+		end
+	end
+end
 
 local function changeGroupTransparency(transparency)
 	MainBorder.Transparency = transparency
@@ -441,6 +523,29 @@ function HMOU_UI:CreateWindow(config)
 	local iconAsset = config.Icon or ""
 	local authorText = config.Author or ""
 	local bgUrl = config.Background or ""
+	local style = config.Fengge or "绿色"
+
+	local isRainbow = (style == "七彩")
+	if Themes[style] then
+		CurrentTheme = Themes[style]
+	else
+		CurrentTheme = Themes["绿色"]
+	end
+
+	MainFrame.BackgroundColor3 = CurrentTheme.Background
+	Sidebar.BackgroundColor3 = CurrentTheme.Sidebar
+	TopBar.BackgroundColor3 = CurrentTheme.TopBar
+	ToggleWidget.BackgroundColor3 = CurrentTheme.Background
+
+	applyElementTheme(MainBorder, "Color", isRainbow)
+	applyElementTheme(TopBorder, "BackgroundColor3", isRainbow)
+	applyElementTheme(SidebarBorder, "BackgroundColor3", isRainbow)
+	applyElementTheme(WidgetBorder, "Color", isRainbow)
+	
+	applyElementTheme(Title, "TextColor3", isRainbow)
+	applyElementTheme(CloseBtn, "TextColor3", isRainbow)
+	applyElementTheme(HideBtn, "TextColor3", isRainbow)
+	applyElementTheme(ToggleWidget, "TextColor3", isRainbow)
 
 	Title.Text = titleText
 	
@@ -472,6 +577,7 @@ function HMOU_UI:CreateWindow(config)
 	local windowInstance = setmetatable({}, WindowClass)
 	windowInstance.tabs = {}
 	windowInstance.pages = {}
+	windowInstance.isRainbow = isRainbow
 	return windowInstance
 end
 
@@ -479,6 +585,7 @@ function WindowClass:CreateTab(config)
 	config = config or {}
 	local name = config.Name or "新栏目"
 	local core = self
+	local isRainbow = core.isRainbow
 	
 	local tabBtn = Instance.new("TextButton")
 	tabBtn.Size = UDim2.new(1, -10, 0, 32)
@@ -499,9 +606,10 @@ function WindowClass:CreateTab(config)
 	page.Visible = false
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
 	page.ScrollBarThickness = 2
-	page.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 100)
 	page.ZIndex = 2
 	page.Parent = PageContainer
+
+	applyElementTheme(page, "ScrollBarImageColor3", isRainbow)
 
 	local pageLayout = Instance.new("UIListLayout")
 	pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -521,13 +629,19 @@ function WindowClass:CreateTab(config)
 	tabBtn.MouseButton1Click:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
 		for _, t in ipairs(core.tabs) do
-			TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+			RainbowObjects[t] = nil
+			updateRainbowLoop()
+			t.TextColor3 = Color3.fromRGB(150, 150, 150)
 			t.Text = " [ ] " .. string.sub(t.Text, 6)
 		end
 		for _, p in ipairs(core.pages) do
 			p.Visible = false
 		end
-		TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+		if isRainbow then
+			applyElementTheme(tabBtn, "TextColor3", true)
+		else
+			TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = CurrentTheme.Primary}):Play()
+		end
 		tabBtn.Text = " [*] " .. name
 		page.Visible = true
 	end)
@@ -536,13 +650,18 @@ function WindowClass:CreateTab(config)
 	table.insert(core.pages, page)
 
 	if #core.tabs == 1 then
-		tabBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
+		if isRainbow then
+			applyElementTheme(tabBtn, "TextColor3", true)
+		else
+			tabBtn.TextColor3 = CurrentTheme.Primary
+		end
 		tabBtn.Text = " [*] " .. name
 		page.Visible = true
 	end
 
 	local tabInstance = setmetatable({}, TabClass)
 	tabInstance.page = page
+	tabInstance.window = core
 	return tabInstance
 end
 
@@ -551,18 +670,20 @@ function TabClass:CreateButton(config)
 	local text = config.Name or "按钮"
 	local callback = config.Callback
 	local page = self.page
+	local isRainbow = self.window.isRainbow
 	
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 0, 32)
 	btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 	btn.Text = " > " .. text
-	btn.TextColor3 = Color3.fromRGB(0, 255, 100)
 	btn.TextSize = 13
 	btn.Font = Enum.Font.Code
 	btn.TextXAlignment = Enum.TextXAlignment.Left
 	btn.BackgroundTransparency = 0.4
 	btn.ZIndex = 2
 	btn.Parent = page
+
+	applyElementTheme(btn, "TextColor3", isRainbow)
 
 	local btnCorner = Instance.new("UICorner")
 	btnCorner.CornerRadius = UDim.new(0, 4)
@@ -576,11 +697,18 @@ function TabClass:CreateButton(config)
 
 	btn.MouseEnter:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
-		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100), Transparency = 0}):Play()
+		if isRainbow then
+			applyElementTheme(btnBorder, "Color", true)
+			btnBorder.Transparency = 0
+		else
+			TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = CurrentTheme.Primary, Transparency = 0}):Play()
+		end
 		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20), BackgroundTransparency = 0.2}):Play()
 	end)
 
 	btn.MouseLeave:Connect(function()
+		RainbowObjects[btnBorder] = nil
+		updateRainbowLoop()
 		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30), Transparency = 0.6}):Play()
 		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(15, 15, 15), BackgroundTransparency = 0.4}):Play()
 	end)
@@ -599,6 +727,7 @@ function TabClass:CreateToggle(config)
 	local default = config.Default or false
 	local callback = config.Callback
 	local page = self.page
+	local isRainbow = self.window.isRainbow
 	local state = default
 	
 	local toggleBtn = Instance.new("TextButton")
@@ -637,7 +766,6 @@ function TabClass:CreateToggle(config)
 	indicator.Position = UDim2.new(1, -45, 0, 0)
 	indicator.BackgroundTransparency = 1
 	indicator.Text = state and "[开启]" or "[关闭]"
-	indicator.TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
 	indicator.TextSize = 13
 	indicator.Font = Enum.Font.Code
 	indicator.TextXAlignment = Enum.TextXAlignment.Right
@@ -646,16 +774,31 @@ function TabClass:CreateToggle(config)
 
 	local function updateToggle()
 		indicator.Text = state and "[开启]" or "[关闭]"
-		TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = state and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)}):Play()
+		if state then
+			applyElementTheme(indicator, "TextColor3", isRainbow)
+		else
+			RainbowObjects[indicator] = nil
+			updateRainbowLoop()
+			TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = CurrentTheme.ToggleOff}):Play()
+		end
 		if callback then callback(state) end
 	end
 
+	updateToggle()
+
 	toggleBtn.MouseEnter:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
-		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(0, 255, 100), Transparency = 0}):Play()
+		if isRainbow then
+			applyElementTheme(toggleBorder, "Color", true)
+			toggleBorder.Transparency = 0
+		else
+			TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = CurrentTheme.Primary, Transparency = 0}):Play()
+		end
 	end)
 
 	toggleBtn.MouseLeave:Connect(function()
+		RainbowObjects[toggleBorder] = nil
+		updateRainbowLoop()
 		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = Color3.fromRGB(30, 30, 30), Transparency = 0.6}):Play()
 	end)
 
