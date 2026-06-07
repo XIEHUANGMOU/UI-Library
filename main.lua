@@ -67,22 +67,6 @@ TopBorder.BorderSizePixel = 0
 TopBorder.BackgroundTransparency = 1
 TopBorder.Parent = TopBar
 
-local TagContainer = Instance.new("Frame")
-TagContainer.Name = "TagContainer"
-TagContainer.Size = UDim2.new(1, -210, 1, 0)
-TagContainer.Position = UDim2.new(0, 140, 0, 0)
-TagContainer.BackgroundTransparency = 1
-TagContainer.ZIndex = 2
-TagContainer.Parent = TopBar
-
-local TagLayout = Instance.new("UIListLayout")
-TagLayout.FillDirection = Enum.FillDirection.Horizontal
-TagLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-TagLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-TagLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TagLayout.Padding = UDim.new(0, 6)
-TagLayout.Parent = TagContainer
-
 local IconImg = Instance.new("ImageLabel")
 IconImg.Size = UDim2.new(0, 24, 0, 24)
 IconImg.Position = UDim2.new(0, 12, 0, 10)
@@ -125,9 +109,25 @@ local function createShadowText(parent, size, position, font, textSize, alignmen
 	return main, shadow
 end
 
-local Title, TitleShadow = createShadowText(TopBar, UDim2.new(0, 110, 0, 20), UDim2.new(0, 15, 0, 5), Enum.Font.Code, 14, Enum.TextXAlignment.Left, "Title")
-local Subtitle, SubtitleShadow = createShadowText(TopBar, UDim2.new(0, 110, 0, 15), UDim2.new(0, 15, 0, 23), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Subtitle")
+local Title, TitleShadow = createShadowText(TopBar, UDim2.new(1, -250, 0, 20), UDim2.new(0, 15, 0, 5), Enum.Font.Code, 14, Enum.TextXAlignment.Left, "Title")
+local Subtitle, SubtitleShadow = createShadowText(TopBar, UDim2.new(1, -250, 0, 15), UDim2.new(0, 15, 0, 23), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Subtitle")
 Subtitle.TextColor3 = Color3.fromRGB(130, 130, 130)
+
+local TagListContainer = Instance.new("Frame")
+TagListContainer.Name = "TagListContainer"
+TagListContainer.Size = UDim2.new(0, 160, 0, 24)
+TagListContainer.Position = UDim2.new(1, -235, 0, 10)
+TagListContainer.BackgroundTransparency = 1
+TagListContainer.ZIndex = 2
+TagListContainer.Parent = TopBar
+
+local TagListLayout = Instance.new("UIListLayout")
+TagListLayout.FillDirection = Enum.FillDirection.Horizontal
+TagListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+TagListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+TagListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TagListLayout.Padding = UDim.new(0, 5)
+TagListLayout.Parent = TagListContainer
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 35, 0, 45)
@@ -213,7 +213,7 @@ WidgetShadow.TextTransparency = 0.3
 
 local currentAccentColor = Color3.fromRGB(0, 255, 100)
 local rainbowConnection = nil
-local isRainbowTheme = false
+local activeTheme = "Default"
 
 local themes = {
 	["Default"] = Color3.fromRGB(0, 255, 100),
@@ -238,16 +238,11 @@ local function applyColorUpdate(color)
 	WidgetBorder.Color = color
 	WidgetLabel.TextColor3 = color
 	
-	for _, tag in ipairs(TagContainer:GetChildren()) do
-		if tag:IsA("Frame") and tag:GetAttribute("IsDefaultColor") then
-			local stroke = tag:FindFirstChildOfClass("UIStroke")
-			if stroke then stroke.Color = color end
-			local tMain = tag:FindFirstChild("TagLabel_Main")
-			if tMain then tMain.TextColor3 = color end
-			if tag:GetAttribute("IsFullStyle") then
-				tag.BackgroundColor3 = color
-				if tMain then tMain.TextColor3 = Color3.fromRGB(10, 10, 10) end
-			end
+	for _, tag in ipairs(TagListContainer:GetChildren()) do
+		if tag:IsA("Frame") and tag:GetAttribute("FollowTheme") then
+			tag.BackgroundColor3 = color
+			local tagStroke = tag:FindFirstChildOfClass("UIStroke")
+			if tagStroke then tagStroke.Color = color end
 		end
 	end
 	
@@ -277,20 +272,19 @@ local function applyColorUpdate(color)
 end
 
 local function applyThemeStyle(themeName)
+	activeTheme = themeName
 	if rainbowConnection then
 		rainbowConnection:Disconnect()
 		rainbowConnection = nil
 	end
 	
 	if themeName == "Rainbow" or themeName == "七彩" then
-		isRainbowTheme = true
 		rainbowConnection = RunService.RenderStepped:Connect(function()
 			local hue = (tick() % 4) / 4
 			local color = Color3.fromHSV(hue, 0.8, 1)
 			applyColorUpdate(color)
 		end)
 	else
-		isRainbowTheme = false
 		local targetColor = themes[themeName] or themes["Default"]
 		applyColorUpdate(targetColor)
 	end
@@ -315,6 +309,20 @@ local function changeGroupTransparency(transparency)
 	
 	IconImg.ImageTransparency = transparency
 	
+	for _, tag in ipairs(TagListContainer:GetChildren()) do
+		if tag:IsA("Frame") then
+			tag.BackgroundTransparency = transparency == 1 and 1 or (tag:GetAttribute("BaseTransparency") or 0)
+			local tagStroke = tag:FindFirstChildOfClass("UIStroke")
+			if tagStroke then tagStroke.Transparency = transparency == 1 and 1 or 0 end
+			local m = tag:FindFirstChild("Tag_Main")
+			local s = tag:FindFirstChild("Tag_Shadow")
+			if m and s then
+				m.TextTransparency = textTrans
+				s.TextTransparency = shadowTrans
+			end
+		end
+	end
+	
 	local targetBgTrans = transparency == 1 and 1 or 0.15
 	local targetSideTrans = transparency == 1 and 1 or 0.25
 	local targetBarTrans = transparency == 1 and 1 or 0.3
@@ -329,25 +337,6 @@ local function changeGroupTransparency(transparency)
 			mediaChild.ImageTransparency = transparency
 		elseif mediaChild:IsA("VideoFrame") then
 			mediaChild.Volume = transparency == 1 and 0 or 1
-		end
-	end
-
-	for _, tag in ipairs(TagContainer:GetChildren()) do
-		if tag:IsA("Frame") then
-			local stroke = tag:FindFirstChildOfClass("UIStroke")
-			local tMain = tag:FindFirstChild("TagLabel_Main")
-			local tShadow = tag:FindFirstChild("TagLabel_Shadow")
-			local isFull = tag:GetAttribute("IsFullStyle")
-			
-			if isFull then
-				tag.BackgroundTransparency = transparency == 1 and 1 or 0.2
-			else
-				tag.BackgroundTransparency = 1
-			end
-			
-			if stroke then stroke.Transparency = transparency == 1 and 1 or 0.5 end
-			if tMain then tMain.TextTransparency = textTrans end
-			if tShadow then tShadow.TextTransparency = isFull and 1 or shadowTrans end
 		end
 	end
 
@@ -605,16 +594,12 @@ function HMOU_UI:CreateWindow(config)
 		TitleShadow.Position = UDim2.new(0, 43, 0, 6)
 		Subtitle.Position = UDim2.new(0, 42, 0, 23)
 		SubtitleShadow.Position = UDim2.new(0, 43, 0, 24)
-		TagContainer.Position = UDim2.new(0, 165, 0, 0)
-		TagContainer.Size = UDim2.new(1, -235, 1, 0)
 	else
 		IconImg.Visible = false
 		Title.Position = UDim2.new(0, 15, 0, 5)
 		TitleShadow.Position = UDim2.new(0, 16, 0, 6)
 		Subtitle.Position = UDim2.new(0, 15, 0, 23)
 		SubtitleShadow.Position = UDim2.new(0, 16, 0, 24)
-		TagContainer.Position = UDim2.new(0, 140, 0, 0)
-		TagContainer.Size = UDim2.new(1, -210, 1, 0)
 	end
 
 	if authorText ~= "" then
@@ -643,66 +628,90 @@ end
 
 function WindowClass:CreateTag(config)
 	config = config or {}
-	local text = config.Title or "Tag"
-	local styleType = config.Style or "Basic"
-	local customColor = config.Color
+	local text = config.Text or "Tag"
+	local color = config.Color or Color3.fromRGB(0, 255, 100)
+	local isFilled = (config.Style == "Filled")
+	local followTheme = (config.FollowTheme == true)
 	
 	local tagFrame = Instance.new("Frame")
 	tagFrame.Name = "Tag_" .. text
-	tagFrame.BorderSizePixel = 0
+	tagFrame.Size = UDim2.new(0, 60, 1, 0)
 	tagFrame.ZIndex = 2
 	
-	local tCorner = Instance.new("UICorner")
-	tCorner.CornerRadius = UDim.new(0, 4)
-	tCorner.Parent = tagFrame
+	local tagCorner = Instance.new("UICorner")
+	tagCorner.CornerRadius = UDim.new(0, 4)
+	tagCorner.Parent = tagFrame
 	
-	local textBounds = game:GetService("TextService"):GetTextSize(text, 10, Enum.Font.Code, Vector2.new(1000, 45))
-	tagFrame.Size = UDim2.new(0, textBounds.X + 12, 0, 18)
-	
-	local mLabel, sLabel = createShadowText(tagFrame, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 10, Enum.TextXAlignment.Center, "TagLabel")
-	mLabel.Text = text
-	
-	if styleType == "Full" or styleType == "满的" then
-		tagFrame:SetAttribute("IsFullStyle", true)
-		sLabel.Visible = false
-		if customColor then
-			tagFrame.BackgroundColor3 = customColor
-			tagFrame.BackgroundTransparency = 0.2
-			mLabel.TextColor3 = Color3.fromRGB(10, 10, 10)
-		else
-			tagFrame:SetAttribute("IsDefaultColor", true)
-			tagFrame.BackgroundColor3 = currentAccentColor
-			tagFrame.BackgroundTransparency = 0.2
-			mLabel.TextColor3 = Color3.fromRGB(10, 10, 10)
-		end
-	else
-		tagFrame:SetAttribute("IsFullStyle", false)
-		tagFrame.BackgroundTransparency = 1
-		local tStroke = Instance.new("UIStroke")
-		tStroke.Thickness = 1
-		tStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		tStroke.Transparency = 0.5
-		tStroke.Parent = tagFrame
-		
-		if customColor then
-			tStroke.Color = customColor
-			mLabel.TextColor3 = customColor
-		else
-			tagFrame:SetAttribute("IsDefaultColor", true)
-			tStroke.Color = currentAccentColor
-			mLabel.TextColor3 = currentAccentColor
-		end
+	if followTheme then
+		tagFrame:SetAttribute("FollowTheme", true)
+		color = currentAccentColor
 	end
+	
+	if isFilled then
+		tagFrame.BackgroundColor3 = color
+		tagFrame.BackgroundTransparency = 0.2
+		tagFrame:SetAttribute("BaseTransparency", 0.2)
+	else
+		tagFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+		tagFrame.BackgroundTransparency = 0.4
+		tagFrame:SetAttribute("BaseTransparency", 0.4)
+		
+		local tagStroke = Instance.new("UIStroke")
+		tagStroke.Thickness = 1
+		tagStroke.Color = color
+		tagStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		tagStroke.Parent = tagFrame
+	end
+	
+	local textColor = isFilled and Color3.fromRGB(10, 10, 10) or color
+	local mLabel, sLabel = createShadowText(tagFrame, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 10, Enum.TextXAlignment.Center, "Tag")
+	mLabel.Text = text
+	mLabel.TextColor3 = textColor
+	
+	if isFilled then
+		sLabel:Destroy()
+	end
+	
+	tagFrame.Parent = TagListContainer
+	
+	local tempText = Instance.new("TextLabel")
+	tempText.Font = Enum.Font.Code
+	tempText.TextSize = 10
+	tempText.Text = text
+	local bounds = tempText.TextBounds
+	tagFrame.Size = UDim2.new(0, bounds.X + 12, 0, 16)
+	tempText:Destroy()
 	
 	if MainFrame.Visible then
+		tagFrame.BackgroundTransparency = tagFrame:GetAttribute("BaseTransparency")
+		local str = tagFrame:FindFirstChildOfClass("UIStroke")
+		if str then str.Transparency = 0 end
 		mLabel.TextTransparency = 0
-		if styleType ~= "Full" and styleType ~= "满的" then
-			sLabel.TextTransparency = 0.3
-		end
+		local sh = tagFrame:FindFirstChild("Tag_Shadow")
+		if sh then sh.TextTransparency = 0.3 end
+	else
+		tagFrame.BackgroundTransparency = 1
+		local str = tagFrame:FindFirstChildOfClass("UIStroke")
+		if str then str.Transparency = 1 end
+		mLabel.TextTransparency = 1
+		local sh = tagFrame:FindFirstChild("Tag_Shadow")
+		if sh then sh.TextTransparency = 1 end
 	end
 	
-	tagFrame.Parent = TagContainer
-	return tagFrame
+	local tagObj = {}
+	function tagObj:SetText(newText)
+		mLabel.Text = newText
+		local temp = Instance.new("TextLabel")
+		temp.Font = Enum.Font.Code
+		temp.TextSize = 10
+		temp.Text = newText
+		tagFrame.Size = UDim2.new(0, temp.TextBounds.X + 12, 0, 16)
+		temp:Destroy()
+	end
+	function tagObj:Destroy()
+		tagFrame:Destroy()
+	end
+	return tagObj
 end
 
 function WindowClass:CreateTab(config)
