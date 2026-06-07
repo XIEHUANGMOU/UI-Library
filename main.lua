@@ -75,53 +75,63 @@ IconImg.Visible = false
 IconImg.ZIndex = 2
 IconImg.Parent = TopBar
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -120, 0, 20)
-Title.Position = UDim2.new(0, 15, 0, 5)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(0, 255, 100)
-Title.TextSize = 14
-Title.TextTransparency = 1
-Title.Font = Enum.Font.Code
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.ZIndex = 2
-Title.Parent = TopBar
+local function createShadowText(parent, size, position, font, textSize, alignment, name)
+	local shadow = Instance.new("TextLabel")
+	shadow.Name = name .. "_Shadow"
+	shadow.Size = size
+	shadow.Position = position + UDim2.new(0, 1, 0, 1)
+	shadow.BackgroundTransparency = 1
+	shadow.TextColor3 = Color3.fromRGB(0, 0, 0)
+	shadow.TextSize = textSize
+	shadow.TextTransparency = 1
+	shadow.Font = font
+	shadow.TextXAlignment = alignment
+	shadow.ZIndex = parent.ZIndex
+	shadow.Parent = parent
 
-local Subtitle = Instance.new("TextLabel")
-Subtitle.Size = UDim2.new(1, -120, 0, 15)
-Subtitle.Position = UDim2.new(0, 15, 0, 23)
-Subtitle.BackgroundTransparency = 1
-Subtitle.TextColor3 = Color3.fromRGB(100, 100, 100)
-Subtitle.TextSize = 11
-Subtitle.TextTransparency = 1
-Subtitle.Font = Enum.Font.Code
-Subtitle.TextXAlignment = Enum.TextXAlignment.Left
-Subtitle.ZIndex = 2
-Subtitle.Parent = TopBar
+	local main = Instance.new("TextLabel")
+	main.Name = name .. "_Main"
+	main.Size = size
+	main.Position = position
+	main.BackgroundTransparency = 1
+	main.TextColor3 = Color3.fromRGB(0, 255, 100)
+	main.TextSize = textSize
+	main.TextTransparency = 1
+	main.Font = font
+	main.TextXAlignment = alignment
+	main.ZIndex = parent.ZIndex + 1
+	main.Parent = parent
+
+	local textSync = main:GetPropertyChangedSignal("Text"):Connect(function()
+		shadow.Text = main.Text
+	end)
+	
+	return main, shadow
+end
+
+local Title, TitleShadow = createShadowText(TopBar, UDim2.new(1, -120, 0, 20), UDim2.new(0, 15, 0, 5), Enum.Font.Code, 14, Enum.TextXAlignment.Left, "Title")
+local Subtitle, SubtitleShadow = createShadowText(TopBar, UDim2.new(1, -120, 0, 15), UDim2.new(0, 15, 0, 23), Enum.Font.Code, 11, Enum.TextXAlignment.Left, "Subtitle")
+Subtitle.TextColor3 = Color3.fromRGB(130, 130, 130)
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 35, 0, 45)
 CloseBtn.Position = UDim2.new(1, -35, 0, 0)
 CloseBtn.BackgroundTransparency = 1
-CloseBtn.Text = "[X]"
-CloseBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
-CloseBtn.TextSize = 14
-CloseBtn.TextTransparency = 1
-CloseBtn.Font = Enum.Font.Code
+CloseBtn.Text = ""
 CloseBtn.ZIndex = 2
 CloseBtn.Parent = TopBar
+local CloseLabel, CloseShadow = createShadowText(CloseBtn, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 14, Enum.TextXAlignment.Center, "Close")
+CloseLabel.Text = "[X]"
 
 local HideBtn = Instance.new("TextButton")
 HideBtn.Size = UDim2.new(0, 35, 0, 45)
 HideBtn.Position = UDim2.new(1, -70, 0, 0)
 HideBtn.BackgroundTransparency = 1
-HideBtn.Text = "[-]"
-HideBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
-HideBtn.TextSize = 14
-HideBtn.TextTransparency = 1
-HideBtn.Font = Enum.Font.Code
+HideBtn.Text = ""
 HideBtn.ZIndex = 2
 HideBtn.Parent = TopBar
+local HideLabel, HideShadow = createShadowText(HideBtn, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 14, Enum.TextXAlignment.Center, "Hide")
+HideLabel.Text = "[-]"
 
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
@@ -167,10 +177,7 @@ ToggleWidget.Name = "ToggleWidget"
 ToggleWidget.Size = UDim2.new(0, 40, 0, 40)
 ToggleWidget.Position = UDim2.new(0, 20, 0, 20)
 ToggleWidget.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-ToggleWidget.Text = "点我"
-ToggleWidget.TextColor3 = Color3.fromRGB(0, 255, 100)
-ToggleWidget.TextSize = 14
-ToggleWidget.Font = Enum.Font.Code
+ToggleWidget.Text = ""
 ToggleWidget.Visible = false
 ToggleWidget.Parent = ScreenGui
 
@@ -183,85 +190,98 @@ WidgetBorder.Thickness = 1
 WidgetBorder.Color = Color3.fromRGB(0, 255, 100)
 WidgetBorder.Parent = ToggleWidget
 
-local ThemeColor = Color3.fromRGB(0, 255, 100)
-local IsRainbow = false
-local RainbowConnection = nil
-local ThemeObjects = {
-	Strokes = {MainBorder},
-	Backgrounds = {TopBorder, SidebarBorder},
-	Texts = {Title, CloseBtn, HideBtn, WidgetBorder}
-}
+local WidgetLabel, WidgetShadow = createShadowText(ToggleWidget, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Center, "Widget")
+WidgetLabel.Text = "点我"
+WidgetLabel.TextTransparency = 0
+WidgetShadow.TextTransparency = 0.3
 
-local ColorThemes = {
+local currentAccentColor = Color3.fromRGB(0, 255, 100)
+local rainbowConnection = nil
+
+local themes = {
 	["Default"] = Color3.fromRGB(0, 255, 100),
-	["Aqua"] = Color3.fromRGB(0, 220, 255),
-	["Crimson"] = Color3.fromRGB(255, 50, 70),
-	["Purple"] = Color3.fromRGB(180, 70, 255),
-	["Gold"] = Color3.fromRGB(255, 200, 0),
-	["Orange"] = Color3.fromRGB(255, 110, 0),
+	["Red"] = Color3.fromRGB(255, 50, 50),
+	["Blue"] = Color3.fromRGB(50, 150, 255),
+	["Purple"] = Color3.fromRGB(180, 50, 255),
+	["Orange"] = Color3.fromRGB(255, 120, 0),
 	["Pink"] = Color3.fromRGB(255, 105, 180),
+	["Cyan"] = Color3.fromRGB(0, 240, 255),
+	["Yellow"] = Color3.fromRGB(255, 215, 0),
 	["White"] = Color3.fromRGB(240, 240, 240)
 }
 
-local function updateStaticTheme(color)
-	ThemeColor = color
+local function applyColorUpdate(color)
+	currentAccentColor = color
 	MainBorder.Color = color
 	TopBorder.BackgroundColor3 = color
 	SidebarBorder.BackgroundColor3 = color
 	Title.TextColor3 = color
-	CloseBtn.TextColor3 = color
-	HideBtn.TextColor3 = color
-	ToggleWidget.TextColor3 = color
+	CloseLabel.TextColor3 = color
+	HideLabel.TextColor3 = color
 	WidgetBorder.Color = color
-end
-
-local function applyThemeStyle(themeName)
-	if RainbowConnection then
-		RainbowConnection:Disconnect()
-		RainbowConnection = nil
+	WidgetLabel.TextColor3 = color
+	
+	for _, child in ipairs(TabContainer:GetChildren()) do
+		if child:IsA("TextButton") and child:GetAttribute("IsSelected") then
+			local mainText = child:FindFirstChild("Tab_Main")
+			if mainText then mainText.TextColor3 = color end
+		end
 	end
-	IsRainbow = false
-
-	if themeName == "Rainbow" or themeName == "七彩" then
-		IsRainbow = true
-		RainbowConnection = RunService.RenderStepped:Connect(function()
-			local hue = (tick() % 4) / 4
-			local rainbowColor = Color3.fromHSV(hue, 0.8, 1)
-			updateStaticTheme(rainbowColor)
-			
-			for _, tab in ipairs(TabContainer:GetChildren()) do
-				if tab:IsA("TextButton") and tab:GetAttribute("Active") then
-					tab.TextColor3 = rainbowColor
-				end
-			end
-			for _, page in ipairs(PageContainer:GetChildren()) do
-				if page:IsA("ScrollingFrame") then
-					for _, element in ipairs(page:GetChildren()) do
-						if element:IsA("TextButton") then
-							local indicator = element:FindFirstChild("IndicatorLabel")
-							if indicator and element:GetAttribute("ToggleState") == true then
-								indicator.TextColor3 = rainbowColor
-							end
-						end
+	
+	for _, page in ipairs(PageContainer:GetChildren()) do
+		if page:IsA("ScrollingFrame") then
+			for _, element in ipairs(page:GetChildren()) do
+				if element:IsA("TextButton") then
+					local mainText = element:FindFirstChild("Btn_Main") or element:FindFirstChild("Toggle_Main")
+					local indicator = element:FindFirstChild("Indicator_Main")
+					if indicator and element:GetAttribute("ToggleState") == true then
+						indicator.TextColor3 = color
+					end
+					if mainText and not indicator then
+						mainText.TextColor3 = color
 					end
 				end
 			end
+		end
+	end
+end
+
+local function applyThemeStyle(themeName)
+	if rainbowConnection then
+		rainbowConnection:Disconnect()
+		rainbowConnection = nil
+	end
+	
+	if themeName == "Rainbow" or themeName == "七彩" then
+		rainbowConnection = RunService.RenderStepped:Connect(function()
+			local hue = (tick() % 4) / 4
+			local color = Color3.fromHSV(hue, 0.8, 1)
+			applyColorUpdate(color)
 		end)
 	else
-		local targetColor = ColorThemes[themeName] or ColorThemes["Default"]
-		updateStaticTheme(targetColor)
+		local targetColor = themes[themeName] or themes["Default"]
+		applyColorUpdate(targetColor)
 	end
 end
 
 local function changeGroupTransparency(transparency)
 	MainBorder.Transparency = transparency
 	TopBorder.BackgroundTransparency = transparency
-	Title.TextTransparency = transparency
-	Subtitle.TextTransparency = transparency
-	IconImg.ImageTransparency = transparency
-	CloseBtn.TextTransparency = transparency
-	HideBtn.TextTransparency = transparency
 	SidebarBorder.BackgroundTransparency = transparency
+	
+	local textTrans = transparency
+	local shadowTrans = transparency == 1 and 1 or (0.3 + (transparency * 0.7))
+	
+	Title.TextTransparency = textTrans
+	TitleShadow.TextTransparency = shadowTrans
+	Subtitle.TextTransparency = textTrans
+	SubtitleShadow.TextTransparency = shadowTrans
+	CloseLabel.TextTransparency = textTrans
+	CloseShadow.TextTransparency = shadowTrans
+	HideLabel.TextTransparency = textTrans
+	HideShadow.TextTransparency = shadowTrans
+	
+	IconImg.ImageTransparency = transparency
 	
 	local targetBgTrans = transparency == 1 and 1 or 0.15
 	local targetSideTrans = transparency == 1 and 1 or 0.25
@@ -282,7 +302,12 @@ local function changeGroupTransparency(transparency)
 
 	for _, child in ipairs(TabContainer:GetChildren()) do
 		if child:IsA("TextButton") then
-			child.TextTransparency = transparency
+			local m = child:FindFirstChild("Tab_Main")
+			local s = child:FindFirstChild("Tab_Shadow")
+			if m and s then
+				m.TextTransparency = textTrans
+				s.TextTransparency = shadowTrans
+			end
 		end
 	end
 	
@@ -291,13 +316,18 @@ local function changeGroupTransparency(transparency)
 			for _, element in ipairs(page:GetChildren()) do
 				if element:IsA("TextButton") then
 					element.BackgroundTransparency = transparency == 1 and 1 or 0.4
-					element.TextTransparency = transparency
 					local stroke = element:FindFirstChildOfClass("UIStroke")
 					if stroke then stroke.Transparency = transparency == 1 and 1 or 0.6 end
-					local label = element:FindFirstChildOfClass("TextLabel")
-					if label then label.TextTransparency = transparency end
-					local indicator = element:FindFirstChild("IndicatorLabel")
-					if indicator then indicator.TextTransparency = transparency end
+					
+					for _, item in ipairs(element:GetChildren()) do
+						if item:IsA("TextLabel") then
+							if string.match(item.Name, "_Shadow") then
+								item.TextTransparency = shadowTrans
+							else
+								item.TextTransparency = textTrans
+							end
+						end
+					end
 				end
 			end
 		end
@@ -357,7 +387,7 @@ local function closeUI(destroys)
 		transparencyValue:Destroy()
 		isAnimating = false
 		if destroys then
-			if RainbowConnection then RainbowConnection:Disconnect() end
+			if rainbowConnection then rainbowConnection:Disconnect() end
 			ScreenGui:Destroy()
 		else
 			ToggleWidget.Visible = true
@@ -513,7 +543,7 @@ function HMOU_UI:CreateWindow(config)
 	local iconAsset = config.Icon or ""
 	local authorText = config.Author or ""
 	local bgUrl = config.Background or ""
-	local fengge = config.Fengge or "Default"
+	local themeStyle = config.Fengge or "Default"
 
 	Title.Text = titleText
 	
@@ -521,26 +551,33 @@ function HMOU_UI:CreateWindow(config)
 		IconImg.Image = iconAsset
 		IconImg.Visible = true
 		Title.Position = UDim2.new(0, 42, 0, 5)
+		TitleShadow.Position = UDim2.new(0, 43, 0, 6)
 		Subtitle.Position = UDim2.new(0, 42, 0, 23)
+		SubtitleShadow.Position = UDim2.new(0, 43, 0, 24)
 	else
 		IconImg.Visible = false
 		Title.Position = UDim2.new(0, 15, 0, 5)
+		TitleShadow.Position = UDim2.new(0, 16, 0, 6)
 		Subtitle.Position = UDim2.new(0, 15, 0, 23)
+		SubtitleShadow.Position = UDim2.new(0, 16, 0, 24)
 	end
 
 	if authorText ~= "" then
 		Subtitle.Text = authorText
 		Subtitle.Visible = true
+		SubtitleShadow.Visible = true
 	else
 		Subtitle.Visible = false
+		SubtitleShadow.Visible = false
 		Title.Position = UDim2.new(Title.Position.X.Scale, Title.Position.X.Offset, 0, 12)
+		TitleShadow.Position = UDim2.new(TitleShadow.Position.X.Scale, TitleShadow.Position.X.Offset, 0, 13)
 	end
 
 	if bgUrl ~= "" and writefile and getcustomasset then
 		handleMediaBackground(bgUrl)
 	end
 
-	applyThemeStyle(fengge)
+	applyThemeStyle(themeStyle)
 	openUI()
 	
 	local windowInstance = setmetatable({}, WindowClass)
@@ -558,13 +595,13 @@ function WindowClass:CreateTab(config)
 	tabBtn.Size = UDim2.new(1, -10, 0, 32)
 	tabBtn.Position = UDim2.new(0, 5, 0, 0)
 	tabBtn.BackgroundTransparency = 1
-	tabBtn.Text = " [ ] " .. name
-	tabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-	tabBtn.TextSize = 13
-	tabBtn.Font = Enum.Font.Code
-	tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+	tabBtn.Text = ""
 	tabBtn.ZIndex = 2
 	tabBtn.Parent = TabContainer
+
+	local mLabel, sLabel = createShadowText(tabBtn, UDim2.new(1, 0, 1, 0), UDim2.new(0, 5, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Left, "Tab")
+	mLabel.Text = " [ ] " .. name
+	mLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 
 	local page = Instance.new("ScrollingFrame")
 	page.Size = UDim2.new(1, 0, 1, 0)
@@ -573,7 +610,7 @@ function WindowClass:CreateTab(config)
 	page.Visible = false
 	page.CanvasSize = UDim2.new(0, 0, 0, 0)
 	page.ScrollBarThickness = 2
-	page.ScrollBarImageColor3 = ThemeColor
+	page.ScrollBarImageColor3 = currentAccentColor
 	page.ZIndex = 2
 	page.Parent = PageContainer
 
@@ -595,18 +632,19 @@ function WindowClass:CreateTab(config)
 	tabBtn.MouseButton1Click:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
 		for _, t in ipairs(core.tabs) do
-			t:SetAttribute("Active", false)
-			TweenService:Create(t, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
-			t.Text = " [ ] " .. string.sub(t.Text, 6)
+			t:SetAttribute("IsSelected", false)
+			local tm = t:FindFirstChild("Tab_Main")
+			if tm then
+				TweenService:Create(tm, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+				tm.Text = " [ ] " .. string.sub(tm.Text, 6)
+			end
 		end
 		for _, p in ipairs(core.pages) do
 			p.Visible = false
 		end
-		tabBtn:SetAttribute("Active", true)
-		if not IsRainbow then
-			TweenService:Create(tabBtn, TweenInfo.new(0.2), {TextColor3 = ThemeColor}):Play()
-		end
-		tabBtn.Text = " [*] " .. name
+		tabBtn:SetAttribute("IsSelected", true)
+		TweenService:Create(mLabel, TweenInfo.new(0.2), {TextColor3 = currentAccentColor}):Play()
+		mLabel.Text = " [*] " .. name
 		page.Visible = true
 	end)
 
@@ -614,9 +652,9 @@ function WindowClass:CreateTab(config)
 	table.insert(core.pages, page)
 
 	if #core.tabs == 1 then
-		tabBtn:SetAttribute("Active", true)
-		tabBtn.TextColor3 = ThemeColor
-		tabBtn.Text = " [*] " .. name
+		tabBtn:SetAttribute("IsSelected", true)
+		mLabel.TextColor3 = currentAccentColor
+		mLabel.Text = " [*] " .. name
 		page.Visible = true
 	end
 
@@ -634,14 +672,14 @@ function TabClass:CreateButton(config)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 0, 32)
 	btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-	btn.Text = " > " .. text
-	btn.TextColor3 = ThemeColor
-	btn.TextSize = 13
-	btn.Font = Enum.Font.Code
-	btn.TextXAlignment = Enum.TextXAlignment.Left
+	btn.Text = ""
 	btn.BackgroundTransparency = 0.4
 	btn.ZIndex = 2
 	btn.Parent = page
+
+	local mLabel, sLabel = createShadowText(btn, UDim2.new(1, 0, 1, 0), UDim2.new(0, 10, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Left, "Btn")
+	mLabel.Text = " > " .. text
+	mLabel.TextColor3 = currentAccentColor
 
 	local btnCorner = Instance.new("UICorner")
 	btnCorner.CornerRadius = UDim.new(0, 4)
@@ -653,15 +691,9 @@ function TabClass:CreateButton(config)
 	btnBorder.Transparency = 0.6
 	btnBorder.Parent = btn
 
-	local connection
-	connection = RunService.RenderStepped:Connect(function()
-		if not btn or not btn.Parent then connection:Disconnect() return end
-		if not IsRainbow then btn.TextColor3 = ThemeColor end
-	end)
-
 	btn.MouseEnter:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
-		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = ThemeColor, Transparency = 0}):Play()
+		TweenService:Create(btnBorder, TweenInfo.new(0.2), {Color = currentAccentColor, Transparency = 0}):Play()
 		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20), BackgroundTransparency = 0.2}):Play()
 	end)
 
@@ -672,8 +704,8 @@ function TabClass:CreateButton(config)
 
 	btn.MouseButton1Click:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
-		btn.Text = " >> " .. text
-		task.delay(0.1, function() btn.Text = " > " .. text end)
+		mLabel.Text = " >> " .. text
+		task.delay(0.1, function() mLabel.Text = " > " .. text end)
 		if callback then callback() end
 	end)
 end
@@ -705,45 +737,32 @@ function TabClass:CreateToggle(config)
 	toggleBorder.Transparency = 0.6
 	toggleBorder.Parent = toggleBtn
 
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -50, 1, 0)
-	label.Position = UDim2.new(0, 10, 0, 0)
-	label.BackgroundTransparency = 1
-	label.Text = text
-	label.TextColor3 = Color3.fromRGB(200, 200, 200)
-	label.TextSize = 13
-	label.Font = Enum.Font.Code
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.ZIndex = 2
-	label.Parent = toggleBtn
+	local mLabel, sLabel = createShadowText(toggleBtn, UDim2.new(1, -50, 1, 0), UDim2.new(0, 10, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Left, "Toggle")
+	mLabel.Text = text
+	mLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 
-	local indicator = Instance.new("TextLabel")
-	indicator.Name = "IndicatorLabel"
-	indicator.Size = UDim2.new(0, 40, 1, 0)
-	indicator.Position = UDim2.new(1, -45, 0, 0)
-	indicator.BackgroundTransparency = 1
-	indicator.Text = state and "[开启]" or "[关闭]"
-	indicator.TextColor3 = state and ThemeColor or Color3.fromRGB(255, 50, 50)
-	indicator.TextSize = 13
-	indicator.Font = Enum.Font.Code
-	indicator.TextXAlignment = Enum.TextXAlignment.Right
-	indicator.ZIndex = 2
-	indicator.Parent = toggleBtn
+	local mIndicator, sIndicator = createShadowText(toggleBtn, UDim2.new(0, 40, 1, 0), UDim2.new(1, -45, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Right, "Indicator")
+	mIndicator.Text = state and "[开启]" or "[关闭]"
+	mIndicator.TextColor3 = state and currentAccentColor or Color3.fromRGB(255, 50, 50)
+
+	if MainFrame.BackgroundTransparency <= 0.5 then
+		mLabel.TextTransparency = 0
+		sLabel.TextTransparency = 0.3
+		mIndicator.TextTransparency = 0
+		sIndicator.TextTransparency = 0.3
+	end
 
 	local function updateToggle()
 		toggleBtn:SetAttribute("ToggleState", state)
-		indicator.Text = state and "[开启]" or "[关闭]"
-		if not state then
-			TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 50, 50)}):Play()
-		elseif not IsRainbow then
-			TweenService:Create(indicator, TweenInfo.new(0.15), {TextColor3 = ThemeColor}):Play()
-		end
+		mIndicator.Text = state and "[开启]" or "[关闭]"
+		local targetColor = state and currentAccentColor or Color3.fromRGB(255, 50, 50)
+		TweenService:Create(mIndicator, TweenInfo.new(0.15), {TextColor3 = targetColor}):Play()
 		if callback then callback(state) end
 	end
 
 	toggleBtn.MouseEnter:Connect(function()
 		if MainFrame.BackgroundTransparency > 0.5 then return end
-		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = ThemeColor, Transparency = 0}):Play()
+		TweenService:Create(toggleBorder, TweenInfo.new(0.2), {Color = currentAccentColor, Transparency = 0}):Play()
 	end)
 
 	toggleBtn.MouseLeave:Connect(function()
@@ -754,12 +773,6 @@ function TabClass:CreateToggle(config)
 		if MainFrame.BackgroundTransparency > 0.5 then return end
 		state = not state
 		updateToggle()
-	end)
-	
-	local connection
-	connection = RunService.RenderStepped:Connect(function()
-		if not indicator or not indicator.Parent then connection:Disconnect() return end
-		if not IsRainbow and state then indicator.TextColor3 = ThemeColor end
 	end)
 end
 
