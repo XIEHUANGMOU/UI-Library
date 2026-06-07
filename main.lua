@@ -27,7 +27,7 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.BackgroundTransparency = 1
-MainFrame.Position = UDim2.new(0.5, -275, 0.6, -175)
+MainFrame.Position = UDim2.new(0.5, -275, 1, 0)
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
@@ -239,7 +239,7 @@ local function openUI()
 	if isAnimating then return end
 	isAnimating = true
 	
-	MainFrame.Position = UDim2.new(0.5, -275, 0.6, -175)
+	MainFrame.Position = UDim2.new(0.5, -275, 1, 0)
 	changeGroupTransparency(1)
 	MainFrame.Visible = true
 	
@@ -267,8 +267,8 @@ local function closeUI(destroys)
 	if isAnimating then return end
 	isAnimating = true
 	
-	local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.In)
-	local moveTween = TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.5, -275, 0.6, -175)})
+	local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Cubic, Enum.EasingDirection.In)
+	local moveTween = TweenService:Create(MainFrame, tweenInfo, {Position = UDim2.new(0.5, -275, 1, 0)})
 	
 	local transparencyValue = Instance.new("NumberValue")
 	transparencyValue.Value = 0
