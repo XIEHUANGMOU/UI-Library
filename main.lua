@@ -191,7 +191,7 @@ WidgetBorder.Color = Color3.fromRGB(0, 255, 100)
 WidgetBorder.Parent = ToggleWidget
 
 local WidgetLabel, WidgetShadow = createShadowText(ToggleWidget, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Enum.Font.Code, 13, Enum.TextXAlignment.Center, "Widget")
-WidgetLabel.Text = "点我"
+WidgetLabel.Text = "打开脚本"
 WidgetLabel.TextTransparency = 0
 WidgetShadow.TextTransparency = 0.3
 
