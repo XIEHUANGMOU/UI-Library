@@ -81,14 +81,25 @@ function CF_UI:MakeWindow(config)
         if string.find(bgValue, "rbxassetid://") or string.find(bgValue, "rbxasset://") then
             bgImage.Image = bgValue
         elseif string.find(bgValue, "http") then
-            if isfile and writefile and getcustomasset then
-                local fileName = "cf_ui_bg_cache.png"
-                local success, data = pcall(function()
-                    return game:HttpGet(bgValue)
-                end)
-                if success and data then
-                    writefile(fileName, data)
-                    bgImage.Image = getcustomasset(fileName)
+            if isfile and writefile and readfile and getcustomasset then
+                local bgCacheName = "cf_ui_bg_cache.png"
+                local bgUrlName = "cf_ui_bg_url.txt"
+                local lastUrl = isfile(bgUrlName) and readfile(bgUrlName) or ""
+                
+                if lastUrl ~= bgValue or not isfile(bgCacheName) then
+                    if isfile(bgCacheName) and delfile then
+                        pcall(function() delfile(bgCacheName) end)
+                    end
+                    local success, data = pcall(function()
+                        return game:HttpGet(bgValue)
+                    end)
+                    if success and data then
+                        writefile(bgCacheName, data)
+                        writefile(bgUrlName, bgValue)
+                        bgImage.Image = getcustomasset(bgCacheName)
+                    end
+                else
+                    bgImage.Image = getcustomasset(bgCacheName)
                 end
             end
         end
@@ -207,16 +218,16 @@ function CF_UI:MakeWindow(config)
             mainFrame.BorderSizePixel = 0
             topBar.BorderSizePixel = 0
             
-            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 150, 0, 25)
             }):Play()
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Position = UDim2.new(1, -25, 0, 0)
             }):Play()
-            TweenService:Create(titleMain, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -30, 1, 0)
             }):Play()
-            TweenService:Create(titleShadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -30, 1, 0)
             }):Play()
         else
@@ -225,16 +236,16 @@ function CF_UI:MakeWindow(config)
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
             
-            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 600, 0, 400)
             })
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Position = UDim2.new(1, -50, 0, 0)
             }):Play()
-            TweenService:Create(titleMain, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -60, 1, 0)
             }):Play()
-            TweenService:Create(titleShadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -60, 1, 0)
             }):Play()
             expandTween:Play()
@@ -252,7 +263,7 @@ function CF_UI:MakeWindow(config)
     end)
 
     closeBtn.MouseButton1Click:Connect(function()
-        local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+        local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
             GroupTransparency = 1,
             Position = UDim2.new(0.5, -300, 0.8, 0)
         })
@@ -372,25 +383,38 @@ function CF_UI:MakeWindow(config)
             toggleFrame.ZIndex = 2
             toggleFrame.Parent = tabContainer
 
-            CreateText(toggleFrame, toggleText, hasDesc and UDim2.new(1, -40, 0, 15) or UDim2.new(1, -40, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+            CreateText(toggleFrame, toggleText, hasDesc and UDim2.new(1, -60, 0, 15) or UDim2.new(1, -60, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
 
             if hasDesc then
-                CreateText(toggleFrame, toggleDesc, UDim2.new(1, -40, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
+                CreateText(toggleFrame, toggleDesc, UDim2.new(1, -60, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
             end
 
-            local tBtn = Instance.new("TextButton")
-            tBtn.Size = UDim2.new(0, 18, 0, 18)
-            tBtn.Position = UDim2.new(1, -28, 0.5, -9)
-            tBtn.BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(180, 0, 0)
-            tBtn.BorderSizePixel = 1
-            tBtn.BorderColor3 = Color3.fromRGB(15, 15, 15)
-            tBtn.Text = ""
-            tBtn.ZIndex = 2
-            tBtn.Parent = toggleFrame
+            local toggleTrack = Instance.new("TextButton")
+            toggleTrack.Size = UDim2.new(0, 36, 0, 16)
+            toggleTrack.Position = UDim2.new(1, -46, 0.5, -8)
+            toggleTrack.BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(60, 60, 60)
+            toggleTrack.BorderSizePixel = 1
+            toggleTrack.BorderColor3 = Color3.fromRGB(15, 15, 15)
+            toggleTrack.Text = ""
+            toggleTrack.ZIndex = 2
+            toggleTrack.Parent = toggleFrame
 
-            tBtn.MouseButton1Click:Connect(function()
+            local toggleThumb = Instance.new("Frame")
+            toggleThumb.Size = UDim2.new(0, 12, 0, 12)
+            toggleThumb.Position = state and UDim2.new(1, -14, 0, 2) or UDim2.new(0, 2, 0, 2)
+            toggleThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            toggleThumb.BorderSizePixel = 0
+            toggleThumb.ZIndex = 3
+            toggleThumb.Parent = toggleTrack
+
+            toggleTrack.MouseButton1Click:Connect(function()
                 state = not state
-                TweenService:Create(tBtn, TweenInfo.new(0.2), {BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(180, 0, 0)}):Play()
+                TweenService:Create(toggleTrack, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(60, 60, 60)
+                }):Play()
+                TweenService:Create(toggleThumb, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Position = state and UDim2.new(1, -14, 0, 2) or UDim2.new(0, 2, 0, 2)
+                }):Play()
                 if callback then callback(state) end
             end)
         end
@@ -444,6 +468,7 @@ function CF_UI:MakeWindow(config)
             sClickArea.Parent = sBg
 
             local draggingSlider = false
+
             local function updateSliderVal(input)
                 local pos = math.clamp((input.Position.X - sBg.AbsolutePosition.X) / sBg.AbsoluteSize.X, 0, 1)
                 val = math.floor(minVal + ((maxVal - minVal) * pos))
@@ -461,7 +486,7 @@ function CF_UI:MakeWindow(config)
                 end
             end)
 
-            sClickArea.InputEnded:Connect(function(input)
+            UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     draggingSlider = false
                 end
