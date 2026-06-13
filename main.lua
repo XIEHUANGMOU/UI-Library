@@ -291,7 +291,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         end)
     end
 
-    function targetObj:AddDropdown(config)
+        function targetObj:AddDropdown(config)
         local dropTitle = type(config) == "table" and config.Title or "下拉列表"
         local dropValues = type(config) == "table" and config.Values or {}
         local dropValue = type(config) == "table" and config.Value or nil
@@ -307,7 +307,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             return table.concat(selectedValues, ", ")
         end
 
-                local dropFrame = Instance.new("Frame")
+        local dropFrame = Instance.new("Frame")
         dropFrame.Size = UDim2.new(1, 0, 0, 45)
         dropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         dropFrame.BackgroundTransparency = elementTrans
@@ -335,11 +335,12 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         valShadow.TextTruncate = Enum.TextTruncate.AtEnd
 
         local arrowMain, arrowShadow = CreateText(dropBtn, "v", UDim2.new(0, 20, 1, 0), UDim2.new(1, -20, 0, 0), Color3.fromRGB(200, 200, 200), 12, Enum.TextXAlignment.Center)
-        local listWrapper = Instance.new("CanvasGroup")
+
+        local listWrapper = Instance.new("Frame")
         listWrapper.Size = UDim2.new(1, -20, 0, 0)
         listWrapper.Position = UDim2.new(0, 10, 0, 45)
         listWrapper.BackgroundTransparency = 1
-        listWrapper.GroupTransparency = 1
+        listWrapper.ClipsDescendants = true
         listWrapper.ZIndex = dropFrame.ZIndex + 4
         listWrapper.Visible = false
         listWrapper.Parent = dropFrame
@@ -424,10 +425,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
                             isExpanded = false
                             arrowMain.Text = "v"
                             arrowShadow.Text = "v"
-                            
-                            -- 单选后触发平滑收缩动画
                             local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                                Size = UDim2.new(1, -20, 0, 0), GroupTransparency = 1
+                                Size = UDim2.new(1, -20, 0, 0)
                             })
                             shrinkList:Play()
                             TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -468,9 +467,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             if isExpanded then
                 listWrapper.Visible = true
                 local h = refreshList(searchBox and searchBox.Text or "")
-                
                 TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, -20, 0, h), GroupTransparency = 0
+                    Size = UDim2.new(1, -20, 0, h)
                 }):Play()
                 
                 TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -478,7 +476,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
                 }):Play()
             else
                 local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, -20, 0, 0), GroupTransparency = 1
+                    Size = UDim2.new(1, -20, 0, 0)
                 })
                 shrinkList:Play()
                 
@@ -498,6 +496,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             task.spawn(function() callback(selectedValues) end)
         end
     end
+
     function targetObj:AddSection(config)
         local secTitle = type(config) == "table" and config.Title or "Section"
         local secDesc = type(config) == "table" and config.Desc or nil
@@ -528,12 +527,11 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         end
 
         local tMain, tShadow = CreateText(secHeader, "+", UDim2.new(0, 20, 0, 20), UDim2.new(1, -25, 0.5, -10), Color3.fromRGB(255, 255, 255), 16, Enum.TextXAlignment.Center)
-
-        local secContent = Instance.new("CanvasGroup") 
+        local secContent = Instance.new("Frame") 
         secContent.Size = UDim2.new(1, -16, 0, 0)
         secContent.Position = UDim2.new(0, 8, 0, headerHeight + 5)
         secContent.BackgroundTransparency = 1
-        secContent.GroupTransparency = 1
+        secContent.ClipsDescendants = true
         secContent.ZIndex = secFrame.ZIndex + 1
         secContent.Visible = false
         secContent.Parent = secFrame
@@ -570,12 +568,9 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             if isExpanded then
                 secContent.Visible = true
                 updateSize()
-                TweenService:Create(secContent, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
             else
                 updateSize()
-                local fadeOut = TweenService:Create(secContent, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 1})
-                fadeOut:Play()
-                fadeOut.Completed:Connect(function()
+                task.delay(0.4, function()
                     if not isExpanded then secContent.Visible = false end
                 end)
             end
@@ -583,7 +578,6 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
 
         local secObj = {}
         AttachComponents(secObj, secContent, elementTrans)
-
         return secObj
     end
 end
