@@ -588,6 +588,8 @@ function CF_UI:MakeWindow(config)
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
     local useRainbow = config.RainbowBorder or false
+    local dpi = config.DPI or 1
+    local defaultSize = config.Size or UDim2.new(0, 600, 0, 400)
     local hasBg = bgValue ~= ""
     
     local elementTrans = hasBg and 0.65 or 0
@@ -601,8 +603,8 @@ function CF_UI:MakeWindow(config)
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     screenGui.Parent = TargetGui
 
-        local mainFrame = Instance.new("CanvasGroup")
-    mainFrame.Size = UDim2.new(0, 600, 0, 400)
+    local mainFrame = Instance.new("CanvasGroup")
+    mainFrame.Size = defaultSize
     mainFrame.Position = UDim2.new(0.5, -300, 0.8, 0)
     mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     mainFrame.BackgroundTransparency = hasBg and 1 or 0
@@ -611,6 +613,11 @@ function CF_UI:MakeWindow(config)
     mainFrame.GroupTransparency = 1
     mainFrame.ClipsDescendants = true
     mainFrame.Parent = screenGui
+
+    local uiScale = Instance.new("UIScale")    
+    uiScale.Scale = dpi    
+    uiScale.Parent = mainFrame          
+    local currentExpandedSize = defaultSize
 
     if useRainbow then
         local uiStroke = Instance.new("UIStroke")
@@ -815,6 +822,45 @@ function CF_UI:MakeWindow(config)
         end
     end)
 
+    local resizeHandle = Instance.new("TextButton")
+    resizeHandle.Size = UDim2.new(0, 20, 0, 20)
+    resizeHandle.Position = UDim2.new(1, 0, 1, 0)
+    resizeHandle.AnchorPoint = Vector2.new(1, 1)
+    resizeHandle.BackgroundTransparency = 1
+    resizeHandle.Text = "◢"
+    resizeHandle.TextColor3 = Color3.fromRGB(150, 150, 150)
+    resizeHandle.TextSize = 14
+    resizeHandle.ZIndex = 10
+    resizeHandle.Parent = mainFrame
+
+    local resizing = false
+    local resizeStartPos
+    local resizeStartSize
+
+    resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true
+            resizeStartPos = input.Position
+            resizeStartSize = mainFrame.Size
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizing = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - resizeStartPos
+            local newWidth = math.clamp(resizeStartSize.X.Offset + (delta.X / dpi), 400, 1200)
+            local newHeight = math.clamp(resizeStartSize.Y.Offset + (delta.Y / dpi), 250, 800)
+            
+            mainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+            currentExpandedSize = mainFrame.Size
+        end
+    end)
+
     local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
         GroupTransparency = 0,
         Position = UDim2.new(0.5, -300, 0.5, -200)
@@ -822,26 +868,32 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-            minimizeBtn.MouseButton1Click:Connect(function()
+                minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
             minMain.Text = "+"
             minShadow.Text = "+"
             mainFrame.BorderSizePixel = 0
             topBar.BorderSizePixel = 0
+            resizeHandle.Visible = false
+            
             local shrinkTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 180, 0, 35)
             })
             shrinkTween:Play()
+            
             TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -35, 0, 0), BackgroundTransparency = 0}):Play()
+            
             TweenService:Create(closeBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
             for _, v in pairs(closeBtn:GetChildren()) do
                 if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 1}):Play() end
             end
+            
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            
             shrinkTween.Completed:Connect(function()
                 if isMinimized then
                     leftBar.Visible = false
@@ -856,20 +908,26 @@ function CF_UI:MakeWindow(config)
             minShadow.Text = "-"
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
+            resizeHandle.Visible = true
+            
             leftBar.Visible = true
             rightContainer.Visible = true
             closeBtn.Visible = true
             if bgImage then bgImage.Visible = true end
             if bgTint then bgTint.Visible = true end
+            
             TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 600, 0, 400)
+                Size = currentExpandedSize 
             }):Play()
+            
             TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -70, 0, 0), BackgroundTransparency = elementTrans}):Play()
+            
             TweenService:Create(closeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
             for _, v in pairs(closeBtn:GetChildren()) do
                 if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.6), {TextTransparency = 0}):Play() end
             end
+            
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.4}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
