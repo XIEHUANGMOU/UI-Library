@@ -300,13 +300,153 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
 
         local secObj = {}
         AttachComponents(secObj, secContent, elementTrans)
-        return secObj
+                return secObj
+    end
+
+    function targetObj:AddInput(config, callback)
+        local inputTitle = type(config) == "table" and config.Title or "Input"
+        local inputDesc = type(config) == "table" and config.Desc or nil
+        local placeHolder = type(config) == "table" and config.Placeholder or ""
+        local hasDesc = inputDesc and inputDesc ~= ""
+        local inputHeight = hasDesc and 55 or 40
+
+        local inputFrame = Instance.new("Frame")
+        inputFrame.Size = UDim2.new(1, 0, 0, inputHeight)
+        inputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        inputFrame.BackgroundTransparency = elementTrans
+        inputFrame.BorderSizePixel = 1
+        inputFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        inputFrame.ZIndex = targetContainer.ZIndex + 1
+        inputFrame.Parent = targetContainer
+
+        CreateText(inputFrame, inputTitle, hasDesc and UDim2.new(1, -130, 0, 15) or UDim2.new(1, -130, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+
+        if hasDesc then
+            CreateText(inputFrame, inputDesc, UDim2.new(1, -130, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
+        end
+
+        local textBoxBg = Instance.new("Frame")
+        textBoxBg.Size = UDim2.new(0, 110, 0, 24)
+        textBoxBg.Position = UDim2.new(1, -120, 0.5, -12)
+        textBoxBg.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        textBoxBg.BackgroundTransparency = elementTrans
+        textBoxBg.BorderSizePixel = 1
+        textBoxBg.BorderColor3 = Color3.fromRGB(45, 45, 45)
+        textBoxBg.ZIndex = inputFrame.ZIndex + 1
+        textBoxBg.Parent = inputFrame
+
+        local textBox = Instance.new("TextBox")
+        textBox.Size = UDim2.new(1, -10, 1, 0)
+        textBox.Position = UDim2.new(0, 5, 0, 0)
+        textBox.BackgroundTransparency = 1
+        textBox.Text = ""
+        textBox.PlaceholderText = placeHolder
+        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
+        textBox.Font = Enum.Font.Code
+        textBox.TextSize = 12
+        textBox.TextXAlignment = Enum.TextXAlignment.Left
+        textBox.ClearTextOnFocus = false
+        textBox.ZIndex = textBoxBg.ZIndex + 1
+        textBox.Parent = textBoxBg
+
+        textBox.FocusLost:Connect(function()
+            if callback then callback(textBox.Text) end
+        end)
+    end
+
+    function targetObj:AddDropdown(config, callback)
+        local dropTitle = type(config) == "table" and config.Title or "Dropdown"
+        local dropDesc = type(config) == "table" and config.Desc or nil
+        local options = type(config) == "table" and config.Options or {}
+        local default = type(config) == "table" and config.Default or ""
+        local hasDesc = dropDesc and dropDesc ~= ""
+        local dropHeight = hasDesc and 55 or 40
+
+        local dropFrame = Instance.new("Frame")
+        dropFrame.Size = UDim2.new(1, 0, 0, dropHeight)
+        dropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        dropFrame.BackgroundTransparency = elementTrans
+        dropFrame.BorderSizePixel = 1
+        dropFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        dropFrame.ZIndex = targetContainer.ZIndex + 1
+        dropFrame.Parent = targetContainer
+
+        CreateText(dropFrame, dropTitle, hasDesc and UDim2.new(1, -130, 0, 15) or UDim2.new(1, -130, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+
+        if hasDesc then
+            CreateText(dropFrame, dropDesc, UDim2.new(1, -130, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
+        end
+
+        local dropBtn = Instance.new("TextButton")
+        dropBtn.Size = UDim2.new(0, 110, 0, 24)
+        dropBtn.Position = UDim2.new(1, -120, 0.5, -12)
+        dropBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        dropBtn.BackgroundTransparency = elementTrans
+        dropBtn.BorderSizePixel = 1
+        dropBtn.BorderColor3 = Color3.fromRGB(45, 45, 45)
+        dropBtn.Text = default == "" and "请选择..." or default
+        dropBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        dropBtn.Font = Enum.Font.Code
+        dropBtn.TextSize = 12
+        dropBtn.ZIndex = dropFrame.ZIndex + 1
+        dropBtn.Parent = dropFrame
+
+        local listFrame = Instance.new("ScrollingFrame")
+        listFrame.Size = UDim2.new(1, 0, 0, 0)
+        listFrame.Position = UDim2.new(0, 0, 1, 2)
+        listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        listFrame.BorderSizePixel = 1
+        listFrame.BorderColor3 = Color3.fromRGB(45, 45, 45)
+        listFrame.ScrollBarThickness = 2
+        listFrame.ZIndex = dropFrame.ZIndex + 5
+        listFrame.Visible = false
+        listFrame.Parent = dropBtn
+
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        listLayout.Parent = listFrame
+
+        local isDropped = false
+        
+        local function updateDropSize()
+            local contentHeight = listLayout.AbsoluteContentSize.Y
+            listFrame.Size = UDim2.new(1, 0, 0, math.clamp(contentHeight, 0, 100))
+            listFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+        end
+
+        listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropSize)
+
+        for _, opt in pairs(options) do
+            local optBtn = Instance.new("TextButton")
+            optBtn.Size = UDim2.new(1, 0, 0, 24)
+            optBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            optBtn.BorderSizePixel = 0
+            optBtn.Text = opt
+            optBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+            optBtn.Font = Enum.Font.Code
+            optBtn.TextSize = 12
+            optBtn.ZIndex = listFrame.ZIndex + 1
+            optBtn.Parent = listFrame
+
+            optBtn.MouseButton1Click:Connect(function()
+                dropBtn.Text = opt
+                isDropped = false
+                listFrame.Visible = false
+                if callback then callback(opt) end
+            end)
+        end
+
+        dropBtn.MouseButton1Click:Connect(function()
+            isDropped = not isDropped
+            listFrame.Visible = isDropped
+        end)
     end
 end
-
 function CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
     local bgValue = config.Background or ""
+    local iconValue = config.Icon or ""
     local hasBg = bgValue ~= ""
     
     local elementTrans = hasBg and 0.65 or 0
@@ -384,7 +524,46 @@ function CF_UI:MakeWindow(config)
     topBar.ZIndex = 2
     topBar.Parent = mainFrame
 
-    local titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 1, 0), UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        local titleOffset = 10
+    if iconValue ~= "" then
+        titleOffset = 30
+        local iconImg = Instance.new("ImageLabel")
+        iconImg.Size = UDim2.new(0, 16, 0, 16)
+        iconImg.Position = UDim2.new(0, 8, 0.5, -8)
+        iconImg.BackgroundTransparency = 1
+        iconImg.ZIndex = 3
+        iconImg.Parent = topBar
+
+        if string.find(iconValue, "rbxassetid://") or string.find(iconValue, "rbxasset://") then
+            iconImg.Image = iconValue
+        elseif string.find(iconValue, "http") then
+            if isfile and writefile and readfile and getcustomasset then
+                local iconCacheName = "cf_ui_icon_cache.png"
+                local iconUrlName = "cf_ui_icon_url.txt"
+                local lastIconUrl = isfile(iconUrlName) and readfile(iconUrlName) or ""
+                
+                if lastIconUrl ~= iconValue or not isfile(iconCacheName) then
+                    if isfile(iconCacheName) and delfile then
+                        pcall(function() delfile(iconCacheName) end)
+                    end
+                    task.spawn(function()
+                        local success, data = pcall(function()
+                            return game:HttpGet(iconValue)
+                        end)
+                        if success and data then
+                            writefile(iconCacheName, data)
+                            writefile(iconUrlName, iconValue)
+                            iconImg.Image = getcustomasset(iconCacheName)
+                        end
+                    end)
+                else
+                    iconImg.Image = getcustomasset(iconCacheName)
+                end
+            end
+        end
+    end
+
+    local titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 1, 0), UDim2.new(0, titleOffset, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
 
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
