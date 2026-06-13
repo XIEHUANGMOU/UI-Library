@@ -18,14 +18,13 @@ function CF_UI:MakeWindow(config)
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.Parent = TargetGui
 
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 0, 0, 0)
-    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    local mainFrame = Instance.new("CanvasGroup")
+    mainFrame.Size = UDim2.new(0, 600, 0, 400)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.8, 0)
     mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     mainFrame.BorderSizePixel = 1
     mainFrame.BorderColor3 = Color3.fromRGB(45, 45, 45)
-    mainFrame.ClipsDescendants = true
-    mainFrame.BackgroundTransparency = 1
+    mainFrame.GroupTransparency = 1
     mainFrame.Parent = screenGui
 
     if bgUrl ~= "" and isfile and writefile and getcustomasset then
@@ -54,7 +53,6 @@ function CF_UI:MakeWindow(config)
     topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     topBar.BorderSizePixel = 1
     topBar.BorderColor3 = Color3.fromRGB(45, 45, 45)
-    topBar.BackgroundTransparency = 1
     topBar.ZIndex = 2
     topBar.Parent = mainFrame
 
@@ -64,7 +62,6 @@ function CF_UI:MakeWindow(config)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = titleText
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.TextTransparency = 1
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Font = Enum.Font.Code
     titleLabel.TextSize = 14
@@ -78,7 +75,6 @@ function CF_UI:MakeWindow(config)
     minimizeBtn.BorderSizePixel = 0
     minimizeBtn.Text = "-"
     minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minimizeBtn.TextTransparency = 1
     minimizeBtn.Font = Enum.Font.Code
     minimizeBtn.TextSize = 18
     minimizeBtn.ZIndex = 2
@@ -91,7 +87,6 @@ function CF_UI:MakeWindow(config)
     closeBtn.BorderSizePixel = 0
     closeBtn.Text = "X"
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeBtn.TextTransparency = 1
     closeBtn.Font = Enum.Font.Code
     closeBtn.TextSize = 14
     closeBtn.ZIndex = 2
@@ -104,7 +99,6 @@ function CF_UI:MakeWindow(config)
     leftBar.BorderSizePixel = 1
     leftBar.BorderColor3 = Color3.fromRGB(45, 45, 45)
     leftBar.ScrollBarThickness = 0
-    leftBar.BackgroundTransparency = 1
     leftBar.ZIndex = 2
     leftBar.Parent = mainFrame
 
@@ -155,37 +149,31 @@ function CF_UI:MakeWindow(config)
         end
     end)
 
-    TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 400), BackgroundTransparency = 0}):Play()
-    TweenService:Create(topBar, TweenInfo.new(0.6), {BackgroundTransparency = 0}):Play()
-    TweenService:Create(titleLabel, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
-    TweenService:Create(minimizeBtn, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
-    TweenService:Create(closeBtn, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
-    TweenService:Create(leftBar, TweenInfo.new(0.6), {BackgroundTransparency = 0}):Play()
+    local fadeTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {GroupTransparency = 0})
+    fadeTween:Play()
+    fadeTween.Completed:Connect(function()
+        TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -300, 0.5, -200)}):Play()
+    end)
 
     local isMinimized = false
     minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
             TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 30)}):Play()
-            leftBar.Visible = false
-            rightContainer.Visible = false
         else
             TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 400)}):Play()
-            leftBar.Visible = true
-            rightContainer.Visible = true
         end
     end)
 
     closeBtn.MouseButton1Click:Connect(function()
-        local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
-        TweenService:Create(topBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-        TweenService:Create(titleLabel, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-        TweenService:Create(minimizeBtn, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-        TweenService:Create(closeBtn, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-        TweenService:Create(leftBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-        closeTween:Play()
-        closeTween.Completed:Connect(function()
-            screenGui:Destroy()
+        local slideDownTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -300, 0.8, 0)})
+        slideDownTween:Play()
+        slideDownTween.Completed:Connect(function()
+            local fadeOutTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {GroupTransparency = 1})
+            fadeOutTween:Play()
+            fadeOutTween.Completed:Connect(function()
+                screenGui:Destroy()
+            end)
         end)
     end)
 
@@ -194,7 +182,9 @@ function CF_UI:MakeWindow(config)
         Tabs = {}
     }
 
-    function windowObject:MakeTab(tabName)
+    function windowObject:MakeTab(tabConfig)
+        local tabName = type(tabConfig) == "table" and tabConfig.Title or "未命名"
+        
         local tabBtn = Instance.new("TextButton")
         tabBtn.Size = UDim2.new(1, 0, 0, 40)
         tabBtn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
@@ -247,7 +237,8 @@ function CF_UI:MakeWindow(config)
         }
         table.insert(self.Tabs, tabObject)
 
-        function tabObject:AddButton(btnText, callback)
+        function tabObject:AddButton(btnConfig, callback)
+            local btnText = type(btnConfig) == "table" and btnConfig.Title or btnConfig
             local btn = Instance.new("TextButton")
             btn.Size = UDim2.new(1, 0, 0, 40)
             btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -268,8 +259,10 @@ function CF_UI:MakeWindow(config)
             end)
         end
 
-        function tabObject:AddToggle(toggleText, defaultState, callback)
-            local state = defaultState or false
+        function tabObject:AddToggle(toggleConfig, callback)
+            local toggleText = type(toggleConfig) == "table" and toggleConfig.Title or toggleConfig
+            local state = type(toggleConfig) == "table" and toggleConfig.Default or false
+            
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, 0, 0, 40)
             toggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -307,8 +300,12 @@ function CF_UI:MakeWindow(config)
             end)
         end
 
-        function tabObject:AddSlider(sliderText, minVal, maxVal, defaultVal, callback)
-            local val = defaultVal or minVal
+        function tabObject:AddSlider(sliderConfig, callback)
+            local sliderText = type(sliderConfig) == "table" and sliderConfig.Title or sliderConfig
+            local minVal = type(sliderConfig) == "table" and sliderConfig.Min or 0
+            local maxVal = type(sliderConfig) == "table" and sliderConfig.Max or 100
+            local val = type(sliderConfig) == "table" and sliderConfig.Default or minVal
+            
             local sliderFrame = Instance.new("Frame")
             sliderFrame.Size = UDim2.new(1, 0, 0, 55)
             sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
