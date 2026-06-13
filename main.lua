@@ -604,7 +604,7 @@ function CF_UI:MakeWindow(config)
     end
 
     local topBar = Instance.new("Frame")
-    topBar.Size = UDim2.new(1, 0, 0, 25)
+    topBar.Size = UDim2.new(1, 0, 0, 35)
     topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     topBar.BackgroundTransparency = elementTrans
     topBar.BorderSizePixel = 1
