@@ -27,6 +27,7 @@ function CF_UI:MakeWindow(config)
     mainFrame.GroupTransparency = 1
     mainFrame.Parent = screenGui
 
+    local bgImage = nil
     if bgUrl ~= "" and isfile and writefile and getcustomasset then
         if not isfile(bgName) then
             local success, imgData = pcall(function()
@@ -37,7 +38,7 @@ function CF_UI:MakeWindow(config)
             end
         end
         if isfile(bgName) then
-            local bgImage = Instance.new("ImageLabel")
+            bgImage = Instance.new("ImageLabel")
             bgImage.Size = UDim2.new(1, 0, 1, 0)
             bgImage.BackgroundTransparency = 1
             bgImage.Image = getcustomasset(bgName)
@@ -53,6 +54,7 @@ function CF_UI:MakeWindow(config)
     topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     topBar.BorderSizePixel = 1
     topBar.BorderColor3 = Color3.fromRGB(45, 45, 45)
+    topBar.Active = true
     topBar.ZIndex = 2
     topBar.Parent = mainFrame
 
@@ -63,6 +65,7 @@ function CF_UI:MakeWindow(config)
     titleLabel.Text = titleText
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
     titleLabel.Font = Enum.Font.Code
     titleLabel.TextSize = 14
     titleLabel.ZIndex = 2
@@ -149,31 +152,53 @@ function CF_UI:MakeWindow(config)
         end
     end)
 
-    local fadeTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {GroupTransparency = 0})
-    fadeTween:Play()
-    fadeTween.Completed:Connect(function()
-        TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -300, 0.5, -200)}):Play()
-    end)
+    local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        GroupTransparency = 0,
+        Position = UDim2.new(0.5, -300, 0.5, -200)
+    })
+    openTween:Play()
 
     local isMinimized = false
     minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
-            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 30)}):Play()
+            leftBar.Visible = false
+            rightContainer.Visible = false
+            closeBtn.Visible = false
+            if bgImage then bgImage.Visible = false end
+            
+            minimizeBtn.Text = "+"
+            
+            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 160, 0, 30)}):Play()
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -30, 0, 0)}):Play()
+            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -40, 1, 0)}):Play()
         else
-            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 400)}):Play()
+            minimizeBtn.Text = "-"
+            
+            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 400)})
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -60, 0, 0)}):Play()
+            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -70, 1, 0)}):Play()
+            expandTween:Play()
+            
+            expandTween.Completed:Connect(function()
+                if not isMinimized then
+                    leftBar.Visible = true
+                    rightContainer.Visible = true
+                    closeBtn.Visible = true
+                    if bgImage then bgImage.Visible = true end
+                end
+            end)
         end
     end)
 
     closeBtn.MouseButton1Click:Connect(function()
-        local slideDownTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -300, 0.8, 0)})
-        slideDownTween:Play()
-        slideDownTween.Completed:Connect(function()
-            local fadeOutTween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {GroupTransparency = 1})
-            fadeOutTween:Play()
-            fadeOutTween.Completed:Connect(function()
-                screenGui:Destroy()
-            end)
+        local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+            GroupTransparency = 1,
+            Position = UDim2.new(0.5, -300, 0.8, 0)
+        })
+        closeTween:Play()
+        closeTween.Completed:Connect(function()
+            screenGui:Destroy()
         end)
     end)
 
