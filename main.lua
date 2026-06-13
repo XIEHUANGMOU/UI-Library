@@ -732,57 +732,57 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-        minimizeBtn.MouseButton1Click:Connect(function()
+            minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
-            leftBar.Visible = false
-            rightContainer.Visible = false
-            closeBtn.Visible = false
-            if bgImage then bgImage.Visible = false end
-            if bgTint then bgTint.Visible = false end
-            
             minMain.Text = "+"
             minShadow.Text = "+"
             mainFrame.BorderSizePixel = 0
             topBar.BorderSizePixel = 0
-            
-            TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            local shrinkTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 180, 0, 35)
-            }):Play()
-            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                BackgroundTransparency = 0
-            }):Play()
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -35, 0, 0),
-                BackgroundTransparency = 0
-            }):Play()
+            })
+            shrinkTween:Play()
+            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -35, 0, 0), BackgroundTransparency = 0}):Play()
+            TweenService:Create(closeBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            for _, v in pairs(closeBtn:GetChildren()) do
+                if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 1}):Play() end
+            end
+            if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play() end
+            if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play() end
+            TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            shrinkTween.Completed:Connect(function()
+                if isMinimized then
+                    leftBar.Visible = false
+                    rightContainer.Visible = false
+                    closeBtn.Visible = false
+                    if bgImage then bgImage.Visible = false end
+                    if bgTint then bgTint.Visible = false end
+                end
+            end)
         else
             minMain.Text = "-"
             minShadow.Text = "-"
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
-            
-            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            leftBar.Visible = true
+            rightContainer.Visible = true
+            closeBtn.Visible = true
+            if bgImage then bgImage.Visible = true end
+            if bgTint then bgTint.Visible = true end
+            TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 600, 0, 400)
-            })
-            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                BackgroundTransparency = elementTrans
             }):Play()
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -70, 0, 0),
-                BackgroundTransparency = elementTrans
-            }):Play()
-            expandTween:Play()
-            
-            expandTween.Completed:Connect(function()
-                if not isMinimized then
-                    leftBar.Visible = true
-                    rightContainer.Visible = true
-                    closeBtn.Visible = true
-                    if bgImage then bgImage.Visible = true end
-                    if bgTint then bgTint.Visible = true end
-                end
-            end)
+            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -70, 0, 0), BackgroundTransparency = elementTrans}):Play()
+            TweenService:Create(closeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
+            for _, v in pairs(closeBtn:GetChildren()) do
+                if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.6), {TextTransparency = 0}):Play() end
+            end
+            if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() end
+            if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.4}):Play() end
+            TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
         end
     end)
 
@@ -863,7 +863,6 @@ function CF_UI:MakeWindow(config)
         TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             Position = UDim2.new(0.5, -300, 0.5, -200)
         }):Play()
-
         confirmOverlay.Visible = true
         TweenService:Create(confirmOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
     end)
