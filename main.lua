@@ -859,7 +859,11 @@ function CF_UI:MakeWindow(config)
         end)
     end)
 
-    closeBtn.MouseButton1Click:Connect(function()
+        closeBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0.5, -300, 0.5, -200)
+        }):Play()
+
         confirmOverlay.Visible = true
         TweenService:Create(confirmOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
     end)
