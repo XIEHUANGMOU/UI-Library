@@ -615,6 +615,7 @@ function CF_UI:MakeWindow(config)
     if useRainbow then
         local uiStroke = Instance.new("UIStroke")
         uiStroke.Thickness = 1.25
+        uiStroke.Color = Color3.fromRGB(255, 255, 255)
         uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         uiStroke.Parent = mainFrame
 
