@@ -1168,13 +1168,19 @@ function CF_UI:Notify(config)
         end)
     end
 
+    local wrapper = Instance.new("Frame")
+    wrapper.Size = UDim2.new(1, 0, 0, 0)
+    wrapper.BackgroundTransparency = 1
+    wrapper.Parent = notifyContainer
+
     local notifFrame = Instance.new("CanvasGroup")
-    notifFrame.Size = UDim2.new(1, 0, 0, 0) -- 初始高度0，用于自适应
+    notifFrame.Size = UDim2.new(1, 0, 1, 0)
+    notifFrame.Position = UDim2.new(0, 50, 0, 50)
     notifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     notifFrame.BorderSizePixel = 1
     notifFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
     notifFrame.GroupTransparency = 1
-    notifFrame.Parent = notifyContainer
+    notifFrame.Parent = wrapper
 
     local textOffsetX = 15
     if iconUrl ~= "" then
@@ -1233,7 +1239,7 @@ function CF_UI:Notify(config)
     cLabel.Size = UDim2.new(1, -textOffsetX - 10, 0, cLabel.TextBounds.Y + 5)
     local totalHeight = 30 + cLabel.TextBounds.Y + 15
     if totalHeight < 55 then totalHeight = 55 end
-    notifFrame.Size = UDim2.new(1, 0, 0, totalHeight)
+    wrapper.Size = UDim2.new(1, 0, 0, totalHeight)
 
     local progressBar = Instance.new("Frame")
     progressBar.Size = UDim2.new(1, 0, 0, 2)
@@ -1243,7 +1249,6 @@ function CF_UI:Notify(config)
     progressBar.ZIndex = 3
     progressBar.Parent = notifFrame
 
-    notifFrame.Position = UDim2.new(0, 50, 0, 0)
     TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
         Position = UDim2.new(0, 0, 0, 0),
         GroupTransparency = 0
@@ -1255,12 +1260,12 @@ function CF_UI:Notify(config)
 
     task.delay(duration, function()
         local outTween = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-            Position = UDim2.new(0, 50, 0, 0),
+            Position = UDim2.new(0, 50, 0, 50),
             GroupTransparency = 1
         })
         outTween:Play()
         outTween.Completed:Connect(function()
-            notifFrame:Destroy()
+            wrapper:Destroy()
         end)
     end)
 end
