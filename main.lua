@@ -582,26 +582,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
     end
 end
 
-function CF_UI:MakeWindow(config)
-    local titleText = config.Title or "CF_UI"
-    local subTitleText = config.Subtitle or "" 
-    local bgValue = config.Background or ""
-    local iconUrl = config.Icon or ""
-    local useRainbow = config.RainbowBorder or false
-    local hasBg = bgValue ~= ""
-    
-    local elementTrans = hasBg and 0.65 or 0
-    local activeTrans = hasBg and 0.35 or 0
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = HttpService:GenerateGUID(false)
-    screenGui.ResetOnSpawn = false
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    screenGui.DisplayOrder = 2147483647   
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    screenGui.Parent = TargetGui
-
-        local mainFrame = Instance.new("CanvasGroup")
+    local mainFrame = Instance.new("CanvasGroup")
     mainFrame.Size = UDim2.new(0, 600, 0, 400)
     mainFrame.Position = UDim2.new(0.5, -300, 0.8, 0)
     mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -614,7 +595,7 @@ function CF_UI:MakeWindow(config)
 
     if useRainbow then
         local uiStroke = Instance.new("UIStroke")
-        uiStroke.Thickness = 2
+        uiStroke.Thickness = 1.5
         uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         uiStroke.Parent = mainFrame
 
@@ -626,22 +607,22 @@ function CF_UI:MakeWindow(config)
             ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
             ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
             ColorSequenceKeypoint.new(0.83, Color3.fromRGB(139, 0, 255)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))   
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
         })
         uiGradient.Parent = uiStroke
+
         local RunService = game:GetService("RunService")
         local rot = 0
         local connection
         connection = RunService.RenderStepped:Connect(function(dt)
             if not uiGradient.Parent then 
-                connection:Disconnect() 
+                connection:Disconnect()
                 return 
             end
-            rot = (rot + dt * 50) % 360 
+            rot = (rot + dt * 50) % 360
             uiGradient.Rotation = rot
         end)
     end
-
 
     local bgImage = nil
     local bgTint = nil
