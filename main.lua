@@ -740,27 +740,44 @@ function CF_UI:MakeWindow(config)
         titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -80, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 13, Enum.TextXAlignment.Left)
     end
 
-    local minimizeBtn = Instance.new("TextButton")
-    minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
-    minimizeBtn.Position = UDim2.new(1, -50, 0, 0)
+       local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 35, 0, 35) -- 保持与脚本图标一致的 35x35 大小
+    minimizeBtn.Position = UDim2.new(1, -70, 0, 0)
     minimizeBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     minimizeBtn.BackgroundTransparency = elementTrans
     minimizeBtn.BorderSizePixel = 0
     minimizeBtn.Text = ""
     minimizeBtn.ZIndex = 2
     minimizeBtn.Parent = topBar
-    local minMain, minShadow = CreateText(minimizeBtn, "-", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 16, Enum.TextXAlignment.Center)
+
+    -- 新增：最小化/展开 图片图标
+    local minIcon = Instance.new("ImageLabel")
+    minIcon.Size = UDim2.new(0, 16, 0, 16)
+    minIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
+    minIcon.BackgroundTransparency = 1
+    minIcon.Image = "rbxassetid://10734896206"
+    minIcon.ScaleType = Enum.ScaleType.Fit
+    minIcon.ZIndex = 3
+    minIcon.Parent = minimizeBtn
 
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 25, 0, 25)
-    closeBtn.Position = UDim2.new(1, -25, 0, 0)
+    closeBtn.Size = UDim2.new(0, 35, 0, 35)
+    closeBtn.Position = UDim2.new(1, -35, 0, 0)
     closeBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
     closeBtn.BackgroundTransparency = elementTrans
     closeBtn.BorderSizePixel = 0
     closeBtn.Text = ""
     closeBtn.ZIndex = 2
     closeBtn.Parent = topBar
-    CreateText(closeBtn, "X", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)
+
+    local closeIcon = Instance.new("ImageLabel")
+    closeIcon.Size = UDim2.new(0, 16, 0, 16)
+    closeIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
+    closeIcon.BackgroundTransparency = 1
+    closeIcon.Image = "rbxassetid://7733701545"
+    closeIcon.ScaleType = Enum.ScaleType.Fit
+    closeIcon.ZIndex = 3
+    closeIcon.Parent = closeBtn
 
     local leftBar = Instance.new("ScrollingFrame")
     leftBar.Size = UDim2.new(0, 120, 1, -35)
@@ -868,14 +885,13 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-                minimizeBtn.MouseButton1Click:Connect(function()
+            minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
-            minMain.Text = "+"
-            minShadow.Text = "+"
+            minIcon.Image = "rbxassetid://10734924532" 
             mainFrame.BorderSizePixel = 0
             topBar.BorderSizePixel = 0
-            resizeHandle.Visible = false
+            resizeHandle.Visible = false 
             
             local shrinkTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 180, 0, 35)
@@ -887,7 +903,7 @@ function CF_UI:MakeWindow(config)
             
             TweenService:Create(closeBtn, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
             for _, v in pairs(closeBtn:GetChildren()) do
-                if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 1}):Play() end
+                if v:IsA("ImageLabel") then TweenService:Create(v, TweenInfo.new(0.3), {ImageTransparency = 1}):Play() end
             end
             
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play() end
@@ -904,11 +920,10 @@ function CF_UI:MakeWindow(config)
                 end
             end)
         else
-            minMain.Text = "-"
-            minShadow.Text = "-"
+            minIcon.Image = "rbxassetid://10734896206" 
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
-            resizeHandle.Visible = true
+            resizeHandle.Visible = true 
             
             leftBar.Visible = true
             rightContainer.Visible = true
@@ -925,7 +940,7 @@ function CF_UI:MakeWindow(config)
             
             TweenService:Create(closeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
             for _, v in pairs(closeBtn:GetChildren()) do
-                if v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.6), {TextTransparency = 0}):Play() end
+                if v:IsA("ImageLabel") then TweenService:Create(v, TweenInfo.new(0.6), {ImageTransparency = 0}):Play() end
             end
             
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() end
