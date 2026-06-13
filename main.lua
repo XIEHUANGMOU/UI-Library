@@ -732,7 +732,7 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-    minimizeBtn.MouseButton1Click:Connect(function()
+        minimizeBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
             leftBar.Visible = false
@@ -756,17 +756,12 @@ function CF_UI:MakeWindow(config)
                 Position = UDim2.new(1, -35, 0, 0),
                 BackgroundTransparency = 0
             }):Play()
-            TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -40, 1, 0)
-            }):Play()
-            TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -40, 1, 0)
-            }):Play()
         else
             minMain.Text = "-"
             minShadow.Text = "-"
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
+            
             local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 600, 0, 400)
             })
@@ -776,12 +771,6 @@ function CF_UI:MakeWindow(config)
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Position = UDim2.new(1, -70, 0, 0),
                 BackgroundTransparency = elementTrans
-            }):Play()
-            TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -80, 1, 0)
-            }):Play()
-            TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -80, 1, 0)
             }):Play()
             expandTween:Play()
             
