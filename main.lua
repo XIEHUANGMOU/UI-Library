@@ -587,6 +587,7 @@ function CF_UI:MakeWindow(config)
     local subTitleText = config.Subtitle or "" 
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
+    local useRainbow = config.RainbowBorder or false
     local hasBg = bgValue ~= ""
     
     local elementTrans = hasBg and 0.65 or 0
@@ -600,16 +601,47 @@ function CF_UI:MakeWindow(config)
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     screenGui.Parent = TargetGui
 
-    local mainFrame = Instance.new("CanvasGroup")
+        local mainFrame = Instance.new("CanvasGroup")
     mainFrame.Size = UDim2.new(0, 600, 0, 400)
     mainFrame.Position = UDim2.new(0.5, -300, 0.8, 0)
     mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     mainFrame.BackgroundTransparency = hasBg and 1 or 0
-    mainFrame.BorderSizePixel = 1
+    mainFrame.BorderSizePixel = useRainbow and 0 or 1
     mainFrame.BorderColor3 = Color3.fromRGB(45, 45, 45)
     mainFrame.GroupTransparency = 1
     mainFrame.ClipsDescendants = true
     mainFrame.Parent = screenGui
+
+    if useRainbow then
+        local uiStroke = Instance.new("UIStroke")
+        uiStroke.Thickness = 2
+        uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        uiStroke.Parent = mainFrame
+
+        local uiGradient = Instance.new("UIGradient")
+        uiGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+            ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 127, 0)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
+            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
+            ColorSequenceKeypoint.new(0.83, Color3.fromRGB(139, 0, 255)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))   
+        })
+        uiGradient.Parent = uiStroke
+        local RunService = game:GetService("RunService")
+        local rot = 0
+        local connection
+        connection = RunService.RenderStepped:Connect(function(dt)
+            if not uiGradient.Parent then 
+                connection:Disconnect() 
+                return 
+            end
+            rot = (rot + dt * 50) % 360 
+            uiGradient.Rotation = rot
+        end)
+    end
+
 
     local bgImage = nil
     local bgTint = nil
