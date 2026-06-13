@@ -740,8 +740,12 @@ function CF_UI:MakeWindow(config)
             TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 150, 0, 25)
             }):Play()
+            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                BackgroundTransparency = 0
+            }):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -25, 0, 0)
+                Position = UDim2.new(1, -25, 0, 0),
+                BackgroundTransparency = 0
             }):Play()
             TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -30, 1, 0)
@@ -758,8 +762,12 @@ function CF_UI:MakeWindow(config)
             local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 600, 0, 400)
             })
+            TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                BackgroundTransparency = elementTrans
+            }):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -50, 0, 0)
+                Position = UDim2.new(1, -50, 0, 0),
+                BackgroundTransparency = elementTrans
             }):Play()
             TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, -60, 1, 0)
