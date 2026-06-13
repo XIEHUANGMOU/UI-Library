@@ -786,23 +786,22 @@ function CF_UI:MakeWindow(config)
         end
     end)
 
-    local confirmOverlay = Instance.new("TextButton")
+      local confirmOverlay = Instance.new("TextButton")
     confirmOverlay.Size = UDim2.new(1, 0, 1, 0)
     confirmOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     confirmOverlay.BackgroundTransparency = 1
     confirmOverlay.Text = ""
     confirmOverlay.AutoButtonColor = false
     confirmOverlay.Visible = false
-    confirmOverlay.ZIndex = 10
-    confirmOverlay.Parent = screenGui
-
+    confirmOverlay.ZIndex = 100
+    confirmOverlay.Parent = mainFrame
     local confirmBox = Instance.new("Frame")
     confirmBox.Size = UDim2.new(0, 300, 0, 130)
     confirmBox.Position = UDim2.new(0.5, -150, 0.5, -65)
     confirmBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     confirmBox.BorderSizePixel = 1
     confirmBox.BorderColor3 = Color3.fromRGB(60, 60, 60)
-    confirmBox.ZIndex = 11
+    confirmBox.ZIndex = 101
     confirmBox.Parent = confirmOverlay
 
     CreateText(confirmBox, "关闭提示", UDim2.new(1, 0, 0, 30), UDim2.new(0, 0, 0, 10), Color3.fromRGB(255, 60, 60), 14, Enum.TextXAlignment.Center)
@@ -815,7 +814,7 @@ function CF_UI:MakeWindow(config)
     cancelBtn.BorderSizePixel = 1
     cancelBtn.BorderColor3 = Color3.fromRGB(0, 100, 0)
     cancelBtn.Text = ""
-    cancelBtn.ZIndex = 12
+    cancelBtn.ZIndex = 102
     cancelBtn.Parent = confirmBox
     CreateText(cancelBtn, "取消", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)
 
@@ -826,10 +825,9 @@ function CF_UI:MakeWindow(config)
     confirmYesBtn.BorderSizePixel = 1
     confirmYesBtn.BorderColor3 = Color3.fromRGB(120, 20, 20)
     confirmYesBtn.Text = ""
-    confirmYesBtn.ZIndex = 12
+    confirmYesBtn.ZIndex = 102
     confirmYesBtn.Parent = confirmBox
-    CreateText(confirmYesBtn, "确认关闭", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)
-    cancelBtn.MouseEnter:Connect(function() TweenService:Create(cancelBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 190, 0)}):Play() end)
+    CreateText(confirmYesBtn, "确认关闭", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)     cancelBtn.MouseEnter:Connect(function() TweenService:Create(cancelBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 190, 0)}):Play() end)
     cancelBtn.MouseLeave:Connect(function() TweenService:Create(cancelBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 150, 0)}):Play() end)
 
     confirmYesBtn.MouseEnter:Connect(function() TweenService:Create(confirmYesBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(220, 50, 50)}):Play() end)
