@@ -531,6 +531,7 @@ end
 
 function CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
+    local subTitleText = config.Subtitle or "" 
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
     local hasBg = bgValue ~= ""
@@ -542,6 +543,8 @@ function CF_UI:MakeWindow(config)
     screenGui.Name = HttpService:GenerateGUID(false)
     screenGui.ResetOnSpawn = false
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.DisplayOrder = 2147483647   
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
     screenGui.Parent = TargetGui
 
     local mainFrame = Instance.new("CanvasGroup")
@@ -635,7 +638,13 @@ function CF_UI:MakeWindow(config)
         end
     end
 
-    local titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        local titleMain, titleShadow
+    if subTitleText ~= "" then
+        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 0, 15), UDim2.new(0, textOffsetX, 0, 1), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        CreateText(topBar, subTitleText, UDim2.new(1, -60, 0, 12), UDim2.new(0, textOffsetX, 0, 15), Color3.fromRGB(160, 160, 160), 10, Enum.TextXAlignment.Left)
+    else
+        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+    end
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
     minimizeBtn.Position = UDim2.new(1, -50, 0, 0)
@@ -832,7 +841,20 @@ function CF_UI:MakeWindow(config)
     confirmYesBtn.ZIndex = 12
     confirmYesBtn.Parent = confirmBox
     CreateText(confirmYesBtn, "确认关闭", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)
+    cancelBtn.MouseEnter:Connect(function() TweenService:Create(cancelBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 190, 0)}):Play() end)
+    cancelBtn.MouseLeave:Connect(function() TweenService:Create(cancelBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(0, 150, 0)}):Play() end)
 
+    confirmYesBtn.MouseEnter:Connect(function() TweenService:Create(confirmYesBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(220, 50, 50)}):Play() end)
+    confirmYesBtn.MouseLeave:Connect(function() TweenService:Create(confirmYesBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(180, 40, 40)}):Play() end)
+
+    closeBtn.MouseEnter:Connect(function() TweenService:Create(closeBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(200, 40, 40)}):Play() end)
+    closeBtn.MouseLeave:Connect(function() TweenService:Create(closeBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1, BackgroundColor3 = Color3.fromRGB(0, 0, 0)}):Play() end)
+
+    minimizeBtn.MouseEnter:Connect(function() TweenService:Create(minimizeBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play() end)
+    minimizeBtn.MouseLeave:Connect(function() 
+        local targetTrans = isMinimized and 0 or elementTrans
+        TweenService:Create(minimizeBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = targetTrans, BackgroundColor3 = Color3.fromRGB(0, 0, 0)}):Play() 
+    end)
     cancelBtn.MouseButton1Click:Connect(function()
         TweenService:Create(confirmOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
         task.wait(0.2)
@@ -902,7 +924,16 @@ function CF_UI:MakeWindow(config)
             tabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             tabBtn.BackgroundTransparency = activeTrans
         end
-
+        tabBtn.MouseEnter:Connect(function()
+            if self.CurrentTab ~= tabContainer then
+                TweenService:Create(tabBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}):Play()
+            end
+        end)
+        tabBtn.MouseLeave:Connect(function()
+            if self.CurrentTab ~= tabContainer then
+                TweenService:Create(tabBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}):Play()
+            end
+        end)
         tabBtn.MouseButton1Click:Connect(function()
             for _, t in pairs(self.Tabs) do
                 t.Container.Visible = false
