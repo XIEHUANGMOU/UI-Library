@@ -613,16 +613,16 @@ function CF_UI:MakeWindow(config)
     topBar.ZIndex = 2
         topBar.Parent = mainFrame
 
-    local textOffsetX = 10
+        local textOffsetX = 12
     if iconUrl ~= "" then
         local iconImg = Instance.new("ImageLabel")
-        iconImg.Size = UDim2.new(0, 16, 0, 16)
-        iconImg.Position = UDim2.new(0, 8, 0.5, -8)
+        iconImg.Size = UDim2.new(0, 18, 0, 18)
+        iconImg.Position = UDim2.new(0, 10, 0.5, -9)
         iconImg.BackgroundTransparency = 1
         iconImg.ScaleType = Enum.ScaleType.Fit
         iconImg.ZIndex = topBar.ZIndex + 1
         iconImg.Parent = topBar
-        textOffsetX = 30
+        textOffsetX = 36
         
         if string.find(iconUrl, "rbxassetid://") or string.find(iconUrl, "rbxasset://") then
             iconImg.Image = iconUrl
@@ -638,12 +638,12 @@ function CF_UI:MakeWindow(config)
         end
     end
 
-        local titleMain, titleShadow
+    local titleMain, titleShadow
     if subTitleText ~= "" then
-        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 0, 15), UDim2.new(0, textOffsetX, 0, 1), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
-        CreateText(topBar, subTitleText, UDim2.new(1, -60, 0, 12), UDim2.new(0, textOffsetX, 0, 15), Color3.fromRGB(160, 160, 160), 10, Enum.TextXAlignment.Left)
+        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -80, 0, 18), UDim2.new(0, textOffsetX, 0, 2), Color3.fromRGB(255, 255, 255), 13, Enum.TextXAlignment.Left)
+        CreateText(topBar, subTitleText, UDim2.new(1, -80, 0, 15), UDim2.new(0, textOffsetX, 0, 18), Color3.fromRGB(160, 160, 160), 10, Enum.TextXAlignment.Left)
     else
-        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -60, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -80, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 13, Enum.TextXAlignment.Left)
     end
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
@@ -668,8 +668,8 @@ function CF_UI:MakeWindow(config)
     CreateText(closeBtn, "X", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Center)
 
     local leftBar = Instance.new("ScrollingFrame")
-    leftBar.Size = UDim2.new(0, 120, 1, -25)
-    leftBar.Position = UDim2.new(0, 0, 0, 25)
+    leftBar.Size = UDim2.new(0, 120, 1, -35)
+    leftBar.Position = UDim2.new(0, 0, 0, 35)
     leftBar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     leftBar.BackgroundTransparency = elementTrans
     leftBar.BorderSizePixel = 1
@@ -747,27 +747,26 @@ function CF_UI:MakeWindow(config)
             topBar.BorderSizePixel = 0
             
             TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 150, 0, 25)
+                Size = UDim2.new(0, 180, 0, 35)
             }):Play()
             TweenService:Create(topBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 BackgroundTransparency = 0
             }):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -25, 0, 0),
+                Position = UDim2.new(1, -35, 0, 0),
                 BackgroundTransparency = 0
             }):Play()
             TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -30, 1, 0)
+                Size = UDim2.new(1, -40, 1, 0)
             }):Play()
             TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -30, 1, 0)
+                Size = UDim2.new(1, -40, 1, 0)
             }):Play()
         else
             minMain.Text = "-"
             minShadow.Text = "-"
             mainFrame.BorderSizePixel = 1
             topBar.BorderSizePixel = 1
-            
             local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 600, 0, 400)
             })
@@ -775,14 +774,14 @@ function CF_UI:MakeWindow(config)
                 BackgroundTransparency = elementTrans
             }):Play()
             TweenService:Create(minimizeBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -50, 0, 0),
+                Position = UDim2.new(1, -70, 0, 0),
                 BackgroundTransparency = elementTrans
             }):Play()
             TweenService:Create(titleMain, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -60, 1, 0)
+                Size = UDim2.new(1, -80, 1, 0)
             }):Play()
             TweenService:Create(titleShadow, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.new(1, -60, 1, 0)
+                Size = UDim2.new(1, -80, 1, 0)
             }):Play()
             expandTween:Play()
             
