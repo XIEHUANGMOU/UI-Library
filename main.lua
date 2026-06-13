@@ -614,6 +614,7 @@ function CF_UI:MakeWindow(config)
     mainFrame.BorderSizePixel = 1
     mainFrame.BorderColor3 = Color3.fromRGB(45, 45, 45)
     mainFrame.GroupTransparency = 1
+    mainFrame.ClipsDescendants =ture
     mainFrame.Parent = screenGui
 
     local bgImage = nil
@@ -670,7 +671,7 @@ function CF_UI:MakeWindow(config)
     topBar.BorderColor3 = Color3.fromRGB(45, 45, 45)
     topBar.Active = true
     topBar.ZIndex = 2
-        topBar.Parent = mainFrame
+    topBar.Parent = mainFrame
 
     local textOffsetX = 12
     if iconUrl ~= "" then
@@ -735,6 +736,7 @@ function CF_UI:MakeWindow(config)
     leftBar.BorderColor3 = Color3.fromRGB(45, 45, 45)
     leftBar.ScrollBarThickness = 0
     leftBar.ZIndex = 2
+    leftBar.ClipsDescendants = true
     leftBar.Parent = mainFrame
 
     local tabLayout = Instance.new("UIListLayout")
@@ -746,6 +748,7 @@ function CF_UI:MakeWindow(config)
     rightContainer.Position = UDim2.new(0, 120, 0, 25)
     rightContainer.BackgroundTransparency = 1
     rightContainer.ZIndex = 2
+    rightContainer.ClipsDescendants = true
     rightContainer.Parent = mainFrame
 
     local dragging = false
@@ -954,6 +957,7 @@ function CF_UI:MakeWindow(config)
         tabContainer.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
         tabContainer.Visible = false
         tabContainer.ZIndex = 2
+        tabContainer.ClipsDescendants = true
         tabContainer.Parent = rightContainer
 
         local containerLayout = Instance.new("UIListLayout")
