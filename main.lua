@@ -741,7 +741,7 @@ function CF_UI:MakeWindow(config)
     end
 
        local minimizeBtn = Instance.new("TextButton")
-    minimizeBtn.Size = UDim2.new(0, 35, 0, 35) -- 保持与脚本图标一致的 35x35 大小
+    minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
     minimizeBtn.Position = UDim2.new(1, -70, 0, 0)
     minimizeBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     minimizeBtn.BackgroundTransparency = elementTrans
@@ -750,7 +750,6 @@ function CF_UI:MakeWindow(config)
     minimizeBtn.ZIndex = 2
     minimizeBtn.Parent = topBar
 
-    -- 新增：最小化/展开 图片图标
     local minIcon = Instance.new("ImageLabel")
     minIcon.Size = UDim2.new(0, 16, 0, 16)
     minIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
@@ -774,7 +773,7 @@ function CF_UI:MakeWindow(config)
     closeIcon.Size = UDim2.new(0, 16, 0, 16)
     closeIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
     closeIcon.BackgroundTransparency = 1
-    closeIcon.Image = "rbxassetid://7733701545"
+    closeIcon.Image = "rbxassetid://10747384394"
     closeIcon.ScaleType = Enum.ScaleType.Fit
     closeIcon.ZIndex = 3
     closeIcon.Parent = closeBtn
