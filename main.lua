@@ -1115,5 +1115,154 @@ function CF_UI:MakeWindow(config)
 
     return windowObject
 end
+local notifyContainer = nil
+
+function CF_UI:Notify(config)
+    local title = type(config) == "table" and config.Title or "通知"
+    local content = type(config) == "table" and config.Content or ""
+    local iconUrl = type(config) == "table" and config.Icon or ""
+    local duration = type(config) == "table" and config.Duration or 3
+    local soundUrl = type(config) == "table" and config.Sound or ""
+
+    if not notifyContainer then
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = HttpService:GenerateGUID(false)
+        screenGui.DisplayOrder = 2147483647
+        screenGui.ResetOnSpawn = false
+        screenGui.Parent = TargetGui
+
+        notifyContainer = Instance.new("Frame")
+        notifyContainer.Size = UDim2.new(0, 300, 1, -40)
+        notifyContainer.Position = UDim2.new(1, -320, 0, 20)
+        notifyContainer.BackgroundTransparency = 1
+        notifyContainer.Parent = screenGui
+
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        listLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        listLayout.Padding = UDim.new(0, 10)
+        listLayout.Parent = notifyContainer
+    end
+
+    if soundUrl ~= "" then
+        task.spawn(function()
+            local sound = Instance.new("Sound")
+            sound.Parent = game:GetService("SoundService")
+            sound.Volume = 1
+            if string.find(soundUrl, "rbxasset") then
+                sound.SoundId = soundUrl
+                sound:Play()
+            elseif string.find(soundUrl, "http") then
+                if isfile and writefile and getcustomasset then
+                    local soundHash = "cf_sound_" .. string.gsub(soundUrl, "[^%w]", ""):sub(-15) .. ".mp3"
+                    if not isfile(soundHash) then
+                        pcall(function() writefile(soundHash, game:HttpGet(soundUrl)) end)
+                    end
+                    if isfile(soundHash) then
+                        sound.SoundId = getcustomasset(soundHash)
+                        sound:Play()
+                    end
+                end
+            end
+            game:GetService("Debris"):AddItem(sound, 10)
+        end)
+    end
+
+    local notifFrame = Instance.new("CanvasGroup")
+    notifFrame.Size = UDim2.new(1, 0, 0, 0) -- 初始高度0，用于自适应
+    notifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    notifFrame.BorderSizePixel = 1
+    notifFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    notifFrame.GroupTransparency = 1
+    notifFrame.Parent = notifyContainer
+
+    local textOffsetX = 15
+    if iconUrl ~= "" then
+        local iconImg = Instance.new("ImageLabel")
+        iconImg.Size = UDim2.new(0, 24, 0, 24)
+        iconImg.Position = UDim2.new(0, 15, 0, 15)
+        iconImg.BackgroundTransparency = 1
+        iconImg.ScaleType = Enum.ScaleType.Fit
+        iconImg.ZIndex = 2
+        iconImg.Parent = notifFrame
+        textOffsetX = 50
+
+        task.spawn(function()
+            if string.find(iconUrl, "rbxasset") then
+                iconImg.Image = iconUrl
+            elseif string.find(iconUrl, "http") then
+                if isfile and writefile and getcustomasset then
+                    local iconHash = "cf_icon_" .. string.gsub(iconUrl, "[^%w]", ""):sub(-15) .. ".png"
+                    if not isfile(iconHash) then
+                        pcall(function() writefile(iconHash, game:HttpGet(iconUrl)) end)
+                    end
+                    if isfile(iconHash) then
+                        iconImg.Image = getcustomasset(iconHash)
+                    end
+                end
+            end
+        end)
+    end
+
+    local tLabel = Instance.new("TextLabel")
+    tLabel.Size = UDim2.new(1, -textOffsetX - 10, 0, 20)
+    tLabel.Position = UDim2.new(0, textOffsetX, 0, 10)
+    tLabel.BackgroundTransparency = 1
+    tLabel.Text = title
+    tLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tLabel.Font = Enum.Font.Code
+    tLabel.TextSize = 14
+    tLabel.ZIndex = 2
+    tLabel.Parent = notifFrame
+
+    local cLabel = Instance.new("TextLabel")
+    cLabel.Size = UDim2.new(1, -textOffsetX - 10, 0, 0)
+    cLabel.Position = UDim2.new(0, textOffsetX, 0, 30)
+    cLabel.BackgroundTransparency = 1
+    cLabel.Text = content
+    cLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
+    cLabel.TextXAlignment = Enum.TextXAlignment.Left
+    cLabel.TextYAlignment = Enum.TextYAlignment.Top
+    cLabel.Font = Enum.Font.Code
+    cLabel.TextSize = 12
+    cLabel.TextWrapped = true
+    cLabel.ZIndex = 2
+    cLabel.Parent = notifFrame
+
+    cLabel.Size = UDim2.new(1, -textOffsetX - 10, 0, cLabel.TextBounds.Y + 5)
+    local totalHeight = 30 + cLabel.TextBounds.Y + 15
+    if totalHeight < 55 then totalHeight = 55 end
+    notifFrame.Size = UDim2.new(1, 0, 0, totalHeight)
+
+    local progressBar = Instance.new("Frame")
+    progressBar.Size = UDim2.new(1, 0, 0, 2)
+    progressBar.Position = UDim2.new(0, 0, 1, -2)
+    progressBar.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+    progressBar.BorderSizePixel = 0
+    progressBar.ZIndex = 3
+    progressBar.Parent = notifFrame
+
+    notifFrame.Position = UDim2.new(0, 50, 0, 0)
+    TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0, 0, 0, 0),
+        GroupTransparency = 0
+    }):Play()
+
+    TweenService:Create(progressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+        Size = UDim2.new(0, 0, 0, 2)
+    }):Play()
+
+    task.delay(duration, function()
+        local outTween = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+            Position = UDim2.new(0, 50, 0, 0),
+            GroupTransparency = 1
+        })
+        outTween:Play()
+        outTween.Completed:Connect(function()
+            notifFrame:Destroy()
+        end)
+    end)
+end
 
 return CF_UI
