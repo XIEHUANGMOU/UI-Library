@@ -613,17 +613,16 @@ function CF_UI:MakeWindow(config)
     topBar.ZIndex = 2
         topBar.Parent = mainFrame
 
-        local textOffsetX = 12
+    local textOffsetX = 12
     if iconUrl ~= "" then
         local iconImg = Instance.new("ImageLabel")
-        iconImg.Size = UDim2.new(0, 18, 0, 18)
-        iconImg.Position = UDim2.new(0, 10, 0.5, -9)
+        iconImg.Size = UDim2.new(0, 35, 0, 35) 
+        iconImg.Position = UDim2.new(0, 0, 0, 0) 
         iconImg.BackgroundTransparency = 1
-        iconImg.ScaleType = Enum.ScaleType.Fit
+        iconImg.ScaleType = Enum.ScaleType.Crop 
         iconImg.ZIndex = topBar.ZIndex + 1
         iconImg.Parent = topBar
-        textOffsetX = 36
-        
+        textOffsetX = 45 
         if string.find(iconUrl, "rbxassetid://") or string.find(iconUrl, "rbxasset://") then
             iconImg.Image = iconUrl
         elseif string.find(iconUrl, "http") then
@@ -645,6 +644,7 @@ function CF_UI:MakeWindow(config)
     else
         titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -80, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 13, Enum.TextXAlignment.Left)
     end
+
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
     minimizeBtn.Position = UDim2.new(1, -50, 0, 0)
