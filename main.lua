@@ -1,7 +1,7 @@
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
 local TargetGui = (gethui and gethui()) or CoreGui
 
@@ -9,8 +9,7 @@ local CF_UI = {}
 
 function CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
-    local bgUrl = config.BackgroundUrl or ""
-    local bgName = config.BackgroundName or "cf_ui_background.png"
+    local bgValue = config.Background or ""
 
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = HttpService:GenerateGUID(false)
@@ -28,24 +27,28 @@ function CF_UI:MakeWindow(config)
     mainFrame.Parent = screenGui
 
     local bgImage = nil
-    if bgUrl ~= "" and isfile and writefile and getcustomasset then
-        if not isfile(bgName) then
-            local success, imgData = pcall(function()
-                return game:HttpGet(bgUrl)
-            end)
-            if success and imgData then
-                writefile(bgName, imgData)
+    if bgValue ~= "" then
+        bgImage = Instance.new("ImageLabel")
+        bgImage.Size = UDim2.new(1, 0, 1, 0)
+        bgImage.BackgroundTransparency = 1
+        bgImage.ImageTransparency = 0.8
+        bgImage.ScaleType = Enum.ScaleType.Crop
+        bgImage.ZIndex = 0
+        bgImage.Parent = mainFrame
+
+        if string.find(bgValue, "rbxassetid://") or string.find(bgValue, "rbxasset://") then
+            bgImage.Image = bgValue
+        elseif string.find(bgValue, "http") then
+            if isfile and writefile and getcustomasset then
+                local fileName = "cf_ui_bg_cache.png"
+                local success, data = pcall(function()
+                    return game:HttpGet(bgValue)
+                end)
+                if success and data then
+                    writefile(fileName, data)
+                    bgImage.Image = getcustomasset(fileName)
+                end
             end
-        end
-        if isfile(bgName) then
-            bgImage = Instance.new("ImageLabel")
-            bgImage.Size = UDim2.new(1, 0, 1, 0)
-            bgImage.BackgroundTransparency = 1
-            bgImage.Image = getcustomasset(bgName)
-            bgImage.ImageTransparency = 0.8
-            bgImage.ScaleType = Enum.ScaleType.Crop
-            bgImage.ZIndex = 0
-            bgImage.Parent = mainFrame
         end
     end
 
@@ -168,16 +171,40 @@ function CF_UI:MakeWindow(config)
             if bgImage then bgImage.Visible = false end
             
             minimizeBtn.Text = "+"
+            mainFrame.BorderSizePixel = 0
+            topBar.BorderSizePixel = 0
             
-            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 160, 0, 30)}):Play()
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -30, 0, 0)}):Play()
-            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -40, 1, 0)}):Play()
+            TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 150, 0, 30),
+                BackgroundTransparency = 1
+            }):Play()
+            TweenService:Create(topBar, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                BackgroundTransparency = 1
+            }):Play()
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Position = UDim2.new(1, -30, 0, 0)
+            }):Play()
+            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Size = UDim2.new(1, -30, 1, 0)
+            }):Play()
         else
             minimizeBtn.Text = "-"
+            mainFrame.BorderSizePixel = 1
+            topBar.BorderSizePixel = 1
             
-            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 400)})
-            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(1, -60, 0, 0)}):Play()
-            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -70, 1, 0)}):Play()
+            local expandTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 600, 0, 400),
+                BackgroundTransparency = 0
+            })
+            TweenService:Create(topBar, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                BackgroundTransparency = 0
+            }):Play()
+            TweenService:Create(minimizeBtn, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Position = UDim2.new(1, -60, 0, 0)
+            }):Play()
+            TweenService:Create(titleLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                Size = UDim2.new(1, -70, 1, 0)
+            }):Play()
             expandTween:Play()
             
             expandTween.Completed:Connect(function()
@@ -264,17 +291,44 @@ function CF_UI:MakeWindow(config)
 
         function tabObject:AddButton(btnConfig, callback)
             local btnText = type(btnConfig) == "table" and btnConfig.Title or btnConfig
+            local btnDesc = type(btnConfig) == "table" and btnConfig.Desc or nil
+            local hasDesc = btnDesc and btnDesc ~= ""
+            local btnHeight = hasDesc and 60 or 40
+
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 0, 40)
+            btn.Size = UDim2.new(1, 0, 0, btnHeight)
             btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             btn.BorderSizePixel = 1
             btn.BorderColor3 = Color3.fromRGB(60, 60, 60)
-            btn.Text = btnText
-            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            btn.Font = Enum.Font.Code
-            btn.TextSize = 14
+            btn.Text = ""
             btn.ZIndex = 2
             btn.Parent = tabContainer
+
+            local tLbl = Instance.new("TextLabel")
+            tLbl.Size = hasDesc and UDim2.new(1, -30, 0, 20) or UDim2.new(1, -30, 1, 0)
+            tLbl.Position = hasDesc and UDim2.new(0, 15, 0, 10) or UDim2.new(0, 15, 0, 0)
+            tLbl.BackgroundTransparency = 1
+            tLbl.Text = btnText
+            tLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            tLbl.TextXAlignment = Enum.TextXAlignment.Left
+            tLbl.Font = Enum.Font.Code
+            tLbl.TextSize = 14
+            tLbl.ZIndex = 2
+            tLbl.Parent = btn
+
+            if hasDesc then
+                local dLbl = Instance.new("TextLabel")
+                dLbl.Size = UDim2.new(1, -30, 0, 20)
+                dLbl.Position = UDim2.new(0, 15, 0, 30)
+                dLbl.BackgroundTransparency = 1
+                dLbl.Text = btnDesc
+                dLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+                dLbl.TextXAlignment = Enum.TextXAlignment.Left
+                dLbl.Font = Enum.Font.Code
+                dLbl.TextSize = 12
+                dLbl.ZIndex = 2
+                dLbl.Parent = btn
+            end
 
             btn.MouseButton1Click:Connect(function()
                 TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
@@ -286,10 +340,13 @@ function CF_UI:MakeWindow(config)
 
         function tabObject:AddToggle(toggleConfig, callback)
             local toggleText = type(toggleConfig) == "table" and toggleConfig.Title or toggleConfig
+            local toggleDesc = type(toggleConfig) == "table" and toggleConfig.Desc or nil
             local state = type(toggleConfig) == "table" and toggleConfig.Default or false
+            local hasDesc = toggleDesc and toggleDesc ~= ""
+            local toggleHeight = hasDesc and 60 or 40
             
             local toggleFrame = Instance.new("Frame")
-            toggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            toggleFrame.Size = UDim2.new(1, 0, 0, toggleHeight)
             toggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             toggleFrame.BorderSizePixel = 1
             toggleFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
@@ -297,8 +354,8 @@ function CF_UI:MakeWindow(config)
             toggleFrame.Parent = tabContainer
 
             local tLabel = Instance.new("TextLabel")
-            tLabel.Size = UDim2.new(1, -60, 1, 0)
-            tLabel.Position = UDim2.new(0, 15, 0, 0)
+            tLabel.Size = hasDesc and UDim2.new(1, -60, 0, 20) or UDim2.new(1, -60, 1, 0)
+            tLabel.Position = hasDesc and UDim2.new(0, 15, 0, 10) or UDim2.new(0, 15, 0, 0)
             tLabel.BackgroundTransparency = 1
             tLabel.Text = toggleText
             tLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -307,6 +364,20 @@ function CF_UI:MakeWindow(config)
             tLabel.TextSize = 14
             tLabel.ZIndex = 2
             tLabel.Parent = toggleFrame
+
+            if hasDesc then
+                local dLbl = Instance.new("TextLabel")
+                dLbl.Size = UDim2.new(1, -60, 0, 20)
+                dLbl.Position = UDim2.new(0, 15, 0, 30)
+                dLbl.BackgroundTransparency = 1
+                dLbl.Text = toggleDesc
+                dLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+                dLbl.TextXAlignment = Enum.TextXAlignment.Left
+                dLbl.Font = Enum.Font.Code
+                dLbl.TextSize = 12
+                dLbl.ZIndex = 2
+                dLbl.Parent = toggleFrame
+            end
 
             local tBtn = Instance.new("TextButton")
             tBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -327,12 +398,15 @@ function CF_UI:MakeWindow(config)
 
         function tabObject:AddSlider(sliderConfig, callback)
             local sliderText = type(sliderConfig) == "table" and sliderConfig.Title or sliderConfig
+            local sliderDesc = type(sliderConfig) == "table" and sliderConfig.Desc or nil
             local minVal = type(sliderConfig) == "table" and sliderConfig.Min or 0
             local maxVal = type(sliderConfig) == "table" and sliderConfig.Max or 100
             local val = type(sliderConfig) == "table" and sliderConfig.Default or minVal
+            local hasDesc = sliderDesc and sliderDesc ~= ""
+            local sliderHeight = hasDesc and 75 or 55
             
             local sliderFrame = Instance.new("Frame")
-            sliderFrame.Size = UDim2.new(1, 0, 0, 55)
+            sliderFrame.Size = UDim2.new(1, 0, 0, sliderHeight)
             sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             sliderFrame.BorderSizePixel = 1
             sliderFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
@@ -351,9 +425,23 @@ function CF_UI:MakeWindow(config)
             sLabel.ZIndex = 2
             sLabel.Parent = sliderFrame
 
+            if hasDesc then
+                local dLbl = Instance.new("TextLabel")
+                dLbl.Size = UDim2.new(1, -30, 0, 20)
+                dLbl.Position = UDim2.new(0, 15, 0, 25)
+                dLbl.BackgroundTransparency = 1
+                dLbl.Text = sliderDesc
+                dLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+                dLbl.TextXAlignment = Enum.TextXAlignment.Left
+                dLbl.Font = Enum.Font.Code
+                dLbl.TextSize = 12
+                dLbl.ZIndex = 2
+                dLbl.Parent = sliderFrame
+            end
+
             local sBg = Instance.new("Frame")
             sBg.Size = UDim2.new(1, -30, 0, 12)
-            sBg.Position = UDim2.new(0, 15, 0, 32)
+            sBg.Position = hasDesc and UDim2.new(0, 15, 0, 50) or UDim2.new(0, 15, 0, 32)
             sBg.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
             sBg.BorderSizePixel = 1
             sBg.BorderColor3 = Color3.fromRGB(10, 10, 10)
