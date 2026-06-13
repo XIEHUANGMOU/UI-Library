@@ -307,12 +307,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             return table.concat(selectedValues, ", ")
         end
 
-        local dropFrame = Instance.new("Frame")
+                local dropFrame = Instance.new("Frame")
         dropFrame.Size = UDim2.new(1, 0, 0, 45)
         dropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         dropFrame.BackgroundTransparency = elementTrans
         dropFrame.BorderSizePixel = 1
         dropFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        dropFrame.ClipsDescendants = true
         dropFrame.ZIndex = targetContainer.ZIndex + 1
         dropFrame.Parent = targetContainer
 
@@ -334,18 +335,25 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         valShadow.TextTruncate = Enum.TextTruncate.AtEnd
 
         local arrowMain, arrowShadow = CreateText(dropBtn, "v", UDim2.new(0, 20, 1, 0), UDim2.new(1, -20, 0, 0), Color3.fromRGB(200, 200, 200), 12, Enum.TextXAlignment.Center)
+        local listWrapper = Instance.new("CanvasGroup")
+        listWrapper.Size = UDim2.new(1, -20, 0, 0)
+        listWrapper.Position = UDim2.new(0, 10, 0, 45)
+        listWrapper.BackgroundTransparency = 1
+        listWrapper.GroupTransparency = 1
+        listWrapper.ZIndex = dropFrame.ZIndex + 4
+        listWrapper.Visible = false
+        listWrapper.Parent = dropFrame
 
         local listFrame = Instance.new("ScrollingFrame")
-        listFrame.Size = UDim2.new(1, -20, 0, 0)
-        listFrame.Position = UDim2.new(0, 10, 0, 45)
+        listFrame.Size = UDim2.new(1, 0, 1, 0)
+        listFrame.Position = UDim2.new(0, 0, 0, 0)
         listFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         listFrame.BackgroundTransparency = elementTrans
         listFrame.BorderSizePixel = 1
         listFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
         listFrame.ScrollBarThickness = 2
-        listFrame.ZIndex = dropFrame.ZIndex + 5
-        listFrame.Visible = false
-        listFrame.Parent = dropFrame
+        listFrame.ZIndex = listWrapper.ZIndex + 1
+        listFrame.Parent = listWrapper
 
         local listLayout = Instance.new("UIListLayout")
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -414,10 +422,22 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
                             valMain.Text = getSelectedText()
                             valShadow.Text = getSelectedText()
                             isExpanded = false
-                            listFrame.Visible = false
-                            dropFrame.Size = UDim2.new(1, 0, 0, 45)
                             arrowMain.Text = "v"
                             arrowShadow.Text = "v"
+                            
+                            -- 单选后触发平滑收缩动画
+                            local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                                Size = UDim2.new(1, -20, 0, 0), GroupTransparency = 1
+                            })
+                            shrinkList:Play()
+                            TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                                Size = UDim2.new(1, 0, 0, 45)
+                            }):Play()
+                            
+                            shrinkList.Completed:Connect(function()
+                                if not isExpanded then listWrapper.Visible = false end
+                            end)
+                            
                             refreshList("")
                             if searchBox then searchBox.Text = "" end
                             callback(selectedValues[1])
@@ -433,22 +453,42 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         if searchBox then
             searchBox:GetPropertyChangedSignal("Text"):Connect(function()
                 local h = refreshList(searchBox.Text)
-                listFrame.Size = UDim2.new(1, -20, 0, h)
-                dropFrame.Size = UDim2.new(1, 0, 0, 45 + h + 5)
+                if isExpanded then
+                    TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -20, 0, h)}):Play()
+                    TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 45 + h + 5)}):Play()
+                end
             end)
         end
 
         dropBtn.MouseButton1Click:Connect(function()
             isExpanded = not isExpanded
-            listFrame.Visible = isExpanded
             arrowMain.Text = isExpanded and "^" or "v"
             arrowShadow.Text = isExpanded and "^" or "v"
+            
             if isExpanded then
+                listWrapper.Visible = true
                 local h = refreshList(searchBox and searchBox.Text or "")
-                listFrame.Size = UDim2.new(1, -20, 0, h)
-                dropFrame.Size = UDim2.new(1, 0, 0, 45 + h + 5)
+                
+                TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, -20, 0, h), GroupTransparency = 0
+                }):Play()
+                
+                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, 45 + h + 5)
+                }):Play()
             else
-                dropFrame.Size = UDim2.new(1, 0, 0, 45)
+                local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, -20, 0, 0), GroupTransparency = 1
+                })
+                shrinkList:Play()
+                
+                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, 45)
+                }):Play()
+                
+                shrinkList.Completed:Connect(function()
+                    if not isExpanded then listWrapper.Visible = false end
+                end)
             end
         end)
         
@@ -489,10 +529,11 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
 
         local tMain, tShadow = CreateText(secHeader, "+", UDim2.new(0, 20, 0, 20), UDim2.new(1, -25, 0.5, -10), Color3.fromRGB(255, 255, 255), 16, Enum.TextXAlignment.Center)
 
-        local secContent = Instance.new("Frame")
+        local secContent = Instance.new("CanvasGroup") 
         secContent.Size = UDim2.new(1, -16, 0, 0)
         secContent.Position = UDim2.new(0, 8, 0, headerHeight + 5)
         secContent.BackgroundTransparency = 1
+        secContent.GroupTransparency = 1
         secContent.ZIndex = secFrame.ZIndex + 1
         secContent.Visible = false
         secContent.Parent = secFrame
@@ -507,24 +548,42 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         local function updateSize()
             if isExpanded then
                 secContent.Size = UDim2.new(1, -16, 0, secLayout.AbsoluteContentSize.Y)
-                secFrame.Size = UDim2.new(1, 0, 0, headerHeight + secLayout.AbsoluteContentSize.Y + 15)
+                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, headerHeight + secLayout.AbsoluteContentSize.Y + 15)
+                }):Play()
             else
-                secFrame.Size = UDim2.new(1, 0, 0, headerHeight)
+                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, headerHeight)
+                }):Play()
             end
         end
 
-        secLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateSize)
+        secLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            if isExpanded then updateSize() end
+        end)
 
         secHeader.MouseButton1Click:Connect(function()
             isExpanded = not isExpanded
-            secContent.Visible = isExpanded
             tMain.Text = isExpanded and "-" or "+"
             tShadow.Text = isExpanded and "-" or "+"
-            updateSize()
+            
+            if isExpanded then
+                secContent.Visible = true
+                updateSize()
+                TweenService:Create(secContent, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
+            else
+                updateSize()
+                local fadeOut = TweenService:Create(secContent, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {GroupTransparency = 1})
+                fadeOut:Play()
+                fadeOut.Completed:Connect(function()
+                    if not isExpanded then secContent.Visible = false end
+                end)
+            end
         end)
 
         local secObj = {}
         AttachComponents(secObj, secContent, elementTrans)
+
         return secObj
     end
 end
