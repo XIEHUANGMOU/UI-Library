@@ -896,6 +896,23 @@ function CF_UI:MakeWindow(config)
     closeIcon.ZIndex = 3
     closeIcon.Parent = closeBtn
 
+    local tagContainer = Instance.new("ScrollingFrame")
+    tagContainer.Size = UDim2.new(1, -240, 1, 0)
+    tagContainer.Position = UDim2.new(0, 160, 0, 0)
+    tagContainer.BackgroundTransparency = 1
+    tagContainer.ScrollBarThickness = 0
+    tagContainer.ScrollingDirection = Enum.ScrollingDirection.X
+    tagContainer.ClipsDescendants = true
+    tagContainer.ZIndex = 2
+    tagContainer.Parent = topBar
+
+    local tagLayout = Instance.new("UIListLayout")
+    tagLayout.FillDirection = Enum.FillDirection.Horizontal
+    tagLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tagLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    tagLayout.Padding = UDim.new(0, 8)
+    tagLayout.Parent = tagContainer
+
     local searchContainer = Instance.new("Frame")
     searchContainer.Size = UDim2.new(0, 120, 0, 30)
     searchContainer.Position = UDim2.new(0, 0, 0, 35)
@@ -1085,6 +1102,16 @@ function CF_UI:MakeWindow(config)
             TweenService:Create(searchInput, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
             if searchIcon then TweenService:Create(searchIcon, TweenInfo.new(0.3), {ImageTransparency = 1}):Play() end
 
+            for _, v in pairs(tagContainer:GetChildren()) do
+                if v:IsA("Frame") then
+                    TweenService:Create(v, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+                    for _, child in pairs(v:GetChildren()) do
+                        if child:IsA("TextLabel") then TweenService:Create(child, TweenInfo.new(0.3), {TextTransparency = 1}):Play() end
+                        if child:IsA("ImageLabel") then TweenService:Create(child, TweenInfo.new(0.3), {ImageTransparency = 1}):Play() end
+                    end
+                end
+            end
+
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
@@ -1130,6 +1157,16 @@ function CF_UI:MakeWindow(config)
             TweenService:Create(searchBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
             TweenService:Create(searchInput, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
             if searchIcon then TweenService:Create(searchIcon, TweenInfo.new(0.6), {ImageTransparency = 0}):Play() end
+
+            for _, v in pairs(tagContainer:GetChildren()) do
+                if v:IsA("Frame") then
+                    TweenService:Create(v, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.85}):Play()
+                    for _, child in pairs(v:GetChildren()) do
+                        if child:IsA("TextLabel") then TweenService:Create(child, TweenInfo.new(0.6), {TextTransparency = 0}):Play() end
+                        if child:IsA("ImageLabel") then TweenService:Create(child, TweenInfo.new(0.6), {ImageTransparency = 0}):Play() end
+                    end
+                end
+            end
 
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.4}):Play() end
@@ -1228,11 +1265,94 @@ function CF_UI:MakeWindow(config)
         TweenService:Create(confirmOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
     end)
 
-        local windowObject = {
+    local windowObject = {
         CurrentTab = nil,
         Tabs = {},
         SearchElements = {}
     }
+
+    function windowObject:AddTag(config)
+        local tagTitle = type(config) == "table" and config.Title or "Tag"
+        local tagColor = type(config) == "table" and config.Color or Color3.fromRGB(100, 200, 100)
+        local tagIcon = type(config) == "table" and config.Icon or ""
+
+        local tagFrame = Instance.new("Frame")
+        tagFrame.BackgroundColor3 = tagColor
+        tagFrame.BackgroundTransparency = 0.85
+        tagFrame.BorderSizePixel = 1
+        tagFrame.BorderColor3 = tagColor
+        tagFrame.ZIndex = 3
+        tagFrame.Parent = tagContainer
+
+        local tagInnerLayout = Instance.new("UIListLayout")
+        tagInnerLayout.FillDirection = Enum.FillDirection.Horizontal
+        tagInnerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        tagInnerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        tagInnerLayout.Padding = UDim.new(0, 4)
+        tagInnerLayout.Parent = tagFrame
+
+        local padding = Instance.new("UIPadding")
+        padding.PaddingLeft = UDim.new(0, 6)
+        padding.PaddingRight = UDim.new(0, 6)
+        padding.Parent = tagFrame
+
+        local iconImg
+        if tagIcon ~= "" then
+            iconImg = Instance.new("ImageLabel")
+            iconImg.Size = UDim2.new(0, 12, 0, 12)
+            iconImg.BackgroundTransparency = 1
+            iconImg.ScaleType = Enum.ScaleType.Fit
+            iconImg.ZIndex = 4
+            iconImg.Parent = tagFrame
+
+            task.spawn(function()
+                if string.find(tagIcon, "rbxasset") then
+                    iconImg.Image = tagIcon
+                elseif string.find(tagIcon, "http") then
+                    if isfile and writefile and getcustomasset then
+                        local hash = "cf_tag_" .. string.gsub(tagIcon, "[^%w]", ""):sub(-15) .. ".png"
+                        if not isfile(hash) then pcall(function() writefile(hash, game:HttpGet(tagIcon)) end) end
+                        if isfile(hash) then iconImg.Image = getcustomasset(hash) end
+                    end
+                end
+            end)
+        end
+
+        local tLabel = Instance.new("TextLabel")
+        tLabel.BackgroundTransparency = 1
+        tLabel.Text = tagTitle
+        tLabel.TextColor3 = tagColor
+        tLabel.Font = Enum.Font.Code
+        tLabel.TextSize = 12
+        tLabel.ZIndex = 4
+        tLabel.Parent = tagFrame
+
+        local function updateSize()
+            tLabel.Size = UDim2.new(0, tLabel.TextBounds.X, 0, 20)
+            tagFrame.Size = UDim2.new(0, tLabel.TextBounds.X + (tagIcon ~= "" and 22 or 12), 0, 22)
+            local totalW = 0
+            for _, child in pairs(tagContainer:GetChildren()) do
+                if child:IsA("Frame") then totalW = totalW + child.Size.X.Offset + 8 end
+            end
+            tagContainer.CanvasSize = UDim2.new(0, totalW, 0, 0)
+        end
+
+        tLabel:GetPropertyChangedSignal("TextBounds"):Connect(updateSize)
+        updateSize()
+
+        local tagObj = {}
+        function tagObj:SetTitle(newTitle)
+            tLabel.Text = newTitle
+            updateSize()
+        end
+        function tagObj:SetColor(newColor)
+            tagFrame.BackgroundColor3 = newColor
+            tagFrame.BorderColor3 = newColor
+            tLabel.TextColor3 = newColor
+        end
+
+        return tagObj
+    end
 
     local function executeSearch()
         local query = string.lower(searchInput.Text)
