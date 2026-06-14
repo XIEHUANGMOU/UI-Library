@@ -762,16 +762,18 @@ function CF_UI:MakeWindow(config)
         end
     end
 
+    local snowContainer = nil
     if useSnowfall then
-        local snowContainer = Instance.new("Frame")
-        snowContainer.Size = UDim2.new(1, 0, 1, 0)
+        snowContainer = Instance.new("Frame")
+        snowContainer.Size = UDim2.new(1, 0, 1, -35)
+        snowContainer.Position = UDim2.new(0, 0, 0, 35)
         snowContainer.BackgroundTransparency = 1
         snowContainer.ClipsDescendants = true
         snowContainer.ZIndex = 1
         snowContainer.Parent = mainFrame
 
         task.spawn(function()
-            local snowUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI-BackGround/main/Snow-Background.png"
+        local snowUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI-BackGround/main/Snow-Background.png"
             local snowImg = ""
             if isfile and writefile and getcustomasset then
                 local hash = "cf_snow.png"
@@ -785,33 +787,35 @@ function CF_UI:MakeWindow(config)
 
             if snowImg ~= "" then
                 while snowContainer.Parent do
-                    local flake = Instance.new("ImageLabel")
-                    local size = math.random(10, 25)
-                    flake.Size = UDim2.new(0, size, 0, size)
-                    flake.Position = UDim2.new(math.random(), 0, 0, -30)
-                    flake.BackgroundTransparency = 1
-                    flake.Image = snowImg
-                    flake.ImageTransparency = math.random(20, 60) / 100
-                    flake.ZIndex = 1
-                    flake.Parent = snowContainer
+                    if snowContainer.Visible then
+                        local flake = Instance.new("ImageLabel")
+                        local size = math.random(10, 25)
+                        flake.Size = UDim2.new(0, size, 0, size)
+                        flake.Position = UDim2.new(math.random(), 0, 0, -30)
+                        flake.BackgroundTransparency = 1
+                        flake.Image = snowImg
+                        flake.ImageTransparency = math.random(20, 60) / 100
+                        flake.ZIndex = 1
+                        flake.Parent = snowContainer
 
-                    local duration = math.random(30, 70) / 10
-                    local endX = flake.Position.X.Scale + (math.random(-10, 10) / 100)
-                    
-                    local tween = TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-                        Position = UDim2.new(endX, 0, 1, 30),
-                        Rotation = math.random(-360, 360)
-                    })
-                    tween:Play()
-                    tween.Completed:Connect(function()
-                        flake:Destroy()
-                    end)
-
+                        local duration = math.random(30, 70) / 10
+                        local endX = flake.Position.X.Scale + (math.random(-10, 10) / 100)
+                        
+                        local tween = TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+                            Position = UDim2.new(endX, 0, 1, 30),
+                            Rotation = math.random(-360, 360)
+                        })
+                        tween:Play()
+                        tween.Completed:Connect(function()
+                            flake:Destroy()
+                        end)
+                    end
                     task.wait(math.random(5, 20) / 100)
                 end
             end
         end)
     end
+
     local topBar = Instance.new("Frame")
     topBar.Size = UDim2.new(1, 0, 0, 35)
     topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -1055,7 +1059,7 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-      local function ToggleWindowVisibility()
+        local function ToggleWindowVisibility()
         isMinimized = not isMinimized
         if isMinimized then
             minIcon.Image = "rbxassetid://10734924532" 
@@ -1093,6 +1097,7 @@ function CF_UI:MakeWindow(config)
                     searchContainer.Visible = false
                     if bgImage then bgImage.Visible = false end
                     if bgTint then bgTint.Visible = false end
+                    if snowContainer then snowContainer.Visible = false end
                 end
             end)
         else
@@ -1107,6 +1112,7 @@ function CF_UI:MakeWindow(config)
             searchContainer.Visible = true
             if bgImage then bgImage.Visible = true end
             if bgTint then bgTint.Visible = true end
+            if snowContainer then snowContainer.Visible = true end
             
             TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = currentExpandedSize 
