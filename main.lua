@@ -1013,7 +1013,7 @@ function CF_UI:MakeWindow(config)
         confirmOverlay.Visible = false
         local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
             GroupTransparency = 1,
-            Position = UDim2.new(0.5, -300, 1, 50)
+            Position = UDim2.new(0.5, -300, 0.8, 0)
         })
         closeTween:Play()
         closeTween.Completed:Connect(function()
