@@ -604,8 +604,8 @@ function CF_UI:MakeWindow(config)
     screenGui.Parent = TargetGui
 
     local mainFrame = Instance.new("CanvasGroup")
-    mainFrame.Size = defaultSize
-    mainFrame.Position = UDim2.new(0.5, -300, 0.8, 0)
+    mainFrame.Size = defaultSize 
+    mainFrame.Position = UDim2.new(0.5, -300, 1, 50)
     mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     mainFrame.BackgroundTransparency = hasBg and 1 or 0
     mainFrame.BorderSizePixel = useRainbow and 0 or 1
@@ -1013,7 +1013,7 @@ function CF_UI:MakeWindow(config)
         confirmOverlay.Visible = false
         local closeTween = TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
             GroupTransparency = 1,
-            Position = UDim2.new(0.5, -300, 0.8, 0)
+            Position = UDim2.new(0.5, -300, 1, 50)
         })
         closeTween:Play()
         closeTween.Completed:Connect(function()
