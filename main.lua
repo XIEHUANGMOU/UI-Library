@@ -830,8 +830,8 @@ function CF_UI:MakeWindow(config)
     closeIcon.ZIndex = 3
     closeIcon.Parent = closeBtn
 
-        local searchContainer = Instance.new("Frame")
-    searchContainer.Size = UDim2.new(1, 0, 0, 30)
+    local searchContainer = Instance.new("Frame")
+    searchContainer.Size = UDim2.new(0, 120, 0, 30)
     searchContainer.Position = UDim2.new(0, 0, 0, 35)
     searchContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     searchContainer.BackgroundTransparency = elementTrans
@@ -845,7 +845,7 @@ function CF_UI:MakeWindow(config)
     searchInput.Position = UDim2.new(0, 5, 0, 0)
     searchInput.BackgroundTransparency = 1
     searchInput.Text = ""
-    searchInput.PlaceholderText = "输入关键字搜索组件..."
+    searchInput.PlaceholderText = "搜索..."
     searchInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     searchInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
     searchInput.Font = Enum.Font.Code
@@ -904,8 +904,8 @@ function CF_UI:MakeWindow(config)
     tabLayout.Parent = leftBar
 
     local rightContainer = Instance.new("Frame")
-    rightContainer.Size = UDim2.new(1, -120, 1, -65)
-    rightContainer.Position = UDim2.new(0, 120, 0, 65)
+    rightContainer.Size = UDim2.new(1, -120, 1, -35)
+    rightContainer.Position = UDim2.new(0, 120, 0, 35)
     rightContainer.BackgroundTransparency = 1
     rightContainer.ZIndex = 2
     rightContainer.ClipsDescendants = true
@@ -1014,6 +1014,11 @@ function CF_UI:MakeWindow(config)
                 if v:IsA("ImageLabel") then TweenService:Create(v, TweenInfo.new(0.3), {ImageTransparency = 1}):Play() end
             end
             
+            TweenService:Create(searchContainer, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(searchBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(searchInput, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            if searchIcon then TweenService:Create(searchIcon, TweenInfo.new(0.3), {ImageTransparency = 1}):Play() end
+
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 1}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
@@ -1023,6 +1028,7 @@ function CF_UI:MakeWindow(config)
                     leftBar.Visible = false
                     rightContainer.Visible = false
                     closeBtn.Visible = false
+                    searchContainer.Visible = false
                     if bgImage then bgImage.Visible = false end
                     if bgTint then bgTint.Visible = false end
                 end
@@ -1036,6 +1042,7 @@ function CF_UI:MakeWindow(config)
             leftBar.Visible = true
             rightContainer.Visible = true
             closeBtn.Visible = true
+            searchContainer.Visible = true
             if bgImage then bgImage.Visible = true end
             if bgTint then bgTint.Visible = true end
             
@@ -1051,6 +1058,11 @@ function CF_UI:MakeWindow(config)
                 if v:IsA("ImageLabel") then TweenService:Create(v, TweenInfo.new(0.6), {ImageTransparency = 0}):Play() end
             end
             
+            TweenService:Create(searchContainer, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
+            TweenService:Create(searchBtn, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
+            TweenService:Create(searchInput, TweenInfo.new(0.6), {TextTransparency = 0}):Play()
+            if searchIcon then TweenService:Create(searchIcon, TweenInfo.new(0.6), {ImageTransparency = 0}):Play() end
+
             if bgImage then TweenService:Create(bgImage, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() end
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.4}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
