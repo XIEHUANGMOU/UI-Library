@@ -35,7 +35,7 @@ local function CreateText(parent, text, size, pos, color, fontSize, align)
     return main, shadow
 end
 
-local function AttachComponents(targetObj, targetContainer, elementTrans)
+local function AttachComponents(targetObj, targetContainer, elementTrans, windowObj, tabObj, parentSection)
     function targetObj:AddButton(config, callback)
         local btnText = type(config) == "table" and config.Title or config
         local btnDesc = type(config) == "table" and config.Desc or nil
@@ -57,6 +57,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         if hasDesc then
             CreateText(btn, btnDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
         end
+
+        table.insert(windowObj.SearchElements, {
+            Frame = btn,
+            Text = string.lower(tostring(btnText) .. tostring(btnDesc or "")),
+            Tab = tabObj,
+            Section = parentSection
+        })
 
         btn.MouseButton1Click:Connect(function()
             TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
@@ -105,6 +112,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         toggleThumb.BorderSizePixel = 0
         toggleThumb.ZIndex = toggleTrack.ZIndex + 1
         toggleThumb.Parent = toggleTrack
+
+        table.insert(windowObj.SearchElements, {
+            Frame = toggleFrame,
+            Text = string.lower(tostring(toggleText) .. tostring(toggleDesc or "")),
+            Tab = tabObj,
+            Section = parentSection
+        })
 
         toggleTrack.MouseButton1Click:Connect(function()
             state = not state
@@ -165,6 +179,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         sClickArea.Text = ""
         sClickArea.ZIndex = sBg.ZIndex + 2
         sClickArea.Parent = sBg
+
+        table.insert(windowObj.SearchElements, {
+            Frame = sliderFrame,
+            Text = string.lower(tostring(sliderText) .. tostring(sliderDesc or "")),
+            Tab = tabObj,
+            Section = parentSection
+        })
 
         local draggingSlider = false
 
@@ -232,7 +253,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         line.ZIndex = divFrame.ZIndex + 1
         line.Parent = divFrame
     end
-       function targetObj:AddInput(config)
+
+    function targetObj:AddInput(config)
         local inputTitle = type(config) == "table" and config.Title or "输入框"
         local inputDesc = type(config) == "table" and config.Desc or nil
         local inputType = type(config) == "table" and config.Type or "Default"
@@ -286,12 +308,19 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         textBox.ZIndex = boxBg.ZIndex + 1
         textBox.Parent = boxBg
 
+        table.insert(windowObj.SearchElements, {
+            Frame = inputFrame,
+            Text = string.lower(tostring(inputTitle) .. tostring(inputDesc or "")),
+            Tab = tabObj,
+            Section = parentSection
+        })
+
         textBox.FocusLost:Connect(function()
             callback(textBox.Text)
         end)
     end
 
-        function targetObj:AddDropdown(config)
+    function targetObj:AddDropdown(config)
         local dropTitle = type(config) == "table" and config.Title or "下拉列表"
         local dropValues = type(config) == "table" and config.Values or {}
         local dropValue = type(config) == "table" and config.Value or nil
@@ -379,6 +408,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             searchBox.Parent = listFrame
         end
 
+        table.insert(windowObj.SearchElements, {
+            Frame = dropFrame,
+            Text = string.lower(tostring(dropTitle)),
+            Tab = tabObj,
+            Section = parentSection
+        })
+
         local isExpanded = false
 
         local function refreshList(filterText)
@@ -425,6 +461,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
                             isExpanded = false
                             arrowMain.Text = "v"
                             arrowShadow.Text = "v"
+                            
                             local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                                 Size = UDim2.new(1, -20, 0, 0)
                             })
@@ -467,6 +504,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             if isExpanded then
                 listWrapper.Visible = true
                 local h = refreshList(searchBox and searchBox.Text or "")
+                
                 TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                     Size = UDim2.new(1, -20, 0, h)
                 }):Play()
@@ -527,7 +565,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
         end
 
         local tMain, tShadow = CreateText(secHeader, "+", UDim2.new(0, 20, 0, 20), UDim2.new(1, -25, 0.5, -10), Color3.fromRGB(255, 255, 255), 16, Enum.TextXAlignment.Center)
-        local secContent = Instance.new("Frame") 
+
+        local secContent = Instance.new("Frame")
         secContent.Size = UDim2.new(1, -16, 0, 0)
         secContent.Position = UDim2.new(0, 8, 0, headerHeight + 5)
         secContent.BackgroundTransparency = 1
@@ -560,24 +599,37 @@ local function AttachComponents(targetObj, targetContainer, elementTrans)
             if isExpanded then updateSize() end
         end)
 
-        secHeader.MouseButton1Click:Connect(function()
-            isExpanded = not isExpanded
-            tMain.Text = isExpanded and "-" or "+"
-            tShadow.Text = isExpanded and "-" or "+"
-            
-            if isExpanded then
-                secContent.Visible = true
-                updateSize()
-            else
-                updateSize()
-                task.delay(0.4, function()
-                    if not isExpanded then secContent.Visible = false end
-                end)
+        local secObj = {
+            Frame = secFrame,
+            SetExpanded = function(state)
+                isExpanded = state
+                tMain.Text = isExpanded and "-" or "+"
+                tShadow.Text = isExpanded and "-" or "+"
+                if isExpanded then
+                    secContent.Visible = true
+                    updateSize()
+                else
+                    updateSize()
+                    task.delay(0.4, function()
+                        if not isExpanded then secContent.Visible = false end
+                    end)
+                end
             end
+        }
+
+        table.insert(windowObj.SearchElements, {
+            Frame = secFrame,
+            Text = string.lower(tostring(secTitle) .. tostring(secDesc or "")),
+            Tab = tabObj,
+            IsSection = true,
+            SectionObj = secObj
+        })
+
+        secHeader.MouseButton1Click:Connect(function()
+            secObj.SetExpanded(not isExpanded)
         end)
 
-        local secObj = {}
-        AttachComponents(secObj, secContent, elementTrans)
+        AttachComponents(secObj, secContent, elementTrans, windowObj, tabObj, secObj)
         return secObj
     end
 end
@@ -740,7 +792,7 @@ function CF_UI:MakeWindow(config)
         titleMain, titleShadow = CreateText(topBar, titleText, UDim2.new(1, -80, 1, 0), UDim2.new(0, textOffsetX, 0, 0), Color3.fromRGB(255, 255, 255), 13, Enum.TextXAlignment.Left)
     end
 
-       local minimizeBtn = Instance.new("TextButton")
+    local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
     minimizeBtn.Position = UDim2.new(1, -70, 0, 0)
     minimizeBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -778,9 +830,66 @@ function CF_UI:MakeWindow(config)
     closeIcon.ZIndex = 3
     closeIcon.Parent = closeBtn
 
+        local searchContainer = Instance.new("Frame")
+    searchContainer.Size = UDim2.new(1, 0, 0, 30)
+    searchContainer.Position = UDim2.new(0, 0, 0, 35)
+    searchContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    searchContainer.BackgroundTransparency = elementTrans
+    searchContainer.BorderSizePixel = 1
+    searchContainer.BorderColor3 = Color3.fromRGB(45, 45, 45)
+    searchContainer.ZIndex = 2
+    searchContainer.Parent = mainFrame
+
+    local searchInput = Instance.new("TextBox")
+    searchInput.Size = UDim2.new(1, -30, 1, 0)
+    searchInput.Position = UDim2.new(0, 5, 0, 0)
+    searchInput.BackgroundTransparency = 1
+    searchInput.Text = ""
+    searchInput.PlaceholderText = "输入关键字搜索组件..."
+    searchInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    searchInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    searchInput.Font = Enum.Font.Code
+    searchInput.TextSize = 12
+    searchInput.TextXAlignment = Enum.TextXAlignment.Left
+    searchInput.ClearTextOnFocus = false
+    searchInput.ZIndex = 3
+    searchInput.Parent = searchContainer
+
+    local searchBtn = Instance.new("TextButton")
+    searchBtn.Size = UDim2.new(0, 30, 0, 30)
+    searchBtn.Position = UDim2.new(1, -30, 0, 0)
+    searchBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    searchBtn.BackgroundTransparency = elementTrans
+    searchBtn.BorderSizePixel = 1
+    searchBtn.BorderColor3 = Color3.fromRGB(45, 45, 45)
+    searchBtn.Text = ""
+    searchBtn.ZIndex = 3
+    searchBtn.Parent = searchContainer
+
+    local searchIcon = Instance.new("ImageLabel")
+    searchIcon.Size = UDim2.new(0, 16, 0, 16)
+    searchIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
+    searchIcon.BackgroundTransparency = 1
+    searchIcon.ScaleType = Enum.ScaleType.Fit
+    searchIcon.ZIndex = 4
+    searchIcon.Parent = searchBtn
+
+    task.spawn(function()
+        local iconUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI_Icon/main/Search_Icon.png"
+        if isfile and writefile and getcustomasset then
+            local iconHash = "cf_search_icon.png"
+            if not isfile(iconHash) then
+                pcall(function() writefile(iconHash, game:HttpGet(iconUrl)) end)
+            end
+            if isfile(iconHash) then
+                searchIcon.Image = getcustomasset(iconHash)
+            end
+        end
+    end)
+
     local leftBar = Instance.new("ScrollingFrame")
-    leftBar.Size = UDim2.new(0, 120, 1, -35)
-    leftBar.Position = UDim2.new(0, 0, 0, 35)
+    leftBar.Size = UDim2.new(0, 120, 1, -65)
+    leftBar.Position = UDim2.new(0, 0, 0, 65)
     leftBar.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     leftBar.BackgroundTransparency = elementTrans
     leftBar.BorderSizePixel = 1
@@ -795,8 +904,8 @@ function CF_UI:MakeWindow(config)
     tabLayout.Parent = leftBar
 
     local rightContainer = Instance.new("Frame")
-    rightContainer.Size = UDim2.new(1, -120, 1, -25)
-    rightContainer.Position = UDim2.new(0, 120, 0, 25)
+    rightContainer.Size = UDim2.new(1, -120, 1, -65)
+    rightContainer.Position = UDim2.new(0, 120, 0, 65)
     rightContainer.BackgroundTransparency = 1
     rightContainer.ZIndex = 2
     rightContainer.ClipsDescendants = true
@@ -1029,10 +1138,76 @@ function CF_UI:MakeWindow(config)
         TweenService:Create(confirmOverlay, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
     end)
 
-    local windowObject = {
+        local windowObject = {
         CurrentTab = nil,
-        Tabs = {}
+        Tabs = {},
+        SearchElements = {}
     }
+
+    local function executeSearch()
+        local query = string.lower(searchInput.Text)
+        
+        if query == "" then
+            for _, tab in pairs(windowObject.Tabs) do
+                tab.Button.Visible = true
+            end
+            for _, elem in pairs(windowObject.SearchElements) do
+                elem.Frame.Visible = true
+            end
+            if windowObject.CurrentTab then
+                for _, t in pairs(windowObject.Tabs) do
+                    t.Container.Visible = (t.Container == windowObject.CurrentTab)
+                end
+            end
+            return
+        end
+
+        for _, tab in pairs(windowObject.Tabs) do
+            tab.Button.Visible = false
+            tab.Container.Visible = false
+        end
+        for _, elem in pairs(windowObject.SearchElements) do
+            elem.Frame.Visible = false
+        end
+
+        local firstMatchTab = nil
+
+        for _, elem in pairs(windowObject.SearchElements) do
+            if string.find(elem.Text, query) then
+                elem.Frame.Visible = true
+                elem.Tab.Button.Visible = true
+                
+                if elem.Section then
+                    elem.Section.Frame.Visible = true
+                    elem.Section.SectionObj.SetExpanded(true)
+                end
+                
+                if not firstMatchTab then
+                    firstMatchTab = elem.Tab
+                end
+            end
+        end
+
+        if firstMatchTab then
+            for _, t in pairs(windowObject.Tabs) do
+                if t == firstMatchTab then
+                    t.Container.Visible = true
+                    t.MainText.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    t.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    t.Button.BackgroundTransparency = activeTrans
+                    windowObject.CurrentTab = t.Container
+                else
+                    t.Container.Visible = false
+                    t.MainText.TextColor3 = Color3.fromRGB(150, 150, 150)
+                    t.Button.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+                    t.Button.BackgroundTransparency = elementTrans
+                end
+            end
+        end
+    end
+
+    searchBtn.MouseButton1Click:Connect(executeSearch)
+    searchInput.FocusLost:Connect(executeSearch)
 
     function windowObject:MakeTab(tabConfig)
         local tabName = type(tabConfig) == "table" and tabConfig.Title or "未命名"
@@ -1108,8 +1283,7 @@ function CF_UI:MakeWindow(config)
         }
         table.insert(self.Tabs, tabObject)
 
-        AttachComponents(tabObject, tabContainer, elementTrans)
-
+       AttachComponents(tabObject, tabContainer, elementTrans, windowObject, tabObject, nil)
         return tabObject
     end
 
