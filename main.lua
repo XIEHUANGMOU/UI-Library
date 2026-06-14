@@ -644,12 +644,13 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
     end
 end
 
-function CF_UI:MakeWindow(config)
+ffunction CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
     local subTitleText = config.Subtitle or ""
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
     local useRainbow = config.RainbowBorder or false
+    local useSnowfall = config.Snowfall or false
     local dpi = config.DPI or 1 
     local defaultSize = config.Size or UDim2.new(0, 600, 0, 400) 
     local toggleKey = config.Keybind or false
@@ -759,6 +760,66 @@ function CF_UI:MakeWindow(config)
                 end
             end
         end
+    end
+
+    if useSnowfall then
+        local snowContainer = Instance.new("Frame")
+        snowContainer.Size = UDim2.new(1, 0, 1, 0)
+        snowContainer.BackgroundTransparency = 1
+        snowContainer.ClipsDescendants = true
+        snowContainer.ZIndex = 1
+        snowContainer.Parent = mainFrame
+
+        local snowIconUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI-BackGround/main/Snow-Background.png"
+        local snowImageId = ""
+
+        task.spawn(function()
+            if isfile and writefile and getcustomasset then
+                local snowHash = "cf_snow_icon.png"
+                if not isfile(snowHash) then
+                    pcall(function() writefile(snowHash, game:HttpGet(snowIconUrl)) end)
+                end
+                if isfile(snowHash) then
+                    snowImageId = getcustomasset(snowHash)
+                end
+            end
+        end)
+
+        local isSnowing = true
+        mainFrame.AncestryChanged:Connect(function()
+            if not mainFrame.Parent then isSnowing = false end
+        end)
+
+        task.spawn(function()
+            while isSnowing do
+                if snowImageId ~= "" then
+                    local size = math.random(10, 25)
+                    local startX = math.random(0, 1000) / 1000
+                    local endX = startX + (math.random(-150, 150) / 1000)
+                    local duration = math.random(40, 80) / 10
+                    local rotation = math.random(-180, 180)
+
+                    local flake = Instance.new("ImageLabel")
+                    flake.Size = UDim2.new(0, size, 0, size)
+                    flake.Position = UDim2.new(startX, 0, 0, -30)
+                    flake.BackgroundTransparency = 1
+                    flake.Image = snowImageId
+                    flake.ImageTransparency = math.random(2, 6) / 10
+                    flake.ZIndex = 1
+                    flake.Parent = snowContainer
+
+                    local fallTween = TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+                        Position = UDim2.new(endX, 0, 1, 50),
+                        Rotation = rotation
+                    })
+                    fallTween:Play()
+                    fallTween.Completed:Connect(function()
+                        flake:Destroy()
+                    end)
+                end
+                task.wait(math.random(1, 3) / 10)
+            end
+        end)
     end
 
     local topBar = Instance.new("Frame")
