@@ -39,8 +39,10 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
     function targetObj:AddButton(config, callback)
         local btnText = type(config) == "table" and config.Title or config
         local btnDesc = type(config) == "table" and config.Desc or nil
+        local keybind = type(config) == "table" and config.Keybind or false
         local hasDesc = btnDesc and btnDesc ~= ""
         local btnHeight = hasDesc and 45 or 30
+        local displayTitle = keybind and (btnText .. " [" .. keybind.Name .. "]") or btnText
 
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(1, 0, 0, btnHeight)
@@ -52,33 +54,34 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         btn.ZIndex = targetContainer.ZIndex + 1
         btn.Parent = targetContainer
 
-        CreateText(btn, btnText, hasDesc and UDim2.new(1, -20, 0, 15) or UDim2.new(1, -20, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        CreateText(btn, displayTitle, hasDesc and UDim2.new(1, -20, 0, 15) or UDim2.new(1, -20, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        if hasDesc then CreateText(btn, btnDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
 
-        if hasDesc then
-            CreateText(btn, btnDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
-        end
+        table.insert(windowObj.SearchElements, {Frame = btn, Text = string.lower(tostring(btnText) .. tostring(btnDesc or "")), Tab = tabObj, Section = parentSection})
 
-        table.insert(windowObj.SearchElements, {
-            Frame = btn,
-            Text = string.lower(tostring(btnText) .. tostring(btnDesc or "")),
-            Tab = tabObj,
-            Section = parentSection
-        })
-
-        btn.MouseButton1Click:Connect(function()
+        local function triggerBtn()
             TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
             task.wait(0.1)
             TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
             if callback then callback() end
-        end)
+        end
+
+        btn.MouseButton1Click:Connect(triggerBtn)
+        if keybind then
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.KeyCode == keybind then triggerBtn() end
+            end)
+        end
     end
 
     function targetObj:AddToggle(config, callback)
         local toggleText = type(config) == "table" and config.Title or config
         local toggleDesc = type(config) == "table" and config.Desc or nil
         local state = type(config) == "table" and config.Default or false
+        local keybind = type(config) == "table" and config.Keybind or false
         local hasDesc = toggleDesc and toggleDesc ~= ""
         local toggleHeight = hasDesc and 45 or 30
+        local displayTitle = keybind and (toggleText .. " [" .. keybind.Name .. "]") or toggleText
         
         local toggleFrame = Instance.new("Frame")
         toggleFrame.Size = UDim2.new(1, 0, 0, toggleHeight)
@@ -89,11 +92,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         toggleFrame.ZIndex = targetContainer.ZIndex + 1
         toggleFrame.Parent = targetContainer
 
-        CreateText(toggleFrame, toggleText, hasDesc and UDim2.new(1, -60, 0, 15) or UDim2.new(1, -60, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
-
-        if hasDesc then
-            CreateText(toggleFrame, toggleDesc, UDim2.new(1, -60, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
-        end
+        CreateText(toggleFrame, displayTitle, hasDesc and UDim2.new(1, -60, 0, 15) or UDim2.new(1, -60, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        if hasDesc then CreateText(toggleFrame, toggleDesc, UDim2.new(1, -60, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
 
         local toggleTrack = Instance.new("TextButton")
         toggleTrack.Size = UDim2.new(0, 36, 0, 16)
@@ -113,23 +113,80 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         toggleThumb.ZIndex = toggleTrack.ZIndex + 1
         toggleThumb.Parent = toggleTrack
 
-        table.insert(windowObj.SearchElements, {
-            Frame = toggleFrame,
-            Text = string.lower(tostring(toggleText) .. tostring(toggleDesc or "")),
-            Tab = tabObj,
-            Section = parentSection
-        })
+        table.insert(windowObj.SearchElements, {Frame = toggleFrame, Text = string.lower(tostring(toggleText) .. tostring(toggleDesc or "")), Tab = tabObj, Section = parentSection})
 
-        toggleTrack.MouseButton1Click:Connect(function()
+        local function triggerToggle()
             state = not state
-            TweenService:Create(toggleTrack, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(60, 60, 60)
-            }):Play()
-            TweenService:Create(toggleThumb, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = state and UDim2.new(1, -14, 0, 2) or UDim2.new(0, 2, 0, 2)
-            }):Play()
+            TweenService:Create(toggleTrack, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(60, 60, 60)}):Play()
+            TweenService:Create(toggleThumb, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = state and UDim2.new(1, -14, 0, 2) or UDim2.new(0, 2, 0, 2)}):Play()
             if callback then callback(state) end
+        end
+
+        toggleTrack.MouseButton1Click:Connect(triggerToggle)
+        if keybind then
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.KeyCode == keybind then triggerToggle() end
+            end)
+        end
+    end
+
+    function targetObj:AddKeybind(config, callback)
+        local kbTitle = type(config) == "table" and config.Title or "按键绑定"
+        local kbDesc = type(config) == "table" and config.Desc or nil
+        local currentKey = type(config) == "table" and config.Default or Enum.KeyCode.Unknown
+        local hasDesc = kbDesc and kbDesc ~= ""
+        local kbHeight = hasDesc and 45 or 30
+
+        local kbFrame = Instance.new("Frame")
+        kbFrame.Size = UDim2.new(1, 0, 0, kbHeight)
+        kbFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        kbFrame.BackgroundTransparency = elementTrans
+        kbFrame.BorderSizePixel = 1
+        kbFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        kbFrame.ZIndex = targetContainer.ZIndex + 1
+        kbFrame.Parent = targetContainer
+
+        CreateText(kbFrame, kbTitle, UDim2.new(1, -80, 0, 15), hasDesc and UDim2.new(0, 10, 0, 5) or UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        if hasDesc then CreateText(kbFrame, kbDesc, UDim2.new(1, -80, 0, 15), UDim2.new(0, 10, 0, 20), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
+
+        local kbBtn = Instance.new("TextButton")
+        kbBtn.Size = UDim2.new(0, 60, 0, 20)
+        kbBtn.Position = UDim2.new(1, -70, 0.5, -10)
+        kbBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        kbBtn.BackgroundTransparency = elementTrans
+        kbBtn.BorderSizePixel = 1
+        kbBtn.BorderColor3 = Color3.fromRGB(10, 10, 10)
+        kbBtn.Text = ""
+        kbBtn.ZIndex = kbFrame.ZIndex + 1
+        kbBtn.Parent = kbFrame
+
+        local keyName = currentKey == Enum.KeyCode.Unknown and "None" or currentKey.Name
+        local btnMain, btnShadow = CreateText(kbBtn, keyName, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.fromRGB(200, 200, 200), 12, Enum.TextXAlignment.Center)
+
+        local isBinding = false
+
+        kbBtn.MouseButton1Click:Connect(function()
+            isBinding = true
+            btnMain.Text = "..."
+            btnShadow.Text = "..."
         end)
+
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if isBinding then
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    currentKey = input.KeyCode
+                    local kName = currentKey.Name
+                    btnMain.Text = kName
+                    btnShadow.Text = kName
+                    isBinding = false
+                    if callback then callback(currentKey) end
+                end
+            elseif not gpe and input.KeyCode == currentKey and currentKey ~= Enum.KeyCode.Unknown then
+                if callback then callback(currentKey) end
+            end
+        end)
+
+        table.insert(windowObj.SearchElements, {Frame = kbFrame, Text = string.lower(tostring(kbTitle) .. tostring(kbDesc or "")), Tab = tabObj, Section = parentSection})
     end
 
     function targetObj:AddSlider(config, callback)
@@ -138,8 +195,10 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         local minVal = type(config) == "table" and config.Min or 0
         local maxVal = type(config) == "table" and config.Max or 100
         local val = type(config) == "table" and config.Default or minVal
+        local keybind = type(config) == "table" and config.Keybind or false
         local hasDesc = sliderDesc and sliderDesc ~= ""
         local sliderHeight = hasDesc and 60 or 45
+        local displayTitle = keybind and (sliderText .. " [" .. keybind.Name .. "] : " .. tostring(val)) or (sliderText .. " : " .. tostring(val))
         
         local sliderFrame = Instance.new("Frame")
         sliderFrame.Size = UDim2.new(1, 0, 0, sliderHeight)
@@ -150,11 +209,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         sliderFrame.ZIndex = targetContainer.ZIndex + 1
         sliderFrame.Parent = targetContainer
 
-        local sMain, sShadow = CreateText(sliderFrame, sliderText .. " : " .. tostring(val), UDim2.new(1, -20, 0, 15), hasDesc and UDim2.new(0, 10, 0, 5) or UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
-
-        if hasDesc then
-            CreateText(sliderFrame, sliderDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 20), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
-        end
+        local sMain, sShadow = CreateText(sliderFrame, displayTitle, UDim2.new(1, -20, 0, 15), hasDesc and UDim2.new(0, 10, 0, 5) or UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        if hasDesc then CreateText(sliderFrame, sliderDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 20), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
 
         local sBg = Instance.new("Frame")
         sBg.Size = UDim2.new(1, -20, 0, 8)
@@ -180,19 +236,14 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         sClickArea.ZIndex = sBg.ZIndex + 2
         sClickArea.Parent = sBg
 
-        table.insert(windowObj.SearchElements, {
-            Frame = sliderFrame,
-            Text = string.lower(tostring(sliderText) .. tostring(sliderDesc or "")),
-            Tab = tabObj,
-            Section = parentSection
-        })
+        table.insert(windowObj.SearchElements, {Frame = sliderFrame, Text = string.lower(tostring(sliderText) .. tostring(sliderDesc or "")), Tab = tabObj, Section = parentSection})
 
         local draggingSlider = false
 
         local function updateSliderVal(input)
             local pos = math.clamp((input.Position.X - sBg.AbsolutePosition.X) / sBg.AbsoluteSize.X, 0, 1)
             val = math.floor(minVal + ((maxVal - minVal) * pos))
-            local newText = sliderText .. " : " .. tostring(val)
+            local newText = keybind and (sliderText .. " [" .. keybind.Name .. "] : " .. tostring(val)) or (sliderText .. " : " .. tostring(val))
             sMain.Text = newText
             sShadow.Text = newText
             TweenService:Create(sFill, TweenInfo.new(0.08), {Size = UDim2.new(pos, 0, 1, 0)}):Play()
@@ -205,18 +256,18 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
                 updateSliderVal(input)
             end
         end)
-
         UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                draggingSlider = false
-            end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingSlider = false end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then updateSliderVal(input) end
         end)
 
-        UserInputService.InputChanged:Connect(function(input)
-            if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                updateSliderVal(input)
-            end
-        end)
+        if keybind then
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.KeyCode == keybind then if callback then callback(val) end end
+            end)
+        end
     end
 
     function targetObj:AddDivider(config)
@@ -226,11 +277,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         local hasDesc = divDesc and divDesc ~= ""
         
         local divHeight = 10
-        if hasTitle and hasDesc then
-            divHeight = 40
-        elseif hasTitle then
-            divHeight = 25
-        end
+        if hasTitle and hasDesc then divHeight = 40 elseif hasTitle then divHeight = 25 end
 
         local divFrame = Instance.new("Frame")
         divFrame.Size = UDim2.new(1, 0, 0, divHeight)
@@ -238,12 +285,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         divFrame.ZIndex = targetContainer.ZIndex + 1
         divFrame.Parent = targetContainer
 
-        if hasTitle then
-            CreateText(divFrame, divTitle, UDim2.new(1, 0, 0, 15), UDim2.new(0, 0, 0, 0), Color3.fromRGB(200, 200, 200), 12, Enum.TextXAlignment.Center)
-        end
-        if hasDesc then
-            CreateText(divFrame, divDesc, UDim2.new(1, 0, 0, 15), UDim2.new(0, 0, 0, 15), Color3.fromRGB(120, 120, 120), 10, Enum.TextXAlignment.Center)
-        end
+        if hasTitle then CreateText(divFrame, divTitle, UDim2.new(1, 0, 0, 15), UDim2.new(0, 0, 0, 0), Color3.fromRGB(200, 200, 200), 12, Enum.TextXAlignment.Center) end
+        if hasDesc then CreateText(divFrame, divDesc, UDim2.new(1, 0, 0, 15), UDim2.new(0, 0, 0, 15), Color3.fromRGB(120, 120, 120), 10, Enum.TextXAlignment.Center) end
 
         local line = Instance.new("Frame")
         line.Size = UDim2.new(1, -40, 0, 1)
@@ -259,11 +302,12 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         local inputDesc = type(config) == "table" and config.Desc or nil
         local inputType = type(config) == "table" and config.Type or "Default"
         local placeholder = type(config) == "table" and config.Placeholder or ""
+        local keybind = type(config) == "table" and config.Keybind or false
         local callback = type(config) == "table" and config.Callback or function() end
         local hasDesc = inputDesc and inputDesc ~= ""
-        
         local inputHeight = hasDesc and 65 or 50
         if inputType == "Textarea" then inputHeight = inputHeight + 40 end
+        local displayTitle = keybind and (inputTitle .. " [" .. keybind.Name .. "]") or inputTitle
 
         local inputFrame = Instance.new("Frame")
         inputFrame.Size = UDim2.new(1, 0, 0, inputHeight)
@@ -274,11 +318,8 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         inputFrame.ZIndex = targetContainer.ZIndex + 1
         inputFrame.Parent = targetContainer
 
-        CreateText(inputFrame, inputTitle, UDim2.new(1, -20, 0, 15), hasDesc and UDim2.new(0, 10, 0, 5) or UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
-
-        if hasDesc then
-            CreateText(inputFrame, inputDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 20), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
-        end
+        CreateText(inputFrame, displayTitle, UDim2.new(1, -20, 0, 15), hasDesc and UDim2.new(0, 10, 0, 5) or UDim2.new(0, 10, 0, 8), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        if hasDesc then CreateText(inputFrame, inputDesc, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 20), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
 
         local boxBg = Instance.new("Frame")
         boxBg.Size = inputType == "Textarea" and UDim2.new(1, -20, 0, 60) or UDim2.new(1, -20, 0, 25)
@@ -308,16 +349,14 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         textBox.ZIndex = boxBg.ZIndex + 1
         textBox.Parent = boxBg
 
-        table.insert(windowObj.SearchElements, {
-            Frame = inputFrame,
-            Text = string.lower(tostring(inputTitle) .. tostring(inputDesc or "")),
-            Tab = tabObj,
-            Section = parentSection
-        })
+        table.insert(windowObj.SearchElements, {Frame = inputFrame, Text = string.lower(tostring(inputTitle) .. tostring(inputDesc or "")), Tab = tabObj, Section = parentSection})
 
-        textBox.FocusLost:Connect(function()
-            callback(textBox.Text)
-        end)
+        textBox.FocusLost:Connect(function() callback(textBox.Text) end)
+        if keybind then
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.KeyCode == keybind then callback(textBox.Text) end
+            end)
+        end
     end
 
     function targetObj:AddDropdown(config)
@@ -326,7 +365,9 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         local dropValue = type(config) == "table" and config.Value or nil
         local isMulti = type(config) == "table" and config.Multi or false
         local searchEnabled = type(config) == "table" and config.SearchBarEnabled or false
+        local keybind = type(config) == "table" and config.Keybind or false
         local callback = type(config) == "table" and config.Callback or function() end
+        local displayTitle = keybind and (dropTitle .. " [" .. keybind.Name .. "]") or dropTitle
         
         local selectedValues = isMulti and (type(dropValue) == "table" and dropValue or {}) or (dropValue and {dropValue} or {})
         if not isMulti and #selectedValues == 0 and #dropValues > 0 then selectedValues = {dropValues[1]} end
@@ -346,7 +387,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         dropFrame.ZIndex = targetContainer.ZIndex + 1
         dropFrame.Parent = targetContainer
 
-        CreateText(dropFrame, dropTitle, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 5), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
+        CreateText(dropFrame, displayTitle, UDim2.new(1, -20, 0, 15), UDim2.new(0, 10, 0, 5), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
 
         local dropBtn = Instance.new("TextButton")
         dropBtn.Size = UDim2.new(1, -20, 0, 20)
@@ -408,12 +449,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
             searchBox.Parent = listFrame
         end
 
-        table.insert(windowObj.SearchElements, {
-            Frame = dropFrame,
-            Text = string.lower(tostring(dropTitle)),
-            Tab = tabObj,
-            Section = parentSection
-        })
+        table.insert(windowObj.SearchElements, {Frame = dropFrame, Text = string.lower(tostring(dropTitle)), Tab = tabObj, Section = parentSection})
 
         local isExpanded = false
 
@@ -462,13 +498,9 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
                             arrowMain.Text = "v"
                             arrowShadow.Text = "v"
                             
-                            local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                                Size = UDim2.new(1, -20, 0, 0)
-                            })
+                            local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -20, 0, 0)})
                             shrinkList:Play()
-                            TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                                Size = UDim2.new(1, 0, 0, 45)
-                            }):Play()
+                            TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 45)}):Play()
                             
                             shrinkList.Completed:Connect(function()
                                 if not isExpanded then listWrapper.Visible = false end
@@ -505,22 +537,12 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
                 listWrapper.Visible = true
                 local h = refreshList(searchBox and searchBox.Text or "")
                 
-                TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, -20, 0, h)
-                }):Play()
-                
-                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, 0, 0, 45 + h + 5)
-                }):Play()
+                TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -20, 0, h)}):Play()
+                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 45 + h + 5)}):Play()
             else
-                local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, -20, 0, 0)
-                })
+                local shrinkList = TweenService:Create(listWrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, -20, 0, 0)})
                 shrinkList:Play()
-                
-                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, 0, 0, 45)
-                }):Play()
+                TweenService:Create(dropFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 45)}):Play()
                 
                 shrinkList.Completed:Connect(function()
                     if not isExpanded then listWrapper.Visible = false end
@@ -528,10 +550,15 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
             end
         end)
         
-        if not isMulti and #selectedValues > 0 then
-            task.spawn(function() callback(selectedValues[1]) end)
-        elseif isMulti and #selectedValues > 0 then
-            task.spawn(function() callback(selectedValues) end)
+        if not isMulti and #selectedValues > 0 then task.spawn(function() callback(selectedValues[1]) end)
+        elseif isMulti and #selectedValues > 0 then task.spawn(function() callback(selectedValues) end) end
+
+        if keybind then
+            UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.KeyCode == keybind then
+                    if isMulti then callback(selectedValues) else callback(selectedValues[1]) end
+                end
+            end)
         end
     end
 
@@ -559,10 +586,7 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         secHeader.Parent = secFrame
 
         CreateText(secHeader, secTitle, hasDesc and UDim2.new(1, -40, 0, 15) or UDim2.new(1, -40, 1, 0), hasDesc and UDim2.new(0, 10, 0, 8) or UDim2.new(0, 10, 0, 0), Color3.fromRGB(255, 255, 255), 12, Enum.TextXAlignment.Left)
-
-        if hasDesc then
-            CreateText(secHeader, secDesc, UDim2.new(1, -40, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left)
-        end
+        if hasDesc then CreateText(secHeader, secDesc, UDim2.new(1, -40, 0, 15), UDim2.new(0, 10, 0, 23), Color3.fromRGB(150, 150, 150), 10, Enum.TextXAlignment.Left) end
 
         local tMain, tShadow = CreateText(secHeader, "+", UDim2.new(0, 20, 0, 20), UDim2.new(1, -25, 0.5, -10), Color3.fromRGB(255, 255, 255), 16, Enum.TextXAlignment.Center)
 
@@ -585,13 +609,9 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
         local function updateSize()
             if isExpanded then
                 secContent.Size = UDim2.new(1, -16, 0, secLayout.AbsoluteContentSize.Y)
-                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, 0, 0, headerHeight + secLayout.AbsoluteContentSize.Y + 15)
-                }):Play()
+                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, headerHeight + secLayout.AbsoluteContentSize.Y + 15)}):Play()
             else
-                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Size = UDim2.new(1, 0, 0, headerHeight)
-                }):Play()
+                TweenService:Create(secFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, headerHeight)}):Play()
             end
         end
 
@@ -610,24 +630,14 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
                     updateSize()
                 else
                     updateSize()
-                    task.delay(0.4, function()
-                        if not isExpanded then secContent.Visible = false end
-                    end)
+                    task.delay(0.4, function() if not isExpanded then secContent.Visible = false end end)
                 end
             end
         }
 
-        table.insert(windowObj.SearchElements, {
-            Frame = secFrame,
-            Text = string.lower(tostring(secTitle) .. tostring(secDesc or "")),
-            Tab = tabObj,
-            IsSection = true,
-            SectionObj = secObj
-        })
+        table.insert(windowObj.SearchElements, {Frame = secFrame, Text = string.lower(tostring(secTitle) .. tostring(secDesc or "")), Tab = tabObj, IsSection = true, SectionObj = secObj})
 
-        secHeader.MouseButton1Click:Connect(function()
-            secObj.SetExpanded(not isExpanded)
-        end)
+        secHeader.MouseButton1Click:Connect(function() secObj.SetExpanded(not isExpanded) end)
 
         AttachComponents(secObj, secContent, elementTrans, windowObj, tabObj, secObj)
         return secObj
@@ -636,14 +646,15 @@ end
 
 function CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
-    local subTitleText = config.Subtitle or "" 
+    local subTitleText = config.Subtitle or ""
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
     local useRainbow = config.RainbowBorder or false
-    local dpi = config.DPI or 1
-    local defaultSize = config.Size or UDim2.new(0, 600, 0, 400)
-    local hasBg = bgValue ~= ""
+    local dpi = config.DPI or 1 
+    local defaultSize = config.Size or UDim2.new(0, 600, 0, 400) 
+    local toggleKey = config.Keybind or false
     
+    local hasBg = bgValue ~= ""
     local elementTrans = hasBg and 0.65 or 0
     local activeTrans = hasBg and 0.35 or 0
 
@@ -993,7 +1004,7 @@ function CF_UI:MakeWindow(config)
     openTween:Play()
 
     local isMinimized = false
-            minimizeBtn.MouseButton1Click:Connect(function()
+      local function ToggleWindowVisibility()
         isMinimized = not isMinimized
         if isMinimized then
             minIcon.Image = "rbxassetid://10734924532" 
@@ -1067,7 +1078,17 @@ function CF_UI:MakeWindow(config)
             if bgTint then TweenService:Create(bgTint, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.4}):Play() end
             TweenService:Create(leftBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = elementTrans}):Play()
         end
-    end)
+    end
+
+    minimizeBtn.MouseButton1Click:Connect(ToggleWindowVisibility)
+
+    if toggleKey then
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if not gpe and input.KeyCode == toggleKey then
+                ToggleWindowVisibility()
+            end
+        end)
+    end
 
       local confirmOverlay = Instance.new("TextButton")
     confirmOverlay.Size = UDim2.new(1, 0, 1, 0)
