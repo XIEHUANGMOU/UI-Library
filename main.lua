@@ -644,16 +644,16 @@ local function AttachComponents(targetObj, targetContainer, elementTrans, window
     end
 end
 
-ffunction CF_UI:MakeWindow(config)
+function CF_UI:MakeWindow(config)
     local titleText = config.Title or "CF_UI"
     local subTitleText = config.Subtitle or ""
     local bgValue = config.Background or ""
     local iconUrl = config.Icon or ""
     local useRainbow = config.RainbowBorder or false
-    local useSnowfall = config.Snowfall or false
     local dpi = config.DPI or 1 
     local defaultSize = config.Size or UDim2.new(0, 600, 0, 400) 
     local toggleKey = config.Keybind or false
+    local useSnowfall = config.Snowfall or false
     
     local hasBg = bgValue ~= ""
     local elementTrans = hasBg and 0.65 or 0
@@ -770,58 +770,48 @@ ffunction CF_UI:MakeWindow(config)
         snowContainer.ZIndex = 1
         snowContainer.Parent = mainFrame
 
-        local snowIconUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI-BackGround/main/Snow-Background.png"
-        local snowImageId = ""
-
         task.spawn(function()
+            local snowUrl = "https://raw.githubusercontent.com/XIEHUANGMOU/UI-BackGround/main/Snow-Background.png"
+            local snowImg = ""
             if isfile and writefile and getcustomasset then
-                local snowHash = "cf_snow_icon.png"
-                if not isfile(snowHash) then
-                    pcall(function() writefile(snowHash, game:HttpGet(snowIconUrl)) end)
+                local hash = "cf_snow.png"
+                if not isfile(hash) then
+                    pcall(function() writefile(hash, game:HttpGet(snowUrl)) end)
                 end
-                if isfile(snowHash) then
-                    snowImageId = getcustomasset(snowHash)
+                if isfile(hash) then
+                    snowImg = getcustomasset(hash)
                 end
             end
-        end)
 
-        local isSnowing = true
-        mainFrame.AncestryChanged:Connect(function()
-            if not mainFrame.Parent then isSnowing = false end
-        end)
-
-        task.spawn(function()
-            while isSnowing do
-                if snowImageId ~= "" then
-                    local size = math.random(10, 25)
-                    local startX = math.random(0, 1000) / 1000
-                    local endX = startX + (math.random(-150, 150) / 1000)
-                    local duration = math.random(40, 80) / 10
-                    local rotation = math.random(-180, 180)
-
+            if snowImg ~= "" then
+                while snowContainer.Parent do
                     local flake = Instance.new("ImageLabel")
+                    local size = math.random(10, 25)
                     flake.Size = UDim2.new(0, size, 0, size)
-                    flake.Position = UDim2.new(startX, 0, 0, -30)
+                    flake.Position = UDim2.new(math.random(), 0, 0, -30)
                     flake.BackgroundTransparency = 1
-                    flake.Image = snowImageId
-                    flake.ImageTransparency = math.random(2, 6) / 10
+                    flake.Image = snowImg
+                    flake.ImageTransparency = math.random(20, 60) / 100
                     flake.ZIndex = 1
                     flake.Parent = snowContainer
 
-                    local fallTween = TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-                        Position = UDim2.new(endX, 0, 1, 50),
-                        Rotation = rotation
+                    local duration = math.random(30, 70) / 10
+                    local endX = flake.Position.X.Scale + (math.random(-10, 10) / 100)
+                    
+                    local tween = TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+                        Position = UDim2.new(endX, 0, 1, 30),
+                        Rotation = math.random(-360, 360)
                     })
-                    fallTween:Play()
-                    fallTween.Completed:Connect(function()
+                    tween:Play()
+                    tween.Completed:Connect(function()
                         flake:Destroy()
                     end)
+
+                    task.wait(math.random(5, 20) / 100)
                 end
-                task.wait(math.random(1, 3) / 10)
             end
         end)
     end
-
     local topBar = Instance.new("Frame")
     topBar.Size = UDim2.new(1, 0, 0, 35)
     topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
