@@ -1271,10 +1271,11 @@ function CF_UI:MakeWindow(config)
         SearchElements = {}
     }
 
-    function windowObject:AddTag(config)
+        function windowObject:AddTag(config)
         local tagTitle = type(config) == "table" and config.Title or "Tag"
         local tagColor = type(config) == "table" and config.Color or Color3.fromRGB(100, 200, 100)
         local tagIcon = type(config) == "table" and config.Icon or ""
+        local tagWidth = type(config) == "table" and config.Width or nil -- 【新增】固定宽度参数
 
         local tagFrame = Instance.new("Frame")
         tagFrame.BackgroundColor3 = tagColor
@@ -1288,6 +1289,7 @@ function CF_UI:MakeWindow(config)
         tagInnerLayout.FillDirection = Enum.FillDirection.Horizontal
         tagInnerLayout.SortOrder = Enum.SortOrder.LayoutOrder
         tagInnerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        tagInnerLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center -- 【新增】内部元素居中对齐
         tagInnerLayout.Padding = UDim.new(0, 4)
         tagInnerLayout.Parent = tagFrame
 
@@ -1325,11 +1327,29 @@ function CF_UI:MakeWindow(config)
         tLabel.Font = Enum.Font.Code
         tLabel.TextSize = 12
         tLabel.ZIndex = 4
+        tLabel.TextXAlignment = Enum.TextXAlignment.Center
+        tLabel.TextTruncate = Enum.TextTruncate.AtEnd
         tLabel.Parent = tagFrame
 
         local function updateSize()
-            tLabel.Size = UDim2.new(0, tLabel.TextBounds.X, 0, 20)
-            tagFrame.Size = UDim2.new(0, tLabel.TextBounds.X + (tagIcon ~= "" and 22 or 12), 0, 22)
+            local targetWidth = tagWidth or (tLabel.TextBounds.X + (tagIcon ~= "" and 22 or 12))
+      
+            if not tagWidth and targetWidth > 150 then targetWidth = 150 end
+
+            local currentWidth = tagFrame.Size.X.Offset
+            
+            if not tagWidth and currentWidth > 0 and math.abs(currentWidth - targetWidth) > 1 then
+                TweenService:Create(tagFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(0, targetWidth, 0, 22)
+                }):Play()
+                TweenService:Create(tLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(0, targetWidth - (tagIcon ~= "" and 22 or 12), 0, 20)
+                }):Play()
+            else
+                tagFrame.Size = UDim2.new(0, targetWidth, 0, 22)
+                tLabel.Size = UDim2.new(0, targetWidth - (tagIcon ~= "" and 22 or 12), 0, 20)
+            end
+
             local totalW = 0
             for _, child in pairs(tagContainer:GetChildren()) do
                 if child:IsA("Frame") then totalW = totalW + child.Size.X.Offset + 8 end
@@ -1337,13 +1357,14 @@ function CF_UI:MakeWindow(config)
             tagContainer.CanvasSize = UDim2.new(0, totalW, 0, 0)
         end
 
-        tLabel:GetPropertyChangedSignal("TextBounds"):Connect(updateSize)
-        updateSize()
+        task.defer(updateSize)
 
         local tagObj = {}
         function tagObj:SetTitle(newTitle)
             tLabel.Text = newTitle
-            updateSize()
+            if not tagWidth then
+                task.defer(updateSize)
+            end
         end
         function tagObj:SetColor(newColor)
             tagFrame.BackgroundColor3 = newColor
@@ -1353,6 +1374,7 @@ function CF_UI:MakeWindow(config)
 
         return tagObj
     end
+
 
     local function executeSearch()
         local query = string.lower(searchInput.Text)
