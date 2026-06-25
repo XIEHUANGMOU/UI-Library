@@ -1,7 +1,6 @@
-```markdown
-
+<div align="center">
+  
 # 🌌 CF_UI Library
-
 ### 一个现代化、高可定制性的 Roblox UI 框架
 
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -16,22 +15,20 @@
 ---
 
 ## 📖 目录
-
 - [✨ 特性](#-特性)
 - [🚀 快速开始](#-快速开始)
 - [📦 API 文档](#-api-文档)
-  - [初始化窗口 (MakeWindow)](#初始化窗口-makewindow)
-  - [选项卡 (MakeTab)](#选项卡-maketab)
-  - [全局通知 (Notify)](#全局通知-notify)
-  - [🧩 交互组件](#-交互组件)
-  - [📐 布局组件](#-布局组件)
+  - [初始化窗口](#初始化窗口-makewindow)
+  - [选项卡](#选项卡-maketab)
+  - [全局通知](#全局通知-notify)
+  - [交互组件](#-交互组件)
+  - [布局组件](#-布局组件)
 - [💡 完整示例](#-完整示例)
 - [🤝 贡献与反馈](#-贡献与反馈)
 
 ---
 
 ## ✨ 特性
-
 - 🎨 **高度可定制**：支持自定义图标、背景图、彩虹边框等视觉效果。
 - 🧩 **丰富的组件**：内置按钮、开关、滑动条、下拉框、输入框、快捷键绑定等常用 UI 组件。
 - ⌨️ **全局快捷键**：支持为 UI 隐藏/展开以及单个组件绑定快捷键。
@@ -43,6 +40,8 @@
 ## 🚀 快速开始
 
 只需以下几行代码即可加载 CF_UI 库并初始化你的第一个窗口：
+
+
 
 ```lua
 local CF_UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/XIEHUANGMOU/UI-Library/refs/heads/main/main.lua"))()
