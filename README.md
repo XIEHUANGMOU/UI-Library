@@ -10,6 +10,7 @@ local Window = CF_UI:MakeWindow({
     Icon = "rbxassetid://0000000",
     Background = "rbxassetid://0000000",
     RainbowBorder = true,
+    Snowfall = true,
     DPI = 1,
     Size = UDim2.new(0, 600, 0, 400),
     Keybind = Enum.KeyCode.RightControl -- UI隐藏/展开快捷键 (可选, false为关闭)
