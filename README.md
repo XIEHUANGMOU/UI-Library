@@ -1,794 +1,352 @@
 ```markdown
-# 🎨 CF_UI Library — 轻量级 Roblox Lua UI 框架
-```
+<div align="center">
 
-> **设计要点**：标题应清晰简洁，一语道破项目是什么。可以使用 Emoji 增加视觉吸引力。
+# 🌌 CF_UI Library
 
----
+### 一个现代化、高可定制性的 Roblox UI 框架
 
-### 徽标区（Badges）
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.0.0-green?style=for-the-badge)
+![Lua](https://img.shields.io/badge/Language-Lua-2C2D72?style=for-the-badge&logo=lua)
+![Platform](https://img.shields.io/badge/Platform-Roblox-FF0000?style=for-the-badge&logo=roblox)
 
-```markdown
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Lua](https://img.shields.io/badge/Lua-5.1-blueviolet)
-![Roblox](https://img.shields.io/badge/Roblox-支持-black)
-![License](https://img.shields.io/badge/license-MIT-green)
-![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
-```
+**轻量 · 美观 · 响应式 · 功能完备**
 
-> **设计要点**：徽标（Badge）能直观展示项目状态、版本、许可证等关键信息。Shields.io 提供了丰富的徽标模板可供使用。两个徽标之间可通过 `&nbsp;`（空格实体）添加间隔。
+</div>
 
 ---
 
-### 简介（Description / Background）
+## 📖 目录
 
-```markdown
-## 📖 简介
-
-**CF_UI** 是一个专为 Roblox 平台设计的轻量级 Lua UI 框架，旨在帮助开发者以最简洁的代码快速构建美观、功能完整的图形用户界面。
-
-### ✨ 特性
-
-- 🚀 **开箱即用** — 单行加载，即刻拥有完整的 UI 系统
-- 🎯 **链式调用** — 直观的 API 设计，代码即文档
-- ⌨️ **全局快捷键** — 支持键盘绑定，提升操作效率
-- 🌈 **彩虹边框** — 内置动态视觉效果，无需额外编码
-- 📦 **模块化设计** — 选项卡、按钮、开关、滑动条等组件一应俱全
-- 🔔 **全局通知系统** — 统一的消息推送机制
-
-### 🎯 适用场景
-
-- Roblox 游戏管理面板
-- 开发者调试工具
-- 游戏内设置界面
-- 管理类脚本 UI
-```
-
-> **设计要点**：简介部分应回答“这个项目是做什么的”以及“它存在的原因”。使用 engaging 的语言描述项目的目的和要解决的问题。
+- [✨ 特性](#-特性)
+- [🚀 快速开始](#-快速开始)
+- [📦 API 文档](#-api-文档)
+  - [初始化窗口 (MakeWindow)](#初始化窗口-makewindow)
+  - [选项卡 (MakeTab)](#选项卡-maketab)
+  - [全局通知 (Notify)](#全局通知-notify)
+  - [🧩 交互组件](#-交互组件)
+  - [📐 布局组件](#-布局组件)
+- [💡 完整示例](#-完整示例)
+- [🤝 贡献与反馈](#-贡献与反馈)
 
 ---
 
-### 目录（Table of Contents）
+## ✨ 特性
 
-```markdown
-## 📑 目录
-
-- [快速开始](#-快速开始)
-- [安装](#-安装)
-- [核心 API](#-核心-api)
-  - [初始化窗口](#1-初始化窗口-makewindow)
-  - [创建选项卡](#2-创建选项卡-maketab)
-  - [全局通知](#3-全局通知-notify)
-  - [按钮](#4-按钮-addbutton)
-  - [开关](#5-开关-addtoggle)
-  - [滑动条](#6-滑动条-addslider)
-  - [输入框](#7-输入框-addinput)
-  - [下拉列表](#8-下拉列表-adddropdown)
-  - [按键绑定](#9-按键绑定-addkeybind)
-  - [板块与分隔线](#10-板块与分隔线-addsection--adddivider)
-- [完整示例](#-完整示例)
-- [贡献指南](#-贡献指南)
-- [许可证](#-许可证)
-- [致谢](#-致谢)
-```
-
-> **设计要点**：如果 README 较长，目录能帮助读者快速导航到特定部分。
+- 🎨 **高度可定制**：支持自定义图标、背景图、彩虹边框等视觉效果。
+- 🧩 **丰富的组件**：内置按钮、开关、滑动条、下拉框、输入框、快捷键绑定等常用 UI 组件。
+- ⌨️ **全局快捷键**：支持为 UI 隐藏/展开以及单个组件绑定快捷键。
+- 📱 **DPI 适配**：支持自定义 DPI 缩放，适配不同分辨率的屏幕。
+- 🔔 **原生通知系统**：内置美观的全局通知功能，支持自定义图标和音效。
 
 ---
 
-### 快速开始（Quick Start）
-
-```markdown
 ## 🚀 快速开始
 
-只需一行代码即可完成框架加载：
+只需以下几行代码即可加载 CF_UI 库并初始化你的第一个窗口：
 
 ```lua
 local CF_UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/XIEHUANGMOU/UI-Library/refs/heads/main/main.lua"))()
-```
-
-加载完成后，您就可以开始创建窗口和 UI 组件了。以下是一个最小示例：
-
-```lua
--- 创建主窗口
 local Window = CF_UI:MakeWindow({
-    Title = "我的管理面板",
-    Subtitle = "v1.0.0",
-    Icon = "rbxassetid://12345678",
-    Background = "rbxassetid://87654321",
-    RainbowBorder = true,
+    Title = "我的脚本",
+    Subtitle = "由 CF_UI 驱动",
     Size = UDim2.new(0, 600, 0, 400),
     Keybind = Enum.KeyCode.RightControl
 })
-
--- 创建选项卡
-local MainTab = Window:MakeTab({
-    Title = "主页"
-})
-
--- 添加一个按钮
-MainTab:AddButton({
-    Title = "点击我",
-    Desc = "这是一个示例按钮"
-}, function()
-    print("按钮被点击了！")
-end)
 ```
-
-> 💡 **提示**：将 `rbxassetid://0000000` 替换为您自己的资源 ID。
-```
-
-> **设计要点**：快速开始部分应让用户能在最短时间内体验到项目的基本功能。
 
 ---
 
-### 安装（Installation）
+## 📦 API 文档
 
-```markdown
-## 📦 安装
+### 初始化窗口 (MakeWindow)
 
-### 方式一：直接加载（推荐）
+创建 UI 的主视窗。
+
+**参数说明：**
+
+<details>
+<summary>🔨 查看代码示例</summary>
 
 ```lua
 local CF_UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/XIEHUANGMOU/UI-Library/refs/heads/main/main.lua"))()
-```
-
-### 方式二：本地导入
-
-1. 将 `main.lua` 下载到您的项目中
-2. 使用 `require()` 导入：
-
-```lua
-local CF_UI = require(path.to.main)
-```
-
-### 系统要求
-
-- Roblox Studio（任意版本）
-- Lua 5.1 及以上
-```
-
-> **设计要点**：安装部分应清晰说明依赖项和配置步骤。
-
----
-
-### 核心 API（完整文档）
-
-```markdown
-## 🔧 核心 API
-
-### 1. 初始化窗口 `MakeWindow`
-
-创建应用程序的主窗口，所有 UI 组件都基于此窗口展开。
-
-#### 语法
-
-```lua
-local Window = CF_UI:MakeWindow({ ... })
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 窗口标题 |
-| `Subtitle` | `string` | ❌ | `""` | 副标题文字 |
-| `Icon` | `string` | ❌ | `""` | 图标资源 ID（格式：`rbxassetid://xxx`） |
-| `Background` | `string` | ❌ | `""` | 背景图片资源 ID |
-| `RainbowBorder` | `boolean` | ❌ | `false` | 是否启用彩虹边框动态效果 |
-| `DPI` | `number` | ❌ | `1` | 界面缩放比例 |
-| `Size` | `UDim2` | ❌ | `UDim2.new(0, 600, 0, 400)` | 窗口尺寸 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 显示/隐藏窗口的快捷键 |
-
-#### 示例
-
-```lua
 local Window = CF_UI:MakeWindow({
-    Title = "管理面板",
-    Subtitle = "v2.0.0",
-    Icon = "rbxassetid://12345678",
-    Background = "rbxassetid://87654321",
+    Title = "标题",
+    Subtitle = "副标题",
+    Icon = "rbxassetid://0000000",
+    Background = "rbxassetid://0000000",
     RainbowBorder = true,
     DPI = 1,
     Size = UDim2.new(0, 600, 0, 400),
-    Keybind = Enum.KeyCode.RightControl
+    Keybind = Enum.KeyCode.RightControl 
 })
 ```
 
-#### 返回值
-
-| 类型 | 描述 |
-|------|------|
-| `table` | Window 对象，用于后续创建选项卡 |
+</details>
 
 ---
 
-### 2. 创建选项卡 `MakeTab`
+### 选项卡 (MakeTab)
 
-在窗口中创建一个新的选项卡，用于组织不同类型的 UI 控件。
+在主窗口中创建一个选项卡页面，用于存放各类组件。
 
-#### 语法
-
-```lua
-local Tab = Window:MakeTab({ ... })
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 选项卡标题 |
-
-#### 示例
+<details>
+<summary>🔨 查看代码示例</summary>
 
 ```lua
-local SettingsTab = Window:MakeTab({
-    Title = "设置"
+local Tab = Window:MakeTab({
+    Title = "选项卡标题"
 })
 ```
 
-#### 返回值
-
-| 类型 | 描述 |
-|------|------|
-| `table` | Tab 对象，用于添加各类 UI 组件 |
+</details>
 
 ---
 
-### 3. 全局通知 `Notify`
+### 全局通知 (Notify)
 
-在屏幕任意位置显示一条全局通知消息，独立于窗口存在。
+在屏幕角落弹出自定义通知。
 
-#### 语法
+**参数说明：**
 
-```lua
-CF_UI:Notify({ ... })
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 通知标题 |
-| `Content` | `string` | ✅ | — | 通知内容 |
-| `Icon` | `string` | ❌ | `""` | 通知图标资源 ID |
-| `Duration` | `number` | ❌ | `3` | 显示时长（秒） |
-| `Sound` | `string` | ❌ | `""` | 提示音资源 ID |
-
-#### 示例
+<details>
+<summary>🔨 查看代码示例</summary>
 
 ```lua
 CF_UI:Notify({
-    Title = "✅ 操作成功",
-    Content = "配置已保存",
-    Icon = "rbxassetid://12345678",
+    Title = "通知标题",
+    Content = "通知内容",
+    Icon = "rbxassetid://0000000",
     Duration = 3,
-    Sound = "rbxassetid://87654321"
+    Sound = "rbxassetid://0000000"
 })
 ```
 
+</details>
+
 ---
 
-### 4. 按钮 `AddButton`
+### 🧩 交互组件
 
-在选项卡中添加一个可点击的按钮。
+#### 按钮
 
-#### 语法
-
-```lua
-Tab:AddButton({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 按钮标题 |
-| `Desc` | `string` | ❌ | `""` | 按钮描述文字 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 触发按钮的快捷键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| 无 | — | 点击按钮时触发 |
-
-#### 示例
+执行单击事件的按钮。支持绑定快捷键。
 
 ```lua
 Tab:AddButton({
-    Title = "执行脚本",
-    Desc = "点击运行当前选中的脚本",
-    Keybind = Enum.KeyCode.F
+    Title = "按钮标题",
+    Desc = "按钮描述",
+    Keybind = Enum.KeyCode.F -- 快捷键 (可选, false为关闭)
 }, function()
-    print("脚本已执行！")
-    -- 您的业务逻辑
+    print("按钮被点击！")
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 5. 开关 `AddToggle`
+#### 开关
 
-在选项卡中添加一个开关（Toggle）控件，用于切换布尔状态。
-
-#### 语法
-
-```lua
-Tab:AddToggle({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 开关标题 |
-| `Desc` | `string` | ❌ | `""` | 开关描述文字 |
-| `Default` | `boolean` | ❌ | `false` | 初始状态 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 触发切换的快捷键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| `state` | `boolean` | 当前开关状态（`true` = 开启） |
-
-#### 示例
+用于布尔值的状态切换。
 
 ```lua
 Tab:AddToggle({
-    Title = "自动保存",
-    Desc = "启用后每 30 秒自动保存一次",
-    Default = true,
-    Keybind = Enum.KeyCode.V
+    Title = "开关标题",
+    Desc = "开关描述",
+    Default = false,
+    Keybind = Enum.KeyCode.V 
 }, function(state)
-    if state then
-        print("自动保存已开启")
-    else
-        print("自动保存已关闭")
-    end
+    print("当前状态:", state)
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 6. 滑动条 `AddSlider`
+#### 滑动条
 
-在选项卡中添加一个滑动条，用于选择数值范围内的值。
-
-#### 语法
-
-```lua
-Tab:AddSlider({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 滑动条标题 |
-| `Desc` | `string` | ❌ | `""` | 滑动条描述文字 |
-| `Min` | `number` | ✅ | — | 最小值 |
-| `Max` | `number` | ✅ | — | 最大值 |
-| `Default` | `number` | ❌ | `50` | 初始值 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 快捷键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| `value` | `number` | 当前滑块数值 |
-
-#### 示例
+用于在一定范围内选择数值。
 
 ```lua
 Tab:AddSlider({
-    Title = "音量",
-    Desc = "调整系统音量 (0-100)",
+    Title = "滑动条标题",
+    Desc = "滑动条描述",
     Min = 0,
     Max = 100,
-    Default = 75
+    Default = 50,
+    Keybind = false 
 }, function(value)
-    print("当前音量: " .. value .. "%")
+    print("当前数值:", value)
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 7. 输入框 `AddInput`
+#### 输入框
 
-在选项卡中添加一个文本输入框。
+获取用户输入的文本。
 
-#### 语法
-
-```lua
-Tab:AddInput({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 输入框标题 |
-| `Desc` | `string` | ❌ | `""` | 输入框描述文字 |
-| `Type` | `string` | ❌ | `"Default"` | 输入类型（`"Default"` / `"Number"` / `"Password"`） |
-| `Placeholder` | `string` | ❌ | `""` | 占位提示文字 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 快捷键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| `text` | `string` | 用户输入的文本 |
-
-#### 示例
+> 💡 **提示：** `Type` 参数可设置输入框样式（如 `"Default"` 或 `"Password"` 密码隐藏）。
 
 ```lua
 Tab:AddInput({
-    Title = "玩家名称",
-    Desc = "输入要查找的玩家名称",
+    Title = "输入框标题",
+    Desc = "输入框描述",
     Type = "Default",
-    Placeholder = "请输入玩家名称..."
+    Placeholder = "占位符...",
+    Keybind = false 
 }, function(text)
-    print("搜索玩家: " .. text)
+    print("用户输入:", text)
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 8. 下拉列表 `AddDropdown`
+#### 下拉列表
 
-在选项卡中添加一个下拉选择列表。
-
-#### 语法
-
-```lua
-Tab:AddDropdown({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 下拉列表标题 |
-| `Values` | `table` | ✅ | — | 选项数组（如 `{"选项1", "选项2"}`） |
-| `Value` | `string` / `table` | ❌ | `Values[1]` | 默认选中值（多选时为数组） |
-| `Multi` | `boolean` | ❌ | `false` | 是否启用多选模式 |
-| `SearchBarEnabled` | `boolean` | ❌ | `true` | 是否显示搜索栏 |
-| `Keybind` | `Enum.KeyCode` | ❌ | `false` | 快捷键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| `selected` | `string` / `table` | 选中的值（单选为字符串，多选为数组） |
-
-#### 示例（单选）
+提供单选或多选的下拉菜单。内置搜索栏支持。
 
 ```lua
 Tab:AddDropdown({
-    Title = "主题风格",
-    Values = {"明亮", "暗黑", "自动"},
-    Value = "明亮",
-    Multi = false,
-    SearchBarEnabled = true
+    Title = "下拉列表标题",
+    Values = {"选项1", "选项2", "选项3"},
+    Value = "选项1", -- 默认选中
+    Multi = false, -- 设为 true 可开启多选
+    SearchBarEnabled = true, -- 开启搜索
+    Keybind = false 
 }, function(selected)
-    print("已选择主题: " .. selected)
-end)
-```
-
-#### 示例（多选）
-
-```lua
-Tab:AddDropdown({
-    Title = "权限选择",
-    Values = {"管理员", "编辑", "查看者", "访客"},
-    Value = {"管理员", "编辑"},
-    Multi = true,
-    SearchBarEnabled = true
-}, function(selected)
-    -- selected 是一个数组
-    for _, v in ipairs(selected) do
-        print("已选权限: " .. v)
-    end
+    print("选中项:", selected)
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 9. 按键绑定 `AddKeybind`
+#### 按键绑定
 
-在选项卡中添加一个按键绑定控件，用于捕获用户按键。
-
-#### 语法
-
-```lua
-Tab:AddKeybind({ ... }, callback)
-```
-
-#### 参数
-
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 按键绑定标题 |
-| `Desc` | `string` | ❌ | `""` | 按键绑定描述 |
-| `Default` | `Enum.KeyCode` | ❌ | `Enum.KeyCode.Unknown` | 默认按键 |
-
-#### 回调
-
-| 参数 | 类型 | 描述 |
-|------|------|------|
-| `key` | `Enum.KeyCode` | 用户按下的按键 |
-
-#### 示例
+允许用户动态设置或更改某个功能的快捷键。
 
 ```lua
 Tab:AddKeybind({
-    Title = "截图快捷键",
-    Desc = "按下设置快捷键进行截图",
-    Default = Enum.KeyCode.F12
+    Title = "按键绑定标题",
+    Desc = "按键绑定描述",
+    Default = Enum.KeyCode.Unknown
 }, function(key)
-    print("截图快捷键已设置为: " .. tostring(key))
+    print("绑定的按键:", key)
+    -- 执行代码
 end)
 ```
 
 ---
 
-### 10. 板块与分隔线 `AddSection` & `AddDivider`
+### 📐 布局组件
 
-用于组织和美化 UI 布局的辅助组件。
+#### 板块 / 折叠区
 
-#### 板块（Section）
+将相关组件分组，支持折叠隐藏，让 UI 更具层次感。
 
 ```lua
 local Section = Tab:AddSection({
-    Title = "高级设置",
-    Desc = "以下为高级配置选项，请谨慎修改"
+    Title = "板块标题",
+    Desc = "板块描述"
 })
+-- 在板块中添加组件 (示例)
+Section:AddButton({ Title = "板块内的按钮" }, function() end)
 ```
 
-#### 分隔线（Divider）
+---
+
+#### 分隔线
+
+在视觉上分割不同区域的组件。
 
 ```lua
 Tab:AddDivider({
-    Title = "─ 基础配置 ─",
-    Desc = "基本参数设置区域"
+    Title = "分隔线标题",
+    Desc = "分隔线描述"
 })
 ```
-```
-
-> **设计要点**：API 文档应包含完整的参数说明、类型标注、示例代码和返回值说明。
 
 ---
 
-### 完整示例
-
-```markdown
 ## 💡 完整示例
 
-以下是一个包含所有组件的完整示例：
+这里提供一个组合使用各种 API 的综合演示：
+
+<details>
+<summary>📂 展开查看完整演示代码</summary>
 
 ```lua
--- 1. 加载框架
+-- 加载库
 local CF_UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/XIEHUANGMOU/UI-Library/refs/heads/main/main.lua"))()
 
--- 2. 创建窗口
+-- 创建窗口
 local Window = CF_UI:MakeWindow({
-    Title = "全能管理面板",
-    Subtitle = "v1.0.0",
-    Icon = "rbxassetid://12345678",
+    Title = "CF_UI 演示",
+    Subtitle = "功能展示",
     RainbowBorder = true,
-    Size = UDim2.new(0, 650, 0, 450),
+    Size = UDim2.new(0, 600, 0, 400),
     Keybind = Enum.KeyCode.RightControl
 })
 
--- 3. 创建选项卡
+-- 通知测试
+CF_UI:Notify({
+    Title = "欢迎使用",
+    Content = "CF_UI 已成功加载！",
+    Duration = 3
+})
+
+-- 创建选项卡
 local MainTab = Window:MakeTab({ Title = "主页" })
-local SettingsTab = Window:MakeTab({ Title = "设置" })
-local AboutTab = Window:MakeTab({ Title = "关于" })
 
--- 4. 主页选项卡
-MainTab:AddButton({
-    Title = "🚀 启动服务",
-    Desc = "启动所有后台服务",
-    Keybind = Enum.KeyCode.F1
-}, function()
-    print("服务已启动")
-    CF_UI:Notify({
-        Title = "✅ 成功",
-        Content = "所有服务已启动",
-        Duration = 2
-    })
-end)
+-- 添加板块
+local PlayerSection = MainTab:AddSection({ Title = "玩家功能" })
 
-MainTab:AddToggle({
-    Title = "🔔 启用通知",
-    Desc = "接收系统通知推送",
-    Default = true
+PlayerSection:AddToggle({
+    Title = "无限跳跃",
+    Desc = "按下空格键可持续跳跃",
+    Default = false
 }, function(state)
-    print("通知状态: " .. tostring(state))
+    if state then
+        print("无限跳跃 开启")
+    else
+        print("无限跳跃 关闭")
+    end
 end)
 
--- 5. 设置选项卡
-SettingsTab:AddSlider({
-    Title = "🔊 音量",
-    Min = 0,
+PlayerSection:AddSlider({
+    Title = "移动速度",
+    Min = 16,
     Max = 100,
-    Default = 80
+    Default = 16
 }, function(value)
-    print("音量: " .. value)
+    print("速度设置为:", value)
 end)
 
-SettingsTab:AddDropdown({
-    Title = "🎨 界面语言",
-    Values = {"中文", "English", "日本語"},
-    Value = "中文"
-}, function(selected)
-    print("语言: " .. selected)
-end)
+MainTab:AddDivider({ Title = "其他功能" })
 
--- 6. 关于选项卡
-AboutTab:AddButton({
-    Title = "📄 查看版本信息",
-    Desc = "显示当前版本和更新日志"
+MainTab:AddButton({
+    Title = "复制世界ID",
+    Keybind = Enum.KeyCode.C
 }, function()
-    CF_UI:Notify({
-        Title = "ℹ️ 关于",
-        Content = "CF_UI Library v1.0.0\n由 XIEHUANGMOU 开发",
-        Duration = 4
-    })
+    print("已复制！")
 end)
 ```
-```
+
+</details>
 
 ---
 
-### 贡献指南
+## 🤝 贡献与反馈
 
-```markdown
-## 🤝 贡献指南
-
-我们欢迎并感谢任何形式的贡献！请遵循以下流程：
-
-### 提交 Issue
-
-- 使用 [Issue Template](.github/ISSUE_TEMPLATE) 提交 Bug 报告或功能请求
-- 请清晰描述问题复现步骤和预期行为
-
-### 提交 Pull Request
-
-1. Fork 本仓库
-2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 打开一个 Pull Request
-
-### 代码规范
-
-- 遵循 Lua 代码风格指南
-- 确保所有新功能有对应的文档说明
-- 提交前进行充分测试
-```
-
-> **设计要点**：贡献指南应包括如何提交 Bug 报告、功能请求和 Pull Request 的信息。
-
----
-
-### 许可证
-
-```markdown
-## 📄 许可证
-
-本项目采用 **MIT License** 开源许可证。
-
-```
-MIT License
-
-Copyright (c) 2026 XIEHUANGMOU
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-...
-```
-```
-
-> **设计要点**：许可证部分应明确项目的使用、修改和分发条款。
-
----
-
-### 致谢
-
-```markdown
-## 🙏 致谢
-
-- 感谢所有为本项目提交 Issue 和 Pull Request 的贡献者
-- 感谢 Roblox 开发者社区的支持与反馈
-- 特别感谢 [UI-Library] 项目提供的灵感与参考
+如果您发现了 Bug 或有功能建议，请通过 [Issues](https://github.com/XIEHUANGMOU/UI-Library/issues) 提交反馈。  
+欢迎通过 [Pull Request](https://github.com/XIEHUANGMOU/UI-Library/pulls) 贡献代码！
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by XIEHUANGMOU</sub>
+  <sub>Copyright © 2023 XIEHUANGMOU. All rights reserved.</sub>
 </div>
 ```
-
-> **设计要点**：如果项目建立在他人工作之上，应在此表示感谢并提供来源链接。
-
-
-## 三、Markdown 美化与增强技巧
-
-### 3.1 使用徽标（Badges）
-
-在 README 顶部添加状态徽标，能显著提升项目的专业感：
-
-```markdown
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Lua](https://img.shields.io/badge/Lua-5.1-blueviolet)
-![Roblox](https://img.shields.io/badge/Roblox-支持-black)
-![License](https://img.shields.io/badge/license-MIT-green)
-![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
-```
-
-### 3.2 使用 Emoji 增强可读性
-
-在标题和描述中适当使用 Emoji，可以让文档更生动：
-
-| 用途 | Emoji |
-|------|-------|
-| 快速开始 | 🚀 |
-| 安装 | 📦 |
-| API 文档 | 🔧 |
-| 示例 | 💡 |
-| 贡献 | 🤝 |
-| 许可证 | 📄 |
-| 致谢 | 🙏 |
-| 通知 | 🔔 |
-| 设置 | ⚙️ |
-
-### 3.3 使用表格呈现参数
-
-对于 API 参数文档，使用表格能让信息一目了然：
-
-```markdown
-| 参数 | 类型 | 必填 | 默认值 | 描述 |
-|------|------|------|--------|------|
-| `Title` | `string` | ✅ | — | 窗口标题 |
-| `Subtitle` | `string` | ❌ | `""` | 副标题文字 |
-```
-
-### 3.4 代码块语法高亮
-
-为代码块指定语言以启用语法高亮：
-
-````markdown
-```lua
-local Window = CF_UI:MakeWindow({...})
-```
-````
-
-### 3.5 使用引用块突出提示
-
-```markdown
-> 💡 **提示**：将 `rbxassetid://0000000` 替换为您自己的资源 ID。
-
-> ⚠️ **注意**：快捷键功能需要用户权限允许。
-
-> 🚨 **警告**：请勿在生产环境中使用未经测试的功能。
-```
-
-### 3.6 使用分隔线组织内容
-
-```markdown
----
-
-## 下一章节
-```
-
-### 3.7 添加项目截图/示意图
-
-在“完整示例”或“快速开始”部分添加界面截图，帮助用户直观理解：
-
-```markdown
-![主界面预览](./screenshots/main.png)
-```
-
-图片建议使用相对路径存放在 `./screenshots/` 目录下。
