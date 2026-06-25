@@ -1,7 +1,7 @@
 <div align="center">
   
-# 🌌 CF_UI Library
-### 一个现代化、高可定制性的 Roblox UI 框架
+# CF_UI Library
+### 一个现代化、高可定制性的 Roblox UI
 
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Version](https://img.shields.io/badge/Version-1.0.0-green?style=for-the-badge)
