@@ -345,6 +345,6 @@ end)
 ---
 
 <div align="center">
-  <sub>Copyright © 2023 XIEHUANGMOU. All rights reserved.</sub>
+  <sub>Copyright © 2026 XIEHUANGMOU. All rights reserved.</sub>
 </div>
 ```
