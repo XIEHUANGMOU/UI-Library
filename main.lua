@@ -304,32 +304,35 @@ local Library = (function()
 		local WindowDraggable = true
 		local function DragWindow(bar)
 			local dragging = false
+			local dragStart = nil
 			local startPos = nil
-			local startMouse = nil
-			local function Update(mousePos)
-				local delta = mousePos - startMouse
+			local function Update(input)
+				local delta = input.Position - dragStart
 				Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 			end
 			local function IsPress(input)
 				return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 			end
-			local function StopDrag(input)
-				if IsPress(input) then
-					dragging = false
-				end
-			end
 			bar.InputBegan:Connect(function(input)
 				if WindowDraggable and IsPress(input) then
 					dragging = true
+					dragStart = input.Position
 					startPos = Main.Position
-					startMouse = UserInputService:GetMouseLocation()
+					input.Changed:Connect(function()
+						if input.UserInputState == Enum.UserInputState.End then
+							dragging = false
+						end
+					end)
 				end
 			end)
-			bar.InputEnded:Connect(StopDrag)
-			UserInputService.InputEnded:Connect(StopDrag)
-			RunService.RenderStepped:Connect(function()
-				if dragging and WindowDraggable then
-					Update(UserInputService:GetMouseLocation())
+			UserInputService.InputChanged:Connect(function(input)
+				if dragging and WindowDraggable and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+					Update(input)
+				end
+			end)
+			UserInputService.InputEnded:Connect(function(input)
+				if IsPress(input) then
+					dragging = false
 				end
 			end)
 		end
@@ -1725,20 +1728,27 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			end
 			return Tab
 		end
-		local function MinimizeWindow()
-			Minimized = not Minimized
-			if Minimized then
-				MinimizeIcon.Image = Library:GetIcon("maximize")
-				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(size.X.Scale, size.X.Offset, 0, 38) }):Play()
-				TabsContainer.Visible = false
-				Body.Visible = false
-			else
-				MinimizeIcon.Image = Library:GetIcon("minus")
-				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size }):Play()
-				task.wait(0.15)
-				TabsContainer.Visible = true
-				Body.Visible = true
+		local function RestoreWindow()
+			if not Minimized then
+				return
 			end
+			Minimized = false
+			MinimizeIcon.Image = Library:GetIcon("minus")
+			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size }):Play()
+			task.wait(0.15)
+			TabsContainer.Visible = true
+			Body.Visible = true
+		end
+		local function MinimizeWindow()
+			if Minimized then
+				RestoreWindow()
+				return
+			end
+			Minimized = true
+			MinimizeIcon.Image = Library:GetIcon("maximize")
+			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(size.X.Scale, size.X.Offset, 0, 38) }):Play()
+			TabsContainer.Visible = false
+			Body.Visible = false
 		end
 		MinimizeButton.MouseButton1Click:Connect(MinimizeWindow)
 		local function CloseWindow()
@@ -1782,6 +1792,10 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		local function ShowConfirmUI()
 			if ConfirmShown then
 				return
+			end
+			if Minimized then
+				RestoreWindow()
+				task.wait(0.3)
 			end
 			ConfirmShown = true
 			ConfirmSavedDrag = WindowDraggable
