@@ -1792,39 +1792,58 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				Parent = ControlBar,
 			})
 			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Btn })
+			local IconImg = New("ImageLabel", {
+				Name = "IconImg",
+				Size = UDim2.new(0, 16, 0, 16),
+				Position = UDim2.new(0, 10, 0.5, -8),
+				BackgroundTransparency = 1,
+				ImageColor3 = Color3.fromRGB(150, 160, 180),
+				ScaleType = Enum.ScaleType.Fit,
+				Parent = Btn,
+			})
 			local Lbl = New("TextLabel", {
 				Name = "Icon",
-				Size = UDim2.new(1, 0, 1, 0),
+				Size = UDim2.new(1, -34, 1, 0),
+				Position = UDim2.new(0, 34, 0, 0),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamMedium,
 				Text = text,
 				TextSize = 13,
 				TextColor3 = Color3.fromRGB(230, 230, 236),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
 				Parent = Btn,
 			})
-			return Btn, Lbl
+			return Btn, Lbl, IconImg
 		end
-		local VisButton, VisIcon = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0))
-		local FixButton, FixIcon = MakeControlButton("固定", UDim2.new(0, 0, 0, 40))
-		function Window:SetDraggable(v)
-			WindowDraggable = v and true or false
-			if FixIcon then
-				FixIcon.Text = WindowDraggable and "固定" or "解锁"
-				FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
-			end
-		end
+		local VisButton, VisIcon, VisIconImg = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0))
+		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 0, 0, 40))
 		local function UpdateVisButton()
 			VisIcon.Text = ScreenGui.Enabled and "隐藏" or "显示"
 			VisButton.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(70, 70, 80)
+			if VisIconImg then
+				VisIconImg.Image = Library:GetIcon(ScreenGui.Enabled and "eye-off" or "eye")
+			end
+		end
+		local function UpdateFixButton()
+			FixIcon.Text = WindowDraggable and "固定" or "解锁"
+			FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
+			if FixIconImg then
+				FixIconImg.Image = Library:GetIcon(WindowDraggable and "lock-open" or "lock")
+			end
+		end
+		UpdateVisButton()
+		UpdateFixButton()
+		function Window:SetDraggable(v)
+			WindowDraggable = v and true or false
+			UpdateFixButton()
 		end
 		VisButton.MouseButton1Click:Connect(function()
 			ScreenGui.Enabled = not ScreenGui.Enabled
 			UpdateVisButton()
 		end)
 		FixButton.MouseButton1Click:Connect(function()
-			WindowDraggable = not WindowDraggable
-			FixIcon.Text = WindowDraggable and "固定" or "解锁"
-			FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
+			Window:SetDraggable(not WindowDraggable)
 		end)
 		ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(UpdateVisButton)
 		ScreenGui.Destroying:Connect(function()
