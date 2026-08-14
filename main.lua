@@ -78,7 +78,7 @@ local Library = (function()
 		local title = options.Title or "XHM Ultra"
 		local size = options.Size or UDim2.new(0, 680, 0, 460)
 		local ScreenGui = New("ScreenGui", {
-			DisplayOrder = 1,
+			DisplayOrder = 999999999,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -109,6 +109,7 @@ local Library = (function()
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
 			Active = true,
+			ZIndex = 1,
 			Parent = ScreenGui,
 		})
 		local TopBar = New("Frame", {
@@ -116,6 +117,7 @@ local Library = (function()
 			Size = UDim2.new(1, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
 			BorderSizePixel = 0,
+			ZIndex = 2,
 			Parent = Main,
 		})
 		local Logo = New("ImageLabel", {
@@ -217,6 +219,7 @@ local Library = (function()
 			Position = UDim2.new(0, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(24, 24, 30),
 			BorderSizePixel = 0,
+			ZIndex = 1,
 			Parent = Main,
 		})
 		local Body = New("Frame", {
@@ -225,6 +228,7 @@ local Library = (function()
 			Position = UDim2.new(0, 148, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(18, 18, 22),
 			BorderSizePixel = 0,
+			ZIndex = 1,
 			Parent = Main,
 		})
 		local TopDivider = New("Frame", {
@@ -233,6 +237,7 @@ local Library = (function()
 			Position = UDim2.new(0, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(44, 44, 54),
 			BorderSizePixel = 0,
+			ZIndex = 2,
 			Parent = Main,
 		})
 		local SideDivider = New("Frame", {
@@ -241,6 +246,7 @@ local Library = (function()
 			Position = UDim2.new(0, 148, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(44, 44, 54),
 			BorderSizePixel = 0,
+			ZIndex = 2,
 			Parent = Main,
 		})
 		local TabButtons = {}
@@ -1760,7 +1766,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		local ControlGui = New("ScreenGui", {
 			Name = "XHMControlGui",
-			DisplayOrder = 2,
+			DisplayOrder = 1000000000,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -1768,22 +1774,22 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		})
 		local ControlBar = New("Frame", {
 			Name = "Controls",
-			Size = UDim2.new(0, 96, 0, 40),
-			Position = UDim2.new(1, -108, 1, -52),
+			Size = UDim2.new(0, 72, 0, 72),
+			Position = UDim2.new(1, -84, 1, -80),
 			BackgroundTransparency = 1,
 			Parent = ControlGui,
 		})
 		local function MakeControlButton(text, pos)
 			local Btn = New("TextButton", {
 				Name = text,
-				Size = UDim2.new(0, 40, 0, 40),
+				Size = UDim2.new(0, 72, 0, 32),
 				Position = pos,
 				BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 				AutoButtonColor = false,
 				Text = "",
 				Parent = ControlGui,
 			})
-			New("UICorner", { CornerRadius = UDim.new(0, 10), Parent = Btn })
+			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Btn })
 			local Lbl = New("TextLabel", {
 				Name = "Icon",
 				Size = UDim2.new(1, 0, 1, 0),
@@ -1797,7 +1803,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			return Btn, Lbl
 		end
 		local VisButton, VisIcon = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0))
-		local FixButton, FixIcon = MakeControlButton("固定", UDim2.new(0, 56, 0, 0))
+		local FixButton, FixIcon = MakeControlButton("固定", UDim2.new(0, 0, 0, 40))
 		function Window:SetDraggable(v)
 			WindowDraggable = v and true or false
 			if FixIcon then
@@ -1832,7 +1838,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 	end
 	function Library:Notification(text, duration)
 		local NotifyGui = New("ScreenGui", {
-			DisplayOrder = 10,
+			DisplayOrder = 1000000001,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
