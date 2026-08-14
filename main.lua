@@ -1775,12 +1775,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		local ControlBar = New("Frame", {
 			Name = "Controls",
 			Size = UDim2.new(0, 72, 0, 72),
-			Position = UDim2.new(1, -84, 1, -76),
+			Position = UDim2.new(0.5, -36, 0, 16),
 			BackgroundTransparency = 1,
 			ZIndex = 999999,
 			Parent = ControlGui,
 		})
-		local function MakeControlButton(text, pos)
+		local function MakeControlButton(text, pos, iconName)
 			local Btn = New("TextButton", {
 				Name = text,
 				Size = UDim2.new(0, 72, 0, 32),
@@ -1797,6 +1797,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				Size = UDim2.new(0, 16, 0, 16),
 				Position = UDim2.new(0, 10, 0.5, -8),
 				BackgroundTransparency = 1,
+				Image = iconName and Library:GetIcon(iconName),
 				ImageColor3 = Color3.fromRGB(150, 160, 180),
 				ScaleType = Enum.ScaleType.Fit,
 				Parent = Btn,
@@ -1816,21 +1817,32 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			})
 			return Btn, Lbl, IconImg
 		end
-		local VisButton, VisIcon, VisIconImg = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0))
-		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 0, 0, 40))
+		local VisButton, VisIcon, VisIconImg = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0), "eye-off")
+		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 0, 0, 40), "lock-open")
+		local function ApplyIcon(iconImg, name, tries)
+			if not iconImg then
+				return
+			end
+			local id = Library:GetIcon(name)
+			if id then
+				iconImg.Image = id
+			elseif tries and tries > 0 then
+				task.delay(0.2, function()
+					if iconImg.Parent then
+						ApplyIcon(iconImg, name, tries - 1)
+					end
+				end)
+			end
+		end
 		local function UpdateVisButton()
 			VisIcon.Text = ScreenGui.Enabled and "隐藏" or "显示"
 			VisButton.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(70, 70, 80)
-			if VisIconImg then
-				VisIconImg.Image = Library:GetIcon(ScreenGui.Enabled and "eye-off" or "eye")
-			end
+			ApplyIcon(VisIconImg, ScreenGui.Enabled and "eye-off" or "eye", 10)
 		end
 		local function UpdateFixButton()
 			FixIcon.Text = WindowDraggable and "固定" or "解锁"
 			FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
-			if FixIconImg then
-				FixIconImg.Image = Library:GetIcon(WindowDraggable and "lock-open" or "lock")
-			end
+			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
 		end
 		UpdateVisButton()
 		UpdateFixButton()
