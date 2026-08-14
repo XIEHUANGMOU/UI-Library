@@ -1844,7 +1844,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			FixButton.BackgroundColor3 = Color3.fromRGB(36, 36, 44)
 			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
 			if FixIconImg then
-				FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(90, 160, 255) or Color3.fromRGB(150, 160, 180)
+				FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(90, 160, 255)
 			end
 		end
 		UpdateVisButton()
