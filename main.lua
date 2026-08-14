@@ -1774,8 +1774,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		})
 		local ControlBar = New("Frame", {
 			Name = "Controls",
-			Size = UDim2.new(0, 72, 0, 72),
-			Position = UDim2.new(0.5, -36, 0, 16),
+			Size = UDim2.new(0, 152, 0, 32),
+			Position = UDim2.new(0.5, -76, 0, 16),
 			BackgroundTransparency = 1,
 			ZIndex = 999999,
 			Parent = ControlGui,
@@ -1818,7 +1818,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			return Btn, Lbl, IconImg
 		end
 		local VisButton, VisIcon, VisIconImg = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0), "eye-off")
-		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 0, 0, 40), "lock-open")
+		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 80, 0, 0), "lock-open")
 		local function ApplyIcon(iconImg, name, tries)
 			if not iconImg then
 				return
@@ -1841,8 +1841,11 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		local function UpdateFixButton()
 			FixIcon.Text = WindowDraggable and "固定" or "解锁"
-			FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
+			FixButton.BackgroundColor3 = Color3.fromRGB(36, 36, 44)
 			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
+			if FixIconImg then
+				FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(90, 160, 255) or Color3.fromRGB(150, 160, 180)
+			end
 		end
 		UpdateVisButton()
 		UpdateFixButton()
