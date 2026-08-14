@@ -1753,24 +1753,27 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		local ConfirmShown = false
 		local ConfirmOverlay = nil
 		local ConfirmPanel = nil
+		local ConfirmSavedDrag = true
+		local ConfirmWidth = 380
+		local ConfirmHeight = 260
 		local function CloseConfirmUI()
 			if not ConfirmOverlay or not ConfirmOverlay.Parent then
 				return
 			end
 			ConfirmShown = false
+			WindowDraggable = ConfirmSavedDrag
 			local overlay = ConfirmOverlay
 			local panel = ConfirmPanel
 			ConfirmOverlay = nil
 			ConfirmPanel = nil
-			TweenService:Create(overlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(overlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
 			if panel then
-				TweenService:Create(panel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
-				local ps = panel:FindFirstChildOfClass("UIScale")
-				if ps then
-					TweenService:Create(ps, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.92 }):Play()
-				end
+				TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+					Size = UDim2.new(0, 0, 0, 0),
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+				}):Play()
 			end
-			task.delay(0.25, function()
+			task.delay(0.3, function()
 				if overlay.Parent then
 					overlay:Destroy()
 				end
@@ -1781,6 +1784,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				return
 			end
 			ConfirmShown = true
+			ConfirmSavedDrag = WindowDraggable
+			WindowDraggable = false
 			ConfirmOverlay = New("Frame", {
 				Name = "ConfirmOverlay",
 				Size = UDim2.new(1, 0, 1, 0),
@@ -1788,49 +1793,59 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				BackgroundTransparency = 1,
 				BorderSizePixel = 0,
 				ZIndex = 2000000,
-				Parent = ScreenGui,
+				Parent = Main,
 			})
 			ConfirmPanel = New("Frame", {
 				Name = "ConfirmPanel",
-				Size = UDim2.new(0, 380, 0, 190),
-				Position = UDim2.new(0.5, -190, 0.5, -95),
+				Size = UDim2.new(0, ConfirmWidth, 0, ConfirmHeight),
+				Position = UDim2.new(0.5, -ConfirmWidth / 2, 0.5, -ConfirmHeight / 2),
 				BackgroundColor3 = Color3.fromRGB(26, 26, 31),
-				BackgroundTransparency = 1,
+				BackgroundTransparency = 0,
 				BorderSizePixel = 0,
+				ClipsDescendants = true,
 				ZIndex = 2000001,
 				Parent = ConfirmOverlay,
 			})
 			New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 1, Parent = ConfirmPanel })
-			local PanelScale = New("UIScale", { Scale = 0.92, Parent = ConfirmPanel })
 			local WarnIcon = New("ImageLabel", {
 				Name = "WarnIcon",
-				Size = UDim2.new(0, 24, 0, 24),
-				Position = UDim2.new(0, 16, 0, 16),
+				Size = UDim2.new(0, 44, 0, 44),
+				Position = UDim2.new(0.5, -22, 0, 22),
 				BackgroundTransparency = 1,
 				Image = Library:GetIcon("triangle-alert"),
 				ImageColor3 = Color3.fromRGB(255, 180, 60),
 				ScaleType = Enum.ScaleType.Fit,
+				ZIndex = 2000002,
 				Parent = ConfirmPanel,
 			})
 			Library:SetIcon(WarnIcon, "triangle-alert", 10)
+			New("Frame", {
+				Name = "Divider",
+				Size = UDim2.new(1, -48, 0, 1),
+				Position = UDim2.new(0, 24, 0, 82),
+				BackgroundColor3 = Color3.fromRGB(70, 70, 80),
+				BorderSizePixel = 0,
+				ZIndex = 2000002,
+				Parent = ConfirmPanel,
+			})
 			local ConfirmText = New("TextLabel", {
 				Name = "Text",
-				Size = UDim2.new(1, -80, 0, 60),
-				Position = UDim2.new(0, 56, 0, 14),
+				Size = UDim2.new(1, -48, 0, 116),
+				Position = UDim2.new(0, 24, 0, 94),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamMedium,
 				Text = "你确定关闭这个脚本吗？关闭后无法打开这个脚本。",
-				TextSize = 14,
-				TextColor3 = Color3.fromRGB(225, 225, 232),
+				TextSize = 28,
+				TextColor3 = Color3.fromRGB(235, 235, 240),
 				TextWrapped = true,
-				TextTransparency = 1,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextYAlignment = Enum.TextYAlignment.Top,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				ZIndex = 2000002,
 				Parent = ConfirmPanel,
 			})
 			local function MakeConfirmButton(text, pos, iconName, bg)
 				local Btn = New("TextButton", {
-					Size = UDim2.new(0, 150, 0, 34),
+					Size = UDim2.new(0, 150, 0, 40),
 					Position = pos,
 					BackgroundColor3 = bg,
 					AutoButtonColor = false,
@@ -1855,24 +1870,27 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamSemibold,
 					Text = text,
-					TextSize = 14,
+					TextSize = 16,
 					TextColor3 = Color3.fromRGB(235, 235, 240),
 					TextXAlignment = Enum.TextXAlignment.Left,
 					Parent = Btn,
 				})
 				return Btn
 			end
-			local CancelBtn = MakeConfirmButton("取消", UDim2.new(0, 30, 1, -48), "x", Color3.fromRGB(52, 52, 60))
-			local OkBtn = MakeConfirmButton("确认", UDim2.new(0, 200, 1, -48), "check", Color3.fromRGB(190, 60, 60))
+			local CancelBtn = MakeConfirmButton("取消", UDim2.new(0, 30, 1, -54), "x", Color3.fromRGB(52, 52, 60))
+			local OkBtn = MakeConfirmButton("确认", UDim2.new(0, 200, 1, -54), "check", Color3.fromRGB(190, 60, 60))
 			CancelBtn.MouseButton1Click:Connect(CloseConfirmUI)
 			OkBtn.MouseButton1Click:Connect(function()
 				CloseConfirmUI()
 				CloseWindow()
 			end)
+			ConfirmPanel.Position = UDim2.new(0.5, 0, 0.5, 0)
+			ConfirmPanel.Size = UDim2.new(0, 0, 0, 0)
 			TweenService:Create(ConfirmOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.6 }):Play()
-			TweenService:Create(ConfirmPanel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
-			TweenService:Create(PanelScale, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
-			TweenService:Create(ConfirmText, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+			TweenService:Create(ConfirmPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Size = UDim2.new(0, ConfirmWidth, 0, ConfirmHeight),
+				Position = UDim2.new(0.5, -ConfirmWidth / 2, 0.5, -ConfirmHeight / 2),
+			}):Play()
 		end
 		CloseButton.MouseButton1Click:Connect(ShowConfirmUI)
 		MinimizeButton.MouseEnter:Connect(function()
