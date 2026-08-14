@@ -1745,7 +1745,10 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		CloseButton.MouseLeave:Connect(function()
 			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { TextColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
-		local Window = {}
+		local Window = {
+			Title = title,
+			Icon = Logo.Image,
+		}
 		function Window:AddTab(options)
 			return CreateTab(options.name, options.icon)
 		end
@@ -1756,10 +1759,25 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			CloseWindow()
 		end
 		function Window:SetTitle(t)
+			Window.Title = t
 			TitleLabel.Text = t
 		end
 		function Window:GetScreenGui()
 			return ScreenGui
+		end
+		function Window:GetTitle()
+			return Window.Title
+		end
+		function Window:GetIcon()
+			return Window.Icon
+		end
+		function Window:Notify(n)
+			if type(n) == "string" then
+				n = { Text = n }
+			end
+			n.Title = n.Title or Window.Title
+			n.Icon = n.Icon or Window.Icon
+			return Library:Notification(n)
 		end
 		function Window:ToggleVisibility(v)
 			ScreenGui.Enabled = v
@@ -1914,11 +1932,13 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		NotifyTweens[t] = tw
 		tw:Play()
 	end
-	local function Relayout()
-		for i, t in ipairs(NotifyActive) do
-			MoveToast(t, UDim2.new(0, 0, 1, -52 * (i - 1)), 0.25)
+local function Relayout()
+			local y = 0
+			for i, t in ipairs(NotifyActive) do
+				MoveToast(t, UDim2.new(0, 0, 1, -y), 0.25)
+				y = y + t.Size.Y.Offset + 8
+			end
 		end
-	end
 	local function ProcessQueue()
 		while #NotifyActive < NotifyMax and #NotifyQueue > 0 do
 			ShowNotification(table.remove(NotifyQueue, 1))
@@ -1950,21 +1970,26 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end)
 	end
 	function ShowNotification(n)
-		local toast = New("Frame", {
+		local hasTitle = type(n.Title) == "string" and n.Title ~= ""
+		local height = hasTitle and 56 or 44
+		local toast = New("TextButton", {
 			Name = "Toast",
-			Size = UDim2.new(0, 320, 0, 44),
+			Size = UDim2.new(0, 320, 0, height),
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.new(1, 48, 1, 48),
 			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
 			ZIndex = 999999,
 			Parent = NotifyStack,
 		})
 		New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = toast })
 		local textX = 12
 		if n.Icon then
-			local ic = Library:GetIcon(n.Icon)
+			local isName = string.match(n.Icon, "^[%w%-]+$")
+			local ic = isName and Library:GetIcon(n.Icon) or n.Icon
 			if ic then
 				textX = 36
 				New("ImageLabel", {
@@ -1973,27 +1998,63 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					Position = UDim2.new(0, 12, 0.5, -8),
 					BackgroundTransparency = 1,
 					Image = ic,
-					ImageColor3 = n.IconColor or Color3.fromRGB(150, 160, 180),
+					ImageColor3 = n.IconColor or (isName and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(255, 255, 255)),
 					ScaleType = Enum.ScaleType.Fit,
 					Parent = toast,
 				})
 			end
 		end
-		local txt = New("TextLabel", {
-			Name = "Text",
-			Size = UDim2.new(1, -(textX + 12), 1, 0),
-			Position = UDim2.new(0, textX, 0, 0),
-			BackgroundTransparency = 1,
-			Font = Enum.Font.GothamMedium,
-			Text = n.Text,
-			TextSize = 15,
-			TextColor3 = Color3.fromRGB(235, 235, 240),
-			TextTransparency = 1,
-			TextWrapped = true,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Parent = toast,
-		})
+		local txt
+		if hasTitle then
+			local tt = New("TextLabel", {
+				Name = "Title",
+				Size = UDim2.new(1, -(textX + 12), 0, 16),
+				Position = UDim2.new(0, textX, 0, 8),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamSemibold,
+				Text = n.Title,
+				TextSize = 13,
+				TextColor3 = Color3.fromRGB(235, 235, 240),
+				TextTransparency = 1,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = toast,
+			})
+			txt = New("TextLabel", {
+				Name = "Text",
+				Size = UDim2.new(1, -(textX + 12), 0, 22),
+				Position = UDim2.new(0, textX, 0, 26),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = n.Text,
+				TextSize = 13,
+				TextColor3 = Color3.fromRGB(200, 200, 208),
+				TextTransparency = 1,
+				TextWrapped = true,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = toast,
+			})
+			TweenService:Create(tt, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+		else
+			txt = New("TextLabel", {
+				Name = "Text",
+				Size = UDim2.new(1, -(textX + 12), 1, 0),
+				Position = UDim2.new(0, textX, 0, 0),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = n.Text,
+				TextSize = 15,
+				TextColor3 = Color3.fromRGB(235, 235, 240),
+				TextTransparency = 1,
+				TextWrapped = true,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = toast,
+			})
+		end
 		table.insert(NotifyActive, toast)
 		Relayout()
 		TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
@@ -2013,13 +2074,17 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		task.spawn(function()
 			local remaining = n.Duration
+			local guard = 0
 			while remaining > 0 do
 				task.wait(0.1)
 				if not toast.Parent then
 					return
 				end
+				guard = guard + 1
 				if not pause then
 					remaining = remaining - 0.1
+				elseif guard > (n.Duration * 10 + 50) then
+					break
 				end
 			end
 			if toast.Parent then
