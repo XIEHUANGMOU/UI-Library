@@ -109,7 +109,7 @@ local Library = (function()
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
 			Active = true,
-			ZIndex = 1,
+			ZIndex = 999999,
 			Parent = ScreenGui,
 		})
 		local TopBar = New("Frame", {
@@ -117,7 +117,7 @@ local Library = (function()
 			Size = UDim2.new(1, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
 			BorderSizePixel = 0,
-			ZIndex = 2,
+			ZIndex = 1000000,
 			Parent = Main,
 		})
 		local Logo = New("ImageLabel", {
@@ -219,7 +219,7 @@ local Library = (function()
 			Position = UDim2.new(0, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(24, 24, 30),
 			BorderSizePixel = 0,
-			ZIndex = 1,
+			ZIndex = 999999,
 			Parent = Main,
 		})
 		local Body = New("Frame", {
@@ -228,7 +228,7 @@ local Library = (function()
 			Position = UDim2.new(0, 148, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(18, 18, 22),
 			BorderSizePixel = 0,
-			ZIndex = 1,
+			ZIndex = 999999,
 			Parent = Main,
 		})
 		local TopDivider = New("Frame", {
@@ -237,7 +237,7 @@ local Library = (function()
 			Position = UDim2.new(0, 0, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(44, 44, 54),
 			BorderSizePixel = 0,
-			ZIndex = 2,
+			ZIndex = 1000000,
 			Parent = Main,
 		})
 		local SideDivider = New("Frame", {
@@ -246,7 +246,7 @@ local Library = (function()
 			Position = UDim2.new(0, 148, 0, 38),
 			BackgroundColor3 = Color3.fromRGB(44, 44, 54),
 			BorderSizePixel = 0,
-			ZIndex = 2,
+			ZIndex = 1000000,
 			Parent = Main,
 		})
 		local TabButtons = {}
@@ -921,7 +921,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						BorderSizePixel = 0,
 						ClipsDescendants = true,
 						Visible = false,
-						ZIndex = 5,
+						ZIndex = 1000001,
 						Parent = Dropdown,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = DropList })
@@ -1507,7 +1507,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					BorderSizePixel = 0,
 					ClipsDescendants = true,
 					Visible = false,
-					ZIndex = 5,
+					ZIndex = 1000001,
 					Parent = Dropdown,
 				})
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = DropList })
@@ -1775,8 +1775,9 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		local ControlBar = New("Frame", {
 			Name = "Controls",
 			Size = UDim2.new(0, 72, 0, 72),
-			Position = UDim2.new(1, -84, 1, -80),
+			Position = UDim2.new(1, -84, 1, -76),
 			BackgroundTransparency = 1,
+			ZIndex = 999999,
 			Parent = ControlGui,
 		})
 		local function MakeControlButton(text, pos)
@@ -1787,7 +1788,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 				AutoButtonColor = false,
 				Text = "",
-				Parent = ControlGui,
+				ZIndex = 999999,
+				Parent = ControlBar,
 			})
 			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Btn })
 			local Lbl = New("TextLabel", {
