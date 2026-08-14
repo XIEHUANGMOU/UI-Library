@@ -123,16 +123,25 @@ local Library = (function()
 			Size = UDim2.new(0, 20, 0, 20),
 			Position = UDim2.new(0, 12, 0, 9),
 			BackgroundTransparency = 1,
-			Image = options.Icon or "rbxassetid://12654974860",
+			Image = "rbxassetid://12654974860",
 			Parent = TopBar,
 		})
-		if type(options.Icon) == "string" and string.find(options.Icon, "^https?://") then
-			pcall(function()
-				local data = game:HttpGet(options.Icon)
-				if writefile then
-					writefile("XHMUltraIcon.png", data)
-				end
-			end)
+		if type(options.Icon) == "string" then
+			if string.match(options.Icon, "^rbxassetid://") or string.match(options.Icon, "^rbxasset://") or string.match(options.Icon, "^rbxthumb://") or string.match(options.Icon, "roblox%.com") then
+				Logo.Image = options.Icon
+			elseif string.match(options.Icon, "^https?://") then
+				pcall(function()
+					local data = game:HttpGet(options.Icon)
+					if writefile then
+						local ext = string.match(options.Icon, "%.(png|jpg|jpeg|webp|gif)$")
+						local filename = "XHMUltraIcon." .. (ext or "png")
+						writefile(filename, data)
+						if getcustomasset then
+							Logo.Image = getcustomasset(filename)
+						end
+					end
+				end)
+			end
 		end
 		local TitleLabel = New("TextLabel", {
 			Name = "Title",
