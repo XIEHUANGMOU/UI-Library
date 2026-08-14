@@ -1872,66 +1872,186 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		}):Play()
 		return Window
 	end
-	function Library:Notification(text, duration)
-		local NotifyGui = New("ScreenGui", {
+	local NotifyGui = nil
+	local NotifyStack = nil
+	local NotifyActive = {}
+	local NotifyQueue = {}
+	local NotifyMax = 3
+	local NotifyTweens = setmetatable({}, { __mode = "k" })
+	local NotifyDismissed = setmetatable({}, { __mode = "k" })
+	local ShowNotification
+	local function EnsureNotifyUI()
+		if NotifyGui and NotifyGui.Parent then
+			return
+		end
+		NotifyGui = New("ScreenGui", {
 			DisplayOrder = 1000000001,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = LocalPlayer:WaitForChild("PlayerGui"),
 		})
-		local Holder = New("Frame", {
-			Size = UDim2.new(0, 320, 0, 46),
-			Position = UDim2.new(1, -332, 1, -16),
-			AnchorPoint = Vector2.new(0, 1),
-			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
-			BorderSizePixel = 0,
+		NotifyStack = New("Frame", {
+			Name = "NotifyStack",
+			Size = UDim2.new(0, 320, 0, 44),
+			Position = UDim2.new(1, -16, 1, -16),
+			AnchorPoint = Vector2.new(1, 1),
+			BackgroundTransparency = 1,
+			ZIndex = 999999,
 			Parent = NotifyGui,
 		})
-		New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Holder })
-		New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = Holder })
-		local NotifyText = New("TextLabel", {
+		NotifyGui.Destroying:Connect(function()
+			NotifyGui = nil
+			NotifyStack = nil
+		end)
+	end
+	local function MoveToast(t, pos, dur, ease)
+		local old = NotifyTweens[t]
+		if old then
+			old:Cancel()
+		end
+		local tw = TweenService:Create(t, TweenInfo.new(dur, Enum.EasingStyle.Quad, ease or Enum.EasingDirection.Out), { Position = pos })
+		NotifyTweens[t] = tw
+		tw:Play()
+	end
+	local function Relayout()
+		for i, t in ipairs(NotifyActive) do
+			MoveToast(t, UDim2.new(0, 0, 1, -52 * (i - 1)), 0.25)
+		end
+	end
+	local function ProcessQueue()
+		while #NotifyActive < NotifyMax and #NotifyQueue > 0 do
+			ShowNotification(table.remove(NotifyQueue, 1))
+		end
+	end
+	local function DismissToast(t)
+		if NotifyDismissed[t] then
+			return
+		end
+		NotifyDismissed[t] = true
+		for i, v in ipairs(NotifyActive) do
+			if v == t then
+				table.remove(NotifyActive, i)
+				break
+			end
+		end
+		MoveToast(t, UDim2.new(1, 48, 1, 48), 0.2, Enum.EasingDirection.In)
+		TweenService:Create(t, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+		local txt = t:FindFirstChild("Text")
+		if txt then
+			TweenService:Create(txt, TweenInfo.new(0.2), { TextTransparency = 1 }):Play()
+		end
+		Relayout()
+		ProcessQueue()
+		task.delay(0.25, function()
+			if t.Parent then
+				t:Destroy()
+			end
+		end)
+	end
+	function ShowNotification(n)
+		local toast = New("Frame", {
+			Name = "Toast",
+			Size = UDim2.new(0, 320, 0, 44),
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.new(1, 48, 1, 48),
+			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ZIndex = 999999,
+			Parent = NotifyStack,
+		})
+		New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = toast })
+		local textX = 12
+		if n.Icon then
+			local ic = Library:GetIcon(n.Icon)
+			if ic then
+				textX = 36
+				New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(0, 12, 0.5, -8),
+					BackgroundTransparency = 1,
+					Image = ic,
+					ImageColor3 = n.IconColor or Color3.fromRGB(150, 160, 180),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = toast,
+				})
+			end
+		end
+		local txt = New("TextLabel", {
 			Name = "Text",
-			Size = UDim2.new(1, -24, 1, 0),
-			Position = UDim2.new(0, 12, 0, 0),
+			Size = UDim2.new(1, -(textX + 12), 1, 0),
+			Position = UDim2.new(0, textX, 0, 0),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
-			Text = text,
-			TextSize = 16,
+			Text = n.Text,
+			TextSize = 15,
 			TextColor3 = Color3.fromRGB(235, 235, 240),
+			TextTransparency = 1,
 			TextWrapped = true,
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Parent = Holder,
+			Parent = toast,
 		})
-		local NotifyBar = New("Frame", {
-			Name = "Bar",
-			Size = UDim2.new(1, 0, 0, 3),
-			Position = UDim2.new(0, 0, 1, -3),
-			BackgroundColor3 = Color3.fromRGB(90, 160, 255),
-			BorderSizePixel = 0,
-			Parent = Holder,
-		})
-		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = NotifyBar })
-		Holder.Position = UDim2.new(1, -332, 1, 30)
-		Holder.BackgroundTransparency = 1
-		NotifyText.TextTransparency = 1
-		TweenService:Create(Holder, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = UDim2.new(1, -332, 1, -16), BackgroundTransparency = 0 }):Play()
-		TweenService:Create(NotifyText, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
-		task.spawn(function()
-			task.wait((duration or 3))
-			TweenService:Create(NotifyBar, TweenInfo.new((duration or 3) - 1), { Size = UDim2.new(0, 0, 0, 3) }):Play()
+		table.insert(NotifyActive, toast)
+		Relayout()
+		TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
+		TweenService:Create(txt, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+		local pause = false
+		toast.MouseEnter:Connect(function()
+			pause = true
 		end)
-		task.spawn(function()
-			task.wait((duration or 3) + 0.5)
-			TweenService:Create(Holder, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = UDim2.new(1, -332, 1, 30), BackgroundTransparency = 1 }):Play()
-			TweenService:Create(NotifyText, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
-			task.wait(0.3)
-			NotifyGui:Destroy()
+		toast.MouseLeave:Connect(function()
+			pause = false
 		end)
-		return Holder
+		toast.MouseButton1Click:Connect(function()
+			DismissToast(toast)
+		end)
+		if n.Click then
+			toast.MouseButton1Click:Connect(n.Click)
+		end
+		task.spawn(function()
+			local remaining = n.Duration
+			while remaining > 0 do
+				task.wait(0.1)
+				if not toast.Parent then
+					return
+				end
+				if not pause then
+					remaining = remaining - 0.1
+				end
+			end
+			if toast.Parent then
+				DismissToast(toast)
+			end
+		end)
+		return toast
+	end
+	function Library:Notification(n)
+		if type(n) == "string" then
+			n = { Text = n }
+		end
+		n.Text = n.Text or ""
+		n.Duration = n.Duration or 3
+		EnsureNotifyUI()
+		if #NotifyActive >= NotifyMax then
+			table.insert(NotifyQueue, n)
+			return nil
+		end
+		return ShowNotification(n)
 	end
 	function Library:CreateNotify(text, duration)
-		return self:Notification(text, duration)
+		if type(text) == "table" then
+			return self:Notification(text)
+		end
+		return self:Notification({ Text = text, Duration = duration })
+	end
+	function Library:SetNotifyMax(n)
+		NotifyMax = n and n or 3
+		if #NotifyActive < NotifyMax then
+			ProcessQueue()
+		end
 	end
 	function Library:SetScale(s)
 		UIScale = s
