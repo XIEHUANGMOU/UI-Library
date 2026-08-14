@@ -74,6 +74,21 @@ local Library = (function()
 			end
 		end
 	end
+	function Library:SetIcon(img, name, tries)
+		if not img then
+			return
+		end
+		local id = Library:GetIcon(name)
+		if id then
+			img.Image = id
+		elseif tries and tries > 0 then
+			task.delay(0.2, function()
+				if img.Parent then
+					Library:SetIcon(img, name, tries - 1)
+				end
+			end)
+		end
+	end
 	function Library:CreateWindow(options)
 		local title = options.Title or "XHM Ultra"
 		local size = options.Size or UDim2.new(0, 680, 0, 460)
@@ -112,6 +127,7 @@ local Library = (function()
 			ZIndex = 999999,
 			Parent = ScreenGui,
 		})
+		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
 		local TopBar = New("Frame", {
 			Name = "TopBar",
 			Size = UDim2.new(1, 0, 0, 38),
@@ -178,22 +194,43 @@ local Library = (function()
 		local MinimizeButton = New("TextButton", {
 			Name = "Minimize",
 			Size = UDim2.new(0, 30, 0, 30),
+			Position = UDim2.new(1, -94, 0, 4),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Text = "",
+			Parent = TopBar,
+		})
+		local MinimizeIcon = New("ImageLabel", {
+			Name = "Icon",
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0.5, -8, 0.5, -8),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("minus"),
+			ImageColor3 = Color3.fromRGB(160, 160, 170),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = MinimizeButton,
+		})
+		Library:SetIcon(MinimizeIcon, "minus", 10)
+		local MaximizeButton = New("TextButton", {
+			Name = "Maximize",
+			Size = UDim2.new(0, 30, 0, 30),
 			Position = UDim2.new(1, -64, 0, 4),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
 			Text = "",
 			Parent = TopBar,
 		})
-		local MinimizeIcon = New("TextLabel", {
+		local MaximizeIcon = New("ImageLabel", {
 			Name = "Icon",
-			Size = UDim2.new(1, 0, 1, 0),
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0.5, -8, 0.5, -8),
 			BackgroundTransparency = 1,
-			Font = Enum.Font.GothamMedium,
-			Text = "-",
-			TextSize = 18,
-			TextColor3 = Color3.fromRGB(160, 160, 170),
-			Parent = MinimizeButton,
+			Image = Library:GetIcon("square"),
+			ImageColor3 = Color3.fromRGB(160, 160, 170),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = MaximizeButton,
 		})
+		Library:SetIcon(MaximizeIcon, "square", 10)
 		local CloseButton = New("TextButton", {
 			Name = "Close",
 			Size = UDim2.new(0, 30, 0, 30),
@@ -203,16 +240,17 @@ local Library = (function()
 			Text = "",
 			Parent = TopBar,
 		})
-		local CloseIcon = New("TextLabel", {
+		local CloseIcon = New("ImageLabel", {
 			Name = "Icon",
-			Size = UDim2.new(1, 0, 1, 0),
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0.5, -8, 0.5, -8),
 			BackgroundTransparency = 1,
-			Font = Enum.Font.GothamMedium,
-			Text = "X",
-			TextSize = 16,
-			TextColor3 = Color3.fromRGB(160, 160, 170),
+			Image = Library:GetIcon("x"),
+			ImageColor3 = Color3.fromRGB(160, 160, 170),
+			ScaleType = Enum.ScaleType.Fit,
 			Parent = CloseButton,
 		})
+		Library:SetIcon(CloseIcon, "x", 10)
 		local TabsContainer = New("Frame", {
 			Name = "Tabs",
 			Size = UDim2.new(0, 148, 1, -38),
@@ -1710,12 +1748,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		local function MinimizeWindow()
 			Minimized = not Minimized
 			if Minimized then
-				MinimizeIcon.Text = "+"
+				MinimizeIcon.Image = Library:GetIcon("maximize")
 				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(size.X.Scale, size.X.Offset, 0, 38) }):Play()
 				TabsContainer.Visible = false
 				Body.Visible = false
 			else
-				MinimizeIcon.Text = "-"
+				MinimizeIcon.Image = Library:GetIcon("minus")
 				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size }):Play()
 				task.wait(0.15)
 				TabsContainer.Visible = true
@@ -1723,6 +1761,19 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			end
 		end
 		MinimizeButton.MouseButton1Click:Connect(MinimizeWindow)
+		local MaxEnabled = false
+		local function MaximizeWindow()
+			MaxEnabled = not MaxEnabled
+			if MaxEnabled then
+				MaximizeIcon.Image = Library:GetIcon("minimize")
+				local view = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
+				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, view.X, 0, view.Y), Position = UDim2.new(0.5, 0, 0.5, 0) }):Play()
+			else
+				MaximizeIcon.Image = Library:GetIcon("square")
+				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size, Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2) }):Play()
+			end
+		end
+		MaximizeButton.MouseButton1Click:Connect(MaximizeWindow)
 		local function CloseWindow()
 			Opened = false
 			TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
@@ -1734,16 +1785,22 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		CloseButton.MouseButton1Click:Connect(CloseWindow)
 		MinimizeButton.MouseEnter:Connect(function()
-			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { TextColor3 = Color3.fromRGB(255, 255, 255) }):Play()
+			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 255, 255) }):Play()
 		end)
 		MinimizeButton.MouseLeave:Connect(function()
-			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { TextColor3 = Color3.fromRGB(160, 160, 170) }):Play()
+			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
+		end)
+		MaximizeButton.MouseEnter:Connect(function()
+			TweenService:Create(MaximizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 255, 255) }):Play()
+		end)
+		MaximizeButton.MouseLeave:Connect(function()
+			TweenService:Create(MaximizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
 		CloseButton.MouseEnter:Connect(function()
-			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { TextColor3 = Color3.fromRGB(255, 120, 120) }):Play()
+			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 120, 120) }):Play()
 		end)
 		CloseButton.MouseLeave:Connect(function()
-			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { TextColor3 = Color3.fromRGB(160, 160, 170) }):Play()
+			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
 		local Window = {
 			Title = title,
@@ -1754,6 +1811,9 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		function Window:Minimize()
 			MinimizeWindow()
+		end
+		function Window:Maximize()
+			MaximizeWindow()
 		end
 		function Window:Close()
 			CloseWindow()
@@ -1985,7 +2045,7 @@ local function Relayout()
 			ZIndex = 999999,
 			Parent = NotifyStack,
 		})
-		New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = toast })
+		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 1, Parent = toast })
 		local textX = 12
 		if n.Icon then
 			local isName = string.match(n.Icon, "^[%w%-]+$")
