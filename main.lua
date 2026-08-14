@@ -1758,13 +1758,21 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		function Window:ToggleVisibility(v)
 			ScreenGui.Enabled = v
 		end
-		function Window:SetDraggable(v)
-			WindowDraggable = v and true or false
-			if FixIcon then
-				FixIcon.Text = WindowDraggable and "固定" or "解锁"
-				FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
-			end
-		end
+		local ControlGui = New("ScreenGui", {
+			Name = "XHMControlGui",
+			DisplayOrder = 2,
+			ResetOnSpawn = false,
+			IgnoreGuiInset = true,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			Parent = ScreenGui.Parent,
+		})
+		local ControlBar = New("Frame", {
+			Name = "Controls",
+			Size = UDim2.new(0, 96, 0, 40),
+			Position = UDim2.new(1, -108, 1, -52),
+			BackgroundTransparency = 1,
+			Parent = ControlGui,
+		})
 		local function MakeControlButton(text, pos)
 			local Btn = New("TextButton", {
 				Name = text,
@@ -1788,23 +1796,15 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			})
 			return Btn, Lbl
 		end
-		local ControlGui = New("ScreenGui", {
-			Name = "XHMControlGui",
-			DisplayOrder = 2,
-			ResetOnSpawn = false,
-			IgnoreGuiInset = true,
-			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-			Parent = ScreenGui.Parent,
-		})
-		local ControlBar = New("Frame", {
-			Name = "Controls",
-			Size = UDim2.new(0, 96, 0, 40),
-			Position = UDim2.new(1, -108, 1, -52),
-			BackgroundTransparency = 1,
-			Parent = ControlGui,
-		})
 		local VisButton, VisIcon = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0))
 		local FixButton, FixIcon = MakeControlButton("固定", UDim2.new(0, 56, 0, 0))
+		function Window:SetDraggable(v)
+			WindowDraggable = v and true or false
+			if FixIcon then
+				FixIcon.Text = WindowDraggable and "固定" or "解锁"
+				FixButton.BackgroundColor3 = WindowDraggable and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(90, 160, 255)
+			end
+		end
 		local function UpdateVisButton()
 			VisIcon.Text = ScreenGui.Enabled and "隐藏" or "显示"
 			VisButton.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(70, 70, 80)
