@@ -194,7 +194,7 @@ local Library = (function()
 		local MinimizeButton = New("TextButton", {
 			Name = "Minimize",
 			Size = UDim2.new(0, 30, 0, 30),
-			Position = UDim2.new(1, -94, 0, 4),
+			Position = UDim2.new(1, -64, 0, 4),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
 			Text = "",
@@ -211,26 +211,6 @@ local Library = (function()
 			Parent = MinimizeButton,
 		})
 		Library:SetIcon(MinimizeIcon, "minus", 10)
-		local MaximizeButton = New("TextButton", {
-			Name = "Maximize",
-			Size = UDim2.new(0, 30, 0, 30),
-			Position = UDim2.new(1, -64, 0, 4),
-			BackgroundTransparency = 1,
-			AutoButtonColor = false,
-			Text = "",
-			Parent = TopBar,
-		})
-		local MaximizeIcon = New("ImageLabel", {
-			Name = "Icon",
-			Size = UDim2.new(0, 16, 0, 16),
-			Position = UDim2.new(0.5, -8, 0.5, -8),
-			BackgroundTransparency = 1,
-			Image = Library:GetIcon("square"),
-			ImageColor3 = Color3.fromRGB(160, 160, 170),
-			ScaleType = Enum.ScaleType.Fit,
-			Parent = MaximizeButton,
-		})
-		Library:SetIcon(MaximizeIcon, "square", 10)
 		local CloseButton = New("TextButton", {
 			Name = "Close",
 			Size = UDim2.new(0, 30, 0, 30),
@@ -1761,19 +1741,6 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			end
 		end
 		MinimizeButton.MouseButton1Click:Connect(MinimizeWindow)
-		local MaxEnabled = false
-		local function MaximizeWindow()
-			MaxEnabled = not MaxEnabled
-			if MaxEnabled then
-				MaximizeIcon.Image = Library:GetIcon("minimize")
-				local view = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
-				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, view.X, 0, view.Y), Position = UDim2.new(0.5, 0, 0.5, 0) }):Play()
-			else
-				MaximizeIcon.Image = Library:GetIcon("square")
-				TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size, Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2) }):Play()
-			end
-		end
-		MaximizeButton.MouseButton1Click:Connect(MaximizeWindow)
 		local function CloseWindow()
 			Opened = false
 			TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
@@ -1783,18 +1750,136 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			task.wait(0.3)
 			ScreenGui:Destroy()
 		end
-		CloseButton.MouseButton1Click:Connect(CloseWindow)
+		local ConfirmShown = false
+		local ConfirmOverlay = nil
+		local ConfirmPanel = nil
+		local function CloseConfirmUI()
+			if not ConfirmOverlay or not ConfirmOverlay.Parent then
+				return
+			end
+			ConfirmShown = false
+			local overlay = ConfirmOverlay
+			local panel = ConfirmPanel
+			ConfirmOverlay = nil
+			ConfirmPanel = nil
+			TweenService:Create(overlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+			if panel then
+				TweenService:Create(panel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+				local ps = panel:FindFirstChildOfClass("UIScale")
+				if ps then
+					TweenService:Create(ps, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.92 }):Play()
+				end
+			end
+			task.delay(0.25, function()
+				if overlay.Parent then
+					overlay:Destroy()
+				end
+			end)
+		end
+		local function ShowConfirmUI()
+			if ConfirmShown then
+				return
+			end
+			ConfirmShown = true
+			ConfirmOverlay = New("Frame", {
+				Name = "ConfirmOverlay",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				ZIndex = 2000000,
+				Parent = ScreenGui,
+			})
+			ConfirmPanel = New("Frame", {
+				Name = "ConfirmPanel",
+				Size = UDim2.new(0, 380, 0, 190),
+				Position = UDim2.new(0.5, -190, 0.5, -95),
+				BackgroundColor3 = Color3.fromRGB(26, 26, 31),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				ZIndex = 2000001,
+				Parent = ConfirmOverlay,
+			})
+			New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 1, Parent = ConfirmPanel })
+			local PanelScale = New("UIScale", { Scale = 0.92, Parent = ConfirmPanel })
+			local WarnIcon = New("ImageLabel", {
+				Name = "WarnIcon",
+				Size = UDim2.new(0, 24, 0, 24),
+				Position = UDim2.new(0, 16, 0, 16),
+				BackgroundTransparency = 1,
+				Image = Library:GetIcon("triangle-alert"),
+				ImageColor3 = Color3.fromRGB(255, 180, 60),
+				ScaleType = Enum.ScaleType.Fit,
+				Parent = ConfirmPanel,
+			})
+			Library:SetIcon(WarnIcon, "triangle-alert", 10)
+			local ConfirmText = New("TextLabel", {
+				Name = "Text",
+				Size = UDim2.new(1, -80, 0, 60),
+				Position = UDim2.new(0, 56, 0, 14),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = "你确定关闭这个脚本吗？关闭后无法打开这个脚本。",
+				TextSize = 14,
+				TextColor3 = Color3.fromRGB(225, 225, 232),
+				TextWrapped = true,
+				TextTransparency = 1,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = ConfirmPanel,
+			})
+			local function MakeConfirmButton(text, pos, iconName, bg)
+				local Btn = New("TextButton", {
+					Size = UDim2.new(0, 150, 0, 34),
+					Position = pos,
+					BackgroundColor3 = bg,
+					AutoButtonColor = false,
+					Text = "",
+					ZIndex = 2000002,
+					Parent = ConfirmPanel,
+				})
+				New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Btn })
+				local Ic = New("ImageLabel", {
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(0, 12, 0.5, -8),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon(iconName),
+					ImageColor3 = Color3.fromRGB(235, 235, 240),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = Btn,
+				})
+				Library:SetIcon(Ic, iconName, 10)
+				New("TextLabel", {
+					Size = UDim2.new(1, -36, 1, 0),
+					Position = UDim2.new(0, 36, 0, 0),
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamSemibold,
+					Text = text,
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(235, 235, 240),
+					TextXAlignment = Enum.TextXAlignment.Left,
+					Parent = Btn,
+				})
+				return Btn
+			end
+			local CancelBtn = MakeConfirmButton("取消", UDim2.new(0, 30, 1, -48), "x", Color3.fromRGB(52, 52, 60))
+			local OkBtn = MakeConfirmButton("确认", UDim2.new(0, 200, 1, -48), "check", Color3.fromRGB(190, 60, 60))
+			CancelBtn.MouseButton1Click:Connect(CloseConfirmUI)
+			OkBtn.MouseButton1Click:Connect(function()
+				CloseConfirmUI()
+				CloseWindow()
+			end)
+			TweenService:Create(ConfirmOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.6 }):Play()
+			TweenService:Create(ConfirmPanel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
+			TweenService:Create(PanelScale, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+			TweenService:Create(ConfirmText, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+		end
+		CloseButton.MouseButton1Click:Connect(ShowConfirmUI)
 		MinimizeButton.MouseEnter:Connect(function()
 			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 255, 255) }):Play()
 		end)
 		MinimizeButton.MouseLeave:Connect(function()
 			TweenService:Create(MinimizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
-		end)
-		MaximizeButton.MouseEnter:Connect(function()
-			TweenService:Create(MaximizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 255, 255) }):Play()
-		end)
-		MaximizeButton.MouseLeave:Connect(function()
-			TweenService:Create(MaximizeIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
 		CloseButton.MouseEnter:Connect(function()
 			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 120, 120) }):Play()
@@ -1811,9 +1896,6 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		function Window:Minimize()
 			MinimizeWindow()
-		end
-		function Window:Maximize()
-			MaximizeWindow()
 		end
 		function Window:Close()
 			CloseWindow()
