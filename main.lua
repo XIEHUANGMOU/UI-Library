@@ -649,28 +649,6 @@ local Library = (function()
 		})
 		local BackgroundImg = nil
 		local BackgroundVideo = nil
-		local BGDimOverlay = nil
-		local function ApplyBGDim()
-			if BGDimOverlay and BGDimOverlay.Parent then
-				return
-			end
-			BGDimOverlay = New("Frame", {
-				Name = "BGDimOverlay",
-				Size = UDim2.new(1, 0, 1, 0),
-				Position = UDim2.new(0, 0, 0, 0),
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = 0.4,
-				Active = false,
-				ZIndex = 10000000,
-				Parent = Main,
-			})
-		end
-		local function ClearBGDim()
-			if BGDimOverlay and BGDimOverlay.Parent then
-				BGDimOverlay:Destroy()
-			end
-			BGDimOverlay = nil
-		end
 		local function ClearVideoBG()
 			if BackgroundVideo and BackgroundVideo.Parent then
 				BackgroundVideo:Destroy()
@@ -683,7 +661,6 @@ local Library = (function()
 			end
 			BackgroundImg = nil
 			ClearVideoBG()
-			ClearBGDim()
 			local sd = Main:FindFirstChild("SideDivider")
 			if sd then
 				sd.Visible = true
@@ -729,7 +706,6 @@ local Library = (function()
 			if sd then
 				sd.Visible = false
 			end
-			ApplyBGDim()
 		end
 		local function SetBGVideo(url)
 			if type(url) ~= "string" or url == "" then
@@ -775,7 +751,6 @@ local Library = (function()
 			if sd then
 				sd.Visible = false
 			end
-			ApplyBGDim()
 		end
 		if type(options.BackgroundImage) == "string" and options.BackgroundImage ~= "" then
 			SetBGImage(options.BackgroundImage)
