@@ -150,8 +150,8 @@ local Library = (function()
 		local ic = options.icon and Library:GetIcon(options.icon)
 		local ph, ps, pv = Color3.toHSV(options.default or Color3.fromRGB(255, 255, 255))
 		local hue = ph or 0
-		local sat = 1
-		local val = pv or 1
+		local sat = ps or 1
+		local vib = pv or 1
 		local Ctrl = New("Frame", {
 			Name = title,
 			Size = UDim2.new(1, 0, 0, 44),
@@ -189,37 +189,81 @@ local Library = (function()
 			Name = "Swatch",
 			Size = UDim2.new(0, 60, 0, 24),
 			Position = UDim2.new(1, -70, 0, 10),
-			BackgroundColor3 = Color3.fromHSV(hue, sat, val),
+			BackgroundColor3 = Color3.fromHSV(hue, sat, vib),
 			BorderSizePixel = 0,
 			AutoButtonColor = false,
 			Text = "",
 			Parent = Ctrl,
 		})
 		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Swatch })
-		local Preview
-		local HexBox = nil
 		local Popup = nil
 		local OutsideConn = nil
-		local function Apply()
-			local col = Color3.fromHSV(hue, sat, val)
-			Swatch.BackgroundColor3 = col
-			if Preview then
-				Preview.BackgroundColor3 = col
+		local SatVibMap = nil
+		local SatCursor = nil
+		local HueBar = nil
+		local HueDrag = nil
+		local HexBox = nil
+		local RedBox = nil
+		local GreenBox = nil
+		local BlueBox = nil
+		local activeSlider = nil
+		local function CurrentColor()
+			return Color3.fromHSV(hue, sat, vib)
+		end
+		local function UpdateUI()
+			Swatch.BackgroundColor3 = CurrentColor()
+			if SatVibMap then
+				SatVibMap.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
 			end
+			if SatCursor then
+				SatCursor.Position = UDim2.new(sat, 0, 1 - vib, 0)
+				SatCursor.BackgroundColor3 = CurrentColor()
+			end
+			if HueDrag then
+				HueDrag.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+				HueDrag.Position = UDim2.new(0.5, 0, hue, 0)
+			end
+			local col = CurrentColor()
 			if HexBox then
-				HexBox.Text = "#" .. tostring(col:ToHex())
+				HexBox.Text = "#" .. col:ToHex()
+			end
+			if RedBox then
+				RedBox.Text = tostring(math.floor(col.R * 255))
+			end
+			if GreenBox then
+				GreenBox.Text = tostring(math.floor(col.G * 255))
+			end
+			if BlueBox then
+				BlueBox.Text = tostring(math.floor(col.B * 255))
 			end
 			if callback then
 				pcall(callback, col)
 			end
+		end
+		local function SetsRGB(r, g, b)
+			r = math.round(math.clamp(r or 0, 0, 255))
+			g = math.round(math.clamp(g or 0, 0, 255))
+			b = math.round(math.clamp(b or 0, 0, 255))
+			local h, s, v = Color3.toHSV(Color3.fromRGB(r, g, b))
+			hue = h or 0
+			sat = s or 1
+			vib = v or 1
+			UpdateUI()
 		end
 		local function ClosePopup()
 			if Popup and Popup.Parent then
 				Popup:Destroy()
 			end
 			Popup = nil
-			Preview = nil
+			SatVibMap = nil
+			SatCursor = nil
+			HueBar = nil
+			HueDrag = nil
 			HexBox = nil
+			RedBox = nil
+			GreenBox = nil
+			BlueBox = nil
+			activeSlider = nil
 			if OutsideConn then
 				OutsideConn:Disconnect()
 				OutsideConn = nil
@@ -233,7 +277,7 @@ local Library = (function()
 			local pos = Ctrl.AbsolutePosition
 			Popup = New("Frame", {
 				Name = "ColorPopup",
-				Size = UDim2.new(0, 220, 0, 126),
+				Size = UDim2.new(0, 240, 0, 236),
 				Position = UDim2.fromOffset(pos.X, pos.Y + 50),
 				BackgroundColor3 = Color3.fromRGB(24, 24, 30),
 				BorderSizePixel = 0,
@@ -242,126 +286,172 @@ local Library = (function()
 			})
 			New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = Popup })
 			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Popup })
-			local HueBar = New("Frame", {
-				Name = "HueBar",
-				Size = UDim2.new(1, -16, 0, 14),
-				Position = UDim2.new(0, 8, 0, 8),
+			New("TextLabel", {
+				Name = "Title",
+				Size = UDim2.new(1, -20, 0, 24),
+				Position = UDim2.new(0, 10, 0, 8),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamSemibold,
+				Text = title,
+				TextSize = 15,
+				TextColor3 = Color3.fromRGB(230, 230, 236),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = Popup,
+			})
+			SatVibMap = New("ImageLabel", {
+				Name = "SatVib",
+				Size = UDim2.new(0, 160, 0, 160),
+				Position = UDim2.new(0, 12, 0, 40),
+				BackgroundTransparency = 0,
+				BackgroundColor3 = Color3.fromHSV(hue, 1, 1),
+				Image = "rbxassetid://4155801252",
+				ScaleType = Enum.ScaleType.Stretch,
+				BorderSizePixel = 0,
+				Parent = Popup,
+			})
+			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = SatVibMap })
+			SatCursor = New("Frame", {
+				Name = "Cursor",
+				Size = UDim2.new(0, 14, 0, 14),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.new(sat, 0, 1 - vib, 0),
+				BackgroundColor3 = CurrentColor(),
+				BorderSizePixel = 0,
+				Parent = SatVibMap,
+			})
+			New("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Parent = SatCursor })
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = SatCursor })
+			HueBar = New("Frame", {
+				Name = "Hue",
+				Size = UDim2.new(0, 6, 0, 160),
+				Position = UDim2.new(0, 184, 0, 40),
 				BackgroundColor3 = Color3.fromRGB(40, 40, 48),
 				BorderSizePixel = 0,
 				Parent = Popup,
 			})
-			New("UICorner", { CornerRadius = UDim.new(0, 7), Parent = HueBar })
-			local seg = 32
-			for i = 0, seg - 1 do
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HueBar })
+			for i = 0, 7 do
 				New("Frame", {
-					Size = UDim2.new(1 / seg, 0, 1, 0),
-					Position = UDim2.new(i / seg, 0, 0, 0),
-					BackgroundColor3 = Color3.fromHSV(i / seg, 1, 1),
+					Size = UDim2.new(1, 0, 0, math.floor(160 / 8)),
+					Position = UDim2.new(0, 0, 0, math.floor((160 / 8) * i)),
+					BackgroundColor3 = Color3.fromHSV(i / 8, 1, 1),
 					BorderSizePixel = 0,
 					Parent = HueBar,
 				})
 			end
-			local ValueBar = New("Frame", {
-				Name = "ValueBar",
-				Size = UDim2.new(1, -16, 0, 6),
-				Position = UDim2.new(0, 8, 0, 34),
-				BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+			HueDrag = New("Frame", {
+				Name = "Cursor",
+				Size = UDim2.new(0, 14, 0, 14),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.new(0.5, 0, hue, 0),
+				BackgroundColor3 = Color3.fromHSV(hue, 1, 1),
 				BorderSizePixel = 0,
-				Parent = Popup,
+				Parent = HueBar,
 			})
-			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueBar })
-			local ValueFill = New("Frame", {
-				Name = "Fill",
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundColor3 = Color3.fromHSV(hue, sat, val),
-				BorderSizePixel = 0,
-				Parent = ValueBar,
-			})
-			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueFill })
-			local ValueGrab = New("Frame", {
-				Name = "Grab",
-				Size = UDim2.new(0, 10, 0, 10),
-				Position = UDim2.new(val, -5, 0, -2),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				BorderSizePixel = 0,
-				Parent = ValueBar,
-			})
-			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueGrab })
-			local FunctionBar = New("Frame", {
-				Name = "FunctionBar",
-				Size = UDim2.new(1, -20, 0, 16),
-				Position = UDim2.new(0, 10, 0, 60),
-				BackgroundColor3 = Color3.fromRGB(16, 16, 20),
-				BorderSizePixel = 0,
-				Parent = Popup,
-			})
-			New("UICorner", { CornerRadius = UDim.new(0, 4), Parent = FunctionBar })
-			Preview = New("Frame", {
-				Name = "Preview",
-				Size = UDim2.new(0, 54, 1, 0),
-				BackgroundColor3 = Color3.fromHSV(hue, sat, val),
-				BorderSizePixel = 0,
-				Parent = FunctionBar,
-			})
-			New("UICorner", { CornerRadius = UDim.new(0, 4), Parent = Preview })
-			HexBox = New("TextLabel", {
-				Name = "HexText",
-				Size = UDim2.new(1, -54, 1, 0),
-				Position = UDim2.new(0, 54, 0, 0),
-				BackgroundTransparency = 1,
-				Font = Enum.Font.GothamMedium,
-				Text = "#" .. tostring(Color3.fromHSV(hue, sat, val):ToHex()),
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(230, 230, 236),
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Parent = FunctionBar,
-			})
-			local function UpdateHue(x)
-				local rel = math.clamp((x - HueBar.AbsolutePosition.X) / HueBar.AbsoluteSize.X, 0, 1)
-				hue = rel
-				Apply()
+			New("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Parent = HueDrag })
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HueDrag })
+			local function MakeInput(name, x)
+				local Frame = New("Frame", {
+					Size = UDim2.new(0, 52, 0, 22),
+					Position = UDim2.new(0, x, 0, 208),
+					BackgroundColor3 = Color3.fromRGB(20, 20, 26),
+					BorderSizePixel = 0,
+					Parent = Popup,
+				})
+				New("UICorner", { CornerRadius = UDim.new(0, 4), Parent = Frame })
+				return New("TextBox", {
+					Size = UDim2.new(1, 0, 1, 0),
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamMedium,
+					Text = "",
+					TextSize = 13,
+					TextColor3 = Color3.fromRGB(230, 230, 236),
+					PlaceholderText = name,
+					PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
+					TextXAlignment = Enum.TextXAlignment.Center,
+					ClearTextOnFocus = false,
+					Parent = Frame,
+				})
 			end
-			local function UpdateVal(x)
-				val = math.clamp((x - ValueBar.AbsolutePosition.X) / ValueBar.AbsoluteSize.X, 0, 1)
-				ValueFill.Size = UDim2.new(val, 0, 1, 0)
-				ValueFill.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
-				ValueGrab.Position = UDim2.new(val, -5, 0, -2)
-				Apply()
+			HexBox = MakeInput("HEX", 12)
+			RedBox = MakeInput("R", 70)
+			GreenBox = MakeInput("G", 128)
+			BlueBox = MakeInput("B", 186)
+			UpdateUI()
+			local function UpdateSatVib(x, y)
+				local minX = SatVibMap.AbsolutePosition.X
+				local maxX = minX + SatVibMap.AbsoluteSize.X
+				local minY = SatVibMap.AbsolutePosition.Y
+				local maxY = minY + SatVibMap.AbsoluteSize.Y
+				sat = math.clamp((x - minX) / (maxX - minX), 0, 1)
+				vib = math.clamp(1 - (y - minY) / (maxY - minY), 0, 1)
+				UpdateUI()
 			end
-			local hueDrag = false
-			local valDrag = false
+			local function UpdateHue(y)
+				local minY = HueBar.AbsolutePosition.Y
+				local maxY = minY + HueBar.AbsoluteSize.Y
+				hue = math.clamp((y - minY) / (maxY - minY), 0, 1)
+				UpdateUI()
+			end
 			local function IsPress(input)
 				return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 			end
-			local function StopDrag(input)
+			SatVibMap.InputBegan:Connect(function(input)
 				if IsPress(input) then
-					hueDrag = false
-					valDrag = false
+					activeSlider = "SatVib"
+					UpdateSatVib(UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y)
 				end
-			end
+			end)
 			HueBar.InputBegan:Connect(function(input)
 				if IsPress(input) then
-					hueDrag = true
-					UpdateHue(UserInputService:GetMouseLocation().X)
+					activeSlider = "Hue"
+					UpdateHue(UserInputService:GetMouseLocation().Y)
 				end
 			end)
-			HueBar.InputEnded:Connect(StopDrag)
-			ValueBar.InputBegan:Connect(function(input)
-				if IsPress(input) then
-					valDrag = true
-					UpdateVal(UserInputService:GetMouseLocation().X)
+			UserInputService.InputChanged:Connect(function(input)
+				if activeSlider then
+					if activeSlider == "SatVib" then
+						UpdateSatVib(input.Position.X, input.Position.Y)
+					elseif activeSlider == "Hue" then
+						UpdateHue(input.Position.Y)
+					end
 				end
 			end)
-			ValueBar.InputEnded:Connect(StopDrag)
-			RunService.RenderStepped:Connect(function()
-				if hueDrag then
-					UpdateHue(UserInputService:GetMouseLocation().X)
-				end
-				if valDrag then
-					UpdateVal(UserInputService:GetMouseLocation().X)
+			UserInputService.InputEnded:Connect(function(input)
+				activeSlider = nil
+			end)
+			HexBox.FocusLost:Connect(function(enter)
+				if enter then
+					local ok, res = pcall(function()
+						return Color3.fromHex(HexBox.Text:gsub("#", ""))
+					end)
+					if ok and typeof(res) == "Color3" then
+						local h, s, v = Color3.toHSV(res)
+						hue = h or 0
+						sat = s or 1
+						vib = v or 1
+						UpdateUI()
+					end
 				end
 			end)
-			UserInputService.InputEnded:Connect(StopDrag)
+			RedBox.FocusLost:Connect(function(enter)
+				if enter then
+					local c = CurrentColor()
+					SetsRGB(tonumber(RedBox.Text), math.floor(c.G * 255), math.floor(c.B * 255))
+				end
+			end)
+			GreenBox.FocusLost:Connect(function(enter)
+				if enter then
+					local c = CurrentColor()
+					SetsRGB(math.floor(c.R * 255), tonumber(GreenBox.Text), math.floor(c.B * 255))
+				end
+			end)
+			BlueBox.FocusLost:Connect(function(enter)
+				if enter then
+					local c = CurrentColor()
+					SetsRGB(math.floor(c.R * 255), math.floor(c.G * 255), tonumber(BlueBox.Text))
+				end
+			end)
 			OutsideConn = UserInputService.InputBegan:Connect(function(input)
 				if IsPress(input) then
 					local p = input.Position
@@ -380,18 +470,24 @@ local Library = (function()
 				OpenPopup()
 			end
 		end)
+		Swatch.MouseEnter:Connect(function()
+			TweenService:Create(Swatch, TweenInfo.new(0.15), { BackgroundColor3 = CurrentColor():Lerp(Color3.fromRGB(255, 255, 255), 0.2) }):Play()
+		end)
+		Swatch.MouseLeave:Connect(function()
+			TweenService:Create(Swatch, TweenInfo.new(0.15), { BackgroundColor3 = CurrentColor() }):Play()
+		end)
 		local ColorObj = {}
 		function ColorObj:Get()
-			return Color3.fromHSV(hue, sat, val)
+			return CurrentColor()
 		end
 		function ColorObj:SetValue(c)
-			local nh, ns, nv = Color3.toHSV(c)
-			hue = nh or 0
-			sat = 1
-			val = nv or 1
-			Apply()
+			local h, s, v = Color3.toHSV(c)
+			hue = h or 0
+			sat = s or 1
+			vib = v or 1
+			UpdateUI()
 		end
-		Apply()
+		UpdateUI()
 		return ColorObj
 	end
 	function Library:CreateWindow(options)
@@ -587,7 +683,21 @@ local Library = (function()
 					Parent = Main,
 				})
 			end
-			BackgroundImg.Image = img
+			local resolved = img
+			if string.match(img, "^http") then
+				pcall(function()
+					local data = game:HttpGet(img)
+					if writefile then
+						local ext = string.match(img, "%.(%w+)$")
+						local filename = "XHMUltraBG." .. (ext or "png")
+						writefile(filename, data)
+						if getcustomasset then
+							resolved = getcustomasset(filename)
+						end
+					end
+				end)
+			end
+			BackgroundImg.Image = resolved
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
 		end
@@ -892,12 +1002,24 @@ local Library = (function()
 							Parent = Button,
 						})
 					end
+					local MouseIcon = New("ImageLabel", {
+						Name = "MouseIcon",
+						Size = UDim2.new(0, 16, 0, 16),
+						Position = UDim2.new(1, -24, 0.5, -8),
+						BackgroundTransparency = 1,
+						Image = Library:GetIcon("mouse-pointer"),
+						ImageColor3 = Color3.fromRGB(120, 120, 130),
+						Parent = Button,
+					})
+					Library:SetIcon(MouseIcon, "mouse-pointer", 10)
 					local OriginalColor = Button.BackgroundColor3
 					Button.MouseEnter:Connect(function()
 						TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(52, 52, 62) }):Play()
+						TweenService:Create(MouseIcon, TweenInfo.new(0.15), { ImageColor3 = Color3.fromRGB(230, 230, 236) }):Play()
 					end)
 					Button.MouseLeave:Connect(function()
 						TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = OriginalColor }):Play()
+						TweenService:Create(MouseIcon, TweenInfo.new(0.15), { ImageColor3 = Color3.fromRGB(120, 120, 130) }):Play()
 					end)
 					Button.MouseButton1Down:Connect(function()
 						TweenService:Create(Button, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(80, 80, 100) }):Play()
@@ -1531,12 +1653,24 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						Parent = Button,
 					})
 				end
+				local MouseIcon = New("ImageLabel", {
+					Name = "MouseIcon",
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(1, -24, 0.5, -8),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon("mouse-pointer"),
+					ImageColor3 = Color3.fromRGB(120, 120, 130),
+					Parent = Button,
+				})
+				Library:SetIcon(MouseIcon, "mouse-pointer", 10)
 				local OriginalColor = Button.BackgroundColor3
 				Button.MouseEnter:Connect(function()
 					TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(52, 52, 62) }):Play()
+					TweenService:Create(MouseIcon, TweenInfo.new(0.15), { ImageColor3 = Color3.fromRGB(230, 230, 236) }):Play()
 				end)
 				Button.MouseLeave:Connect(function()
 					TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = OriginalColor }):Play()
+					TweenService:Create(MouseIcon, TweenInfo.new(0.15), { ImageColor3 = Color3.fromRGB(120, 120, 130) }):Play()
 				end)
 				Button.MouseButton1Down:Connect(function()
 					TweenService:Create(Button, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(80, 80, 100) }):Play()
@@ -2477,13 +2611,11 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		return Window
 	end
 	local NotifyGui = nil
-	local NotifyStack = nil
+	local NotifyHolder = nil
+	local NotifyIndex = 0
 	local NotifyActive = {}
 	local NotifyQueue = {}
-	local NotifyMax = 3
-	local NotifyTweens = setmetatable({}, { __mode = "k" })
-	local NotifyDismissed = setmetatable({}, { __mode = "k" })
-	local ShowNotification
+	local NotifyMax = 5
 	local function EnsureNotifyUI()
 		if NotifyGui and NotifyGui.Parent then
 			return
@@ -2495,196 +2627,204 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = LocalPlayer:WaitForChild("PlayerGui"),
 		})
-		NotifyStack = New("Frame", {
-			Name = "NotifyStack",
-			Size = UDim2.new(0, 320, 0, 44),
-			Position = UDim2.new(1, -16, 1, -16),
-			AnchorPoint = Vector2.new(1, 1),
+		NotifyHolder = New("Frame", {
+			Name = "NotifyHolder",
+			Size = UDim2.new(0, 300, 1, -156),
+			Position = UDim2.new(1, -29, 0, 56),
+			AnchorPoint = Vector2.new(1, 0),
 			BackgroundTransparency = 1,
-			ZIndex = 999999,
 			Parent = NotifyGui,
 		})
+		New("UIListLayout", {
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			VerticalAlignment = Enum.VerticalAlignment.Bottom,
+			Padding = UDim.new(0, 8),
+			Parent = NotifyHolder,
+		})
+		New("UIPadding", { PaddingBottom = UDim.new(0, 29), Parent = NotifyHolder })
 		NotifyGui.Destroying:Connect(function()
 			NotifyGui = nil
-			NotifyStack = nil
+			NotifyHolder = nil
 		end)
 	end
-	local function MoveToast(t, pos, dur, ease)
-		local old = NotifyTweens[t]
-		if old then
-			old:Cancel()
-		end
-		local tw = TweenService:Create(t, TweenInfo.new(dur, Enum.EasingStyle.Quad, ease or Enum.EasingDirection.Out), { Position = pos })
-		NotifyTweens[t] = tw
-		tw:Play()
-	end
-local function Relayout()
-			local y = 0
-			for i, t in ipairs(NotifyActive) do
-				MoveToast(t, UDim2.new(0, 0, 1, -y), 0.25)
-				y = y + t.Size.Y.Offset + 8
-			end
-		end
 	local function ProcessQueue()
 		while #NotifyActive < NotifyMax and #NotifyQueue > 0 do
 			ShowNotification(table.remove(NotifyQueue, 1))
 		end
 	end
-	local function DismissToast(t)
-		if NotifyDismissed[t] then
+	local function CloseNotification(notify)
+		if notify.Closed or not notify.Container or not notify.Container.Parent then
 			return
 		end
-		NotifyDismissed[t] = true
+		notify.Closed = true
 		for i, v in ipairs(NotifyActive) do
-			if v == t then
+			if v == notify then
 				table.remove(NotifyActive, i)
 				break
 			end
 		end
-		MoveToast(t, UDim2.new(1, 48, 1, 48), 0.2, Enum.EasingDirection.In)
-		TweenService:Create(t, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
-		local txt = t:FindFirstChild("Text")
-		if txt then
-			TweenService:Create(txt, TweenInfo.new(0.2), { TextTransparency = 1 }):Play()
+		local container = notify.Container
+		TweenService:Create(container, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, -8) }):Play()
+		local m = container:FindFirstChild("Notify")
+		if m then
+			TweenService:Create(m, TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = UDim2.new(2, 0, 0, 0) }):Play()
 		end
-		Relayout()
-		ProcessQueue()
-		task.delay(0.25, function()
-			if t.Parent then
-				t:Destroy()
+		task.delay(0.55, function()
+			if container.Parent then
+				container:Destroy()
 			end
+			ProcessQueue()
 		end)
 	end
 	function ShowNotification(n)
-		local hasTitle = type(n.Title) == "string" and n.Title ~= ""
-		local height = hasTitle and 56 or 44
-		local toast = New("TextButton", {
-			Name = "Toast",
-			Size = UDim2.new(0, 320, 0, height),
-			AnchorPoint = Vector2.new(0, 1),
-			Position = UDim2.new(1, 48, 1, 48),
-			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
+		local title = n.Title or ""
+		local content = n.Text or n.Content or ""
+		local hasContent = content ~= ""
+		local icon = n.Icon
+		local isIconName = type(icon) == "string" and string.match(icon, "^[%w%-]+$") ~= nil
+		local iconAsset = type(icon) == "string" and (isIconName and Library:GetIcon(icon) or icon) or nil
+		local basePad = 14
+		local contentLines = hasContent and math.max(1, math.ceil(string.len(content) / 24)) or 0
+		local textH = 22 + (hasContent and (contentLines * 16 + 6) or 0)
+		local leftH = iconAsset and 26 or textH
+		local height = math.max(46, basePad * 2 + math.max(leftH, textH))
+		local textLeft = iconAsset and 48 or 14
+		local textRight = (n.CanClose ~= false) and 34 or 14
+		local MainContainer = New("Frame", {
+			Name = "NotifyContainer",
+			Size = UDim2.new(1, 0, 0, height),
 			BackgroundTransparency = 1,
-			BorderSizePixel = 0,
-			AutoButtonColor = false,
-			Text = "",
-			ZIndex = 999999,
-			Parent = NotifyStack,
+			Parent = NotifyHolder,
 		})
-		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 1, Parent = toast })
-		local textX = 12
-		if n.Icon then
-			local isName = string.match(n.Icon, "^[%w%-]+$")
-			local ic = isName and Library:GetIcon(n.Icon) or n.Icon
-			if ic then
-				textX = 36
-				New("ImageLabel", {
-					Name = "Icon",
-					Size = UDim2.new(0, 16, 0, 16),
-					Position = UDim2.new(0, 12, 0.5, -8),
-					BackgroundTransparency = 1,
-					Image = ic,
-					ImageColor3 = n.IconColor or (isName and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(255, 255, 255)),
-					ScaleType = Enum.ScaleType.Fit,
-					Parent = toast,
-				})
-			end
+		MainContainer.LayoutOrder = NotifyIndex
+		NotifyIndex = NotifyIndex + 1
+		local Main = New("Frame", {
+			Name = "Notify",
+			Size = UDim2.new(1, 0, 0, height),
+			Position = UDim2.new(2, 0, 0, 0),
+			BackgroundColor3 = Color3.fromRGB(26, 26, 31),
+			ClipsDescendants = true,
+			BorderSizePixel = 0,
+			Parent = MainContainer,
+		})
+		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Transparency = 0.7, Thickness = 1, Parent = Main })
+		if n.Background then
+			New("ImageLabel", {
+				Name = "Background",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Image = n.Background,
+				ImageTransparency = n.BackgroundImageTransparency or 0.5,
+				ScaleType = Enum.ScaleType.Crop,
+				Parent = Main,
+			})
 		end
-		local txt
-		if hasTitle then
-			local tt = New("TextLabel", {
-				Name = "Title",
-				Size = UDim2.new(1, -(textX + 12), 0, 16),
-				Position = UDim2.new(0, textX, 0, 8),
-				BackgroundTransparency = 1,
-				Font = Enum.Font.GothamSemibold,
-				Text = n.Title,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(235, 235, 240),
-				TextTransparency = 1,
-				TextTruncate = Enum.TextTruncate.AtEnd,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextYAlignment = Enum.TextYAlignment.Top,
-				Parent = toast,
-			})
-			txt = New("TextLabel", {
-				Name = "Text",
-				Size = UDim2.new(1, -(textX + 12), 0, 22),
-				Position = UDim2.new(0, textX, 0, 26),
+		New("TextLabel", {
+			Name = "Title",
+			Size = UDim2.new(1, -(textLeft + textRight), 0, 22),
+			Position = UDim2.new(0, textLeft, 0, basePad),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = title,
+			TextSize = 18,
+			TextColor3 = Color3.fromRGB(235, 235, 240),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = Main,
+		})
+		if hasContent then
+			New("TextLabel", {
+				Name = "Content",
+				Size = UDim2.new(1, -(textLeft + textRight), 0, contentLines * 16),
+				Position = UDim2.new(0, textLeft, 0, basePad + 26),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamMedium,
-				Text = n.Text,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(200, 200, 208),
-				TextTransparency = 1,
-				TextWrapped = true,
-				TextTruncate = Enum.TextTruncate.AtEnd,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextYAlignment = Enum.TextYAlignment.Top,
-				Parent = toast,
-			})
-			TweenService:Create(tt, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
-		else
-			txt = New("TextLabel", {
-				Name = "Text",
-				Size = UDim2.new(1, -(textX + 12), 1, 0),
-				Position = UDim2.new(0, textX, 0, 0),
-				BackgroundTransparency = 1,
-				Font = Enum.Font.GothamMedium,
-				Text = n.Text,
+				Text = content,
 				TextSize = 15,
-				TextColor3 = Color3.fromRGB(235, 235, 240),
-				TextTransparency = 1,
+				TextColor3 = Color3.fromRGB(200, 200, 210),
 				TextWrapped = true,
-				TextTruncate = Enum.TextTruncate.AtEnd,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Parent = toast,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				Parent = Main,
 			})
 		end
-		table.insert(NotifyActive, toast)
-		Relayout()
-		TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
-		TweenService:Create(txt, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
-		local pause = false
-		toast.MouseEnter:Connect(function()
-			pause = true
-		end)
-		toast.MouseLeave:Connect(function()
-			pause = false
-		end)
-		toast.MouseButton1Click:Connect(function()
-			DismissToast(toast)
-		end)
-		if n.Click then
-			toast.MouseButton1Click:Connect(n.Click)
+		if iconAsset then
+			local IconImg = New("ImageLabel", {
+				Name = "Icon",
+				Size = UDim2.new(0, 26, 0, 26),
+				Position = UDim2.new(0, 14, 0, basePad),
+				BackgroundTransparency = 1,
+				Image = iconAsset,
+				ImageColor3 = isIconName and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(255, 255, 255),
+				ScaleType = Enum.ScaleType.Fit,
+				Parent = Main,
+			})
+			if isIconName then
+				Library:SetIcon(IconImg, icon, 10)
+			end
 		end
+		local notify = {
+			Title = title,
+			Text = content,
+			Icon = n.Icon,
+			Duration = n.Duration or 5,
+			Container = MainContainer,
+			Closed = false,
+		}
+		function notify:Close()
+			CloseNotification(self)
+		end
+		table.insert(NotifyActive, notify)
+		if n.CanClose ~= false then
+			local CloseBtn = New("ImageButton", {
+				Name = "Close",
+				Size = UDim2.new(0, 16, 0, 16),
+				Position = UDim2.new(1, -14, 0, 14),
+				AnchorPoint = Vector2.new(1, 0),
+				BackgroundTransparency = 1,
+				Image = Library:GetIcon("x"),
+				ImageColor3 = Color3.fromRGB(160, 160, 170),
+				Parent = Main,
+			})
+			Library:SetIcon(CloseBtn, "x", 10)
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = CloseBtn })
+			CloseBtn.MouseButton1Click:Connect(function()
+				CloseNotification(notify)
+			end)
+		end
+		local DurationClip = New("Frame", {
+			Name = "DurationClip",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			ClipsDescendants = true,
+			Parent = Main,
+		})
+		New("Frame", {
+			Name = "Duration",
+			Size = UDim2.new(1, 0, 1, 0),
+			AnchorPoint = Vector2.new(1, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.88,
+			BorderSizePixel = 0,
+			Parent = DurationClip,
+		})
+		TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = UDim2.new(0, 0, 0, 0) }):Play()
 		task.spawn(function()
-			local remaining = n.Duration
-			local guard = 0
-			while remaining > 0 do
-				task.wait(0.1)
-				if not toast.Parent then
-					return
-				end
-				guard = guard + 1
-				if not pause then
-					remaining = remaining - 0.1
-				elseif guard > (n.Duration * 10 + 50) then
-					break
-				end
-			end
-			if toast.Parent then
-				DismissToast(toast)
-			end
+			task.wait(0.45)
+			TweenService:Create(DurationClip, TweenInfo.new((n.Duration or 5), Enum.EasingStyle.Linear), { Size = UDim2.new(0, 0, 1, 0) }):Play()
+			task.wait(n.Duration or 5)
+			CloseNotification(notify)
 		end)
-		return toast
+		return notify
 	end
 	function Library:Notification(n)
 		if type(n) == "string" then
 			n = { Text = n }
 		end
-		n.Text = n.Text or ""
-		n.Duration = n.Duration or 3
+		n.Title = n.Title or ""
+		n.Text = n.Text or n.Content or ""
+		n.Duration = n.Duration or 5
 		EnsureNotifyUI()
 		if #NotifyActive >= NotifyMax then
 			table.insert(NotifyQueue, n)
@@ -2699,7 +2839,7 @@ local function Relayout()
 		return self:Notification({ Text = text, Duration = duration })
 	end
 	function Library:SetNotifyMax(n)
-		NotifyMax = n and n or 3
+		NotifyMax = n and n or 5
 		if #NotifyActive < NotifyMax then
 			ProcessQueue()
 		end
