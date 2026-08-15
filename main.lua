@@ -2475,10 +2475,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
 		local Window = {
-			SearchGui = nil,
-			SearchPanel = nil,
-			SearchList = nil,
 			SearchBox = nil,
+			SearchList = nil,
+			SearchToggle = nil,
+			SearchPanel = nil,
+			SearchInited = false,
+			SearchOpen = false,
 			Title = title,
 			Icon = Logo.Image,
 		}
@@ -2568,90 +2570,113 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			end
 		end
 		function Window:OpenSearch()
-			if Window.SearchGui and Window.SearchGui.Parent then
-				return
+			if not Window.SearchInited then
+				Window.SearchToggle = New("ImageButton", {
+					Name = "SearchToggle",
+					Size = UDim2.new(0, 30, 0, 30),
+					Position = UDim2.new(1, -98, 0, 4),
+					BackgroundTransparency = 1,
+					AutoButtonColor = false,
+					Text = "",
+					Parent = TopBar,
+				})
+				local SearchIcon = New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(0.5, -8, 0.5, -8),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon("search"),
+					ImageColor3 = Color3.fromRGB(160, 160, 170),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = Window.SearchToggle,
+				})
+				Library:SetIcon(SearchIcon, "search", 12)
+				Window.SearchToggle.MouseEnter:Connect(function()
+					TweenService:Create(SearchIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(255, 255, 255) }):Play()
+				end)
+				Window.SearchToggle.MouseLeave:Connect(function()
+					TweenService:Create(SearchIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
+				end)
+				Window.SearchToggle.MouseButton1Click:Connect(function()
+					if Window.SearchOpen then
+						Window:CloseSearch()
+					else
+						Window:OpenSearch()
+					end
+				end)
+				Window.SearchBox = New("TextBox", {
+					Name = "SearchBox",
+					Size = UDim2.new(0, 150, 0, 30),
+					Position = UDim2.new(1, -242, 0, 4),
+					Visible = false,
+					BackgroundColor3 = Color3.fromRGB(18, 18, 22),
+					BorderSizePixel = 0,
+					Font = Enum.Font.GothamMedium,
+					Text = "",
+					PlaceholderText = "搜索...",
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(235, 235, 240),
+					PlaceholderColor3 = Color3.fromRGB(120, 120, 132),
+					ClearTextOnFocus = false,
+					Parent = TopBar,
+				})
+				New("UIStroke", { Color = Color3.fromRGB(70, 70, 80), Thickness = 1, Parent = Window.SearchBox })
+				New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Window.SearchBox })
+				Window.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+					Window_BuildResults(Window.SearchBox.Text)
+				end)
+				Window.SearchBox.FocusLost:Connect(function()
+					task.delay(0.15, function()
+						Window_BuildResults(Window.SearchBox.Text)
+					end)
+				end)
+				Window.SearchPanel = New("Frame", {
+					Name = "SearchPanel",
+					Size = UDim2.new(0, 330, 0, 330),
+					Position = UDim2.new(1, -10, 0, 44),
+					AnchorPoint = Vector2.new(1, 0),
+					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+					BorderSizePixel = 0,
+					ClipsDescendants = true,
+					Visible = false,
+					ZIndex = 1000001,
+					Parent = Main,
+				})
+				New("UIStroke", { Color = Color3.fromRGB(90, 90, 100), Thickness = 1, Parent = Window.SearchPanel })
+				New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Window.SearchPanel })
+				Window.SearchList = New("ScrollingFrame", {
+					Name = "List",
+					Size = UDim2.new(1, -16, 1, -16),
+					Position = UDim2.new(0, 8, 0, 8),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					ScrollBarThickness = 4,
+					ScrollBarImageColor3 = Color3.fromRGB(70, 70, 80),
+					AutomaticCanvasSize = Enum.AutomaticSize.Y,
+					CanvasSize = UDim2.new(0, 0, 0, 0),
+					Parent = Window.SearchPanel,
+				})
+				New("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = Window.SearchList })
+				Window.SearchInited = true
 			end
-			Window.SearchGui = New("ScreenGui", {
-				DisplayOrder = 1000000002,
-				ResetOnSpawn = false,
-				IgnoreGuiInset = true,
-				ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-				Parent = LocalPlayer:WaitForChild("PlayerGui"),
-			})
-			New("Frame", {
-				Name = "Dim",
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = 0.55,
-				Active = true,
-				ZIndex = 1,
-				Parent = Window.SearchGui,
-			})
-			Window.SearchPanel = New("Frame", {
-				Name = "Panel",
-				Size = UDim2.new(0, 460, 0, 420),
-				Position = UDim2.new(0.5, -230, 0.5, -210),
-				BackgroundColor3 = Color3.fromRGB(22, 22, 28),
-				BorderSizePixel = 0,
-				ZIndex = 2,
-				Parent = Window.SearchGui,
-			})
-			New("UIStroke", { Color = Color3.fromRGB(90, 90, 100), Thickness = 1, Parent = Window.SearchPanel })
-			New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Window.SearchPanel })
-			Window.SearchBox = New("TextBox", {
-				Name = "SearchBox",
-				Size = UDim2.new(1, -40, 0, 30),
-				Position = UDim2.new(0, 20, 0, 10),
-				BackgroundTransparency = 1,
-				Font = Enum.Font.GothamMedium,
-				Text = "",
-				PlaceholderText = "搜索...",
-				TextSize = 17,
-				TextColor3 = Color3.fromRGB(235, 235, 240),
-				PlaceholderColor3 = Color3.fromRGB(120, 120, 132),
-				ClearTextOnFocus = false,
-				Parent = Window.SearchPanel,
-			})
-			Window.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-				Window_BuildResults(Window.SearchBox.Text)
-			end)
-			local CloseBtn = New("ImageButton", {
-				Name = "Close",
-				Size = UDim2.new(0, 18, 0, 18),
-				Position = UDim2.new(1, -36, 0, 16),
-				BackgroundColor3 = Color3.fromRGB(230, 230, 236),
-				ImageColor3 = Color3.fromRGB(160, 160, 170),
-				Text = "",
-				Parent = Window.SearchPanel,
-			})
-			CloseBtn.MouseButton1Click:Connect(function()
-				Window:CloseSearch()
-			end)
-			Window.SearchList = New("ScrollingFrame", {
-				Name = "List",
-				Size = UDim2.new(1, -20, 1, -56),
-				Position = UDim2.new(0, 10, 0, 46),
-				BackgroundTransparency = 1,
-				BorderSizePixel = 0,
-				ScrollBarThickness = 4,
-				ScrollBarImageColor3 = Color3.fromRGB(70, 70, 80),
-				AutomaticCanvasSize = Enum.AutomaticSize.Y,
-				CanvasSize = UDim2.new(0, 0, 0, 0),
-				Parent = Window.SearchPanel,
-			})
-			New("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = Window.SearchList })
-			task.spawn(function()
-				Window.SearchBox:CaptureFocus()
-			end)
+			Window.SearchOpen = true
+			Window.SearchBox.Visible = true
+			Window.SearchPanel.Visible = true
+			Window_BuildResults(Window.SearchBox.Text)
+			if not UserInputService.TouchEnabled then
+				task.spawn(function()
+					Window.SearchBox:CaptureFocus()
+				end)
+			end
 		end
 		function Window:CloseSearch()
-			if Window.SearchGui and Window.SearchGui.Parent then
-				Window.SearchGui:Destroy()
+			if not Window.SearchInited then
+				return
 			end
-			Window.SearchGui = nil
-			Window.SearchPanel = nil
-			Window.SearchList = nil
-			Window.SearchBox = nil
+			Window.SearchOpen = false
+			Window.SearchBox.Visible = false
+			Window.SearchBox.Text = ""
+			Window.SearchPanel.Visible = false
 		end
 		function Window:SelectSearchResult(it)
 			if not it then
@@ -2842,7 +2867,11 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
 				local ctrl = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
 				if ctrl then
-					Window:OpenSearch()
+					if Window.SearchOpen then
+						Window:CloseSearch()
+					else
+						Window:OpenSearch()
+					end
 				end
 			end
 		end
@@ -2854,6 +2883,9 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		ScreenGui.Destroying:Connect(function()
 			UserInputService.InputBegan:Disconnect(OnSearchHotkey)
 		end)
+		if UserInputService.TouchEnabled then
+			Window:OpenSearch()
+		end
 		return Window
 	end
 	local NotifyGui = nil
