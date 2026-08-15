@@ -274,11 +274,12 @@ local Library = (function()
 			if not screen then
 				return
 			end
-			local pos = Ctrl.AbsolutePosition
+			local sw = Swatch.AbsolutePosition
 			Popup = New("Frame", {
 				Name = "ColorPopup",
 				Size = UDim2.new(0, 240, 0, 236),
-				Position = UDim2.fromOffset(pos.X, pos.Y + 50),
+				Position = UDim2.fromOffset(sw.X + Swatch.AbsoluteSize.X - 8, sw.Y - 16),
+				AnchorPoint = Vector2.new(1, 1),
 				BackgroundColor3 = Color3.fromRGB(24, 24, 30),
 				BorderSizePixel = 0,
 				ZIndex = 1000002,
@@ -330,15 +331,11 @@ local Library = (function()
 				Parent = Popup,
 			})
 			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HueBar })
-			for i = 0, 7 do
-				New("Frame", {
-					Size = UDim2.new(1, 0, 0, math.floor(160 / 8)),
-					Position = UDim2.new(0, 0, 0, math.floor((160 / 8) * i)),
-					BackgroundColor3 = Color3.fromHSV(i / 8, 1, 1),
-					BorderSizePixel = 0,
-					Parent = HueBar,
-				})
+			local seq = {}
+			for c = 0, 1, 0.1 do
+				table.insert(seq, ColorSequenceKeypoint.new(c, Color3.fromHSV(c, 1, 1)))
 			end
+			New("UIGradient", { Color = ColorSequence.new(seq), Rotation = 90, Parent = HueBar })
 			HueDrag = New("Frame", {
 				Name = "Cursor",
 				Size = UDim2.new(0, 14, 0, 14),
@@ -652,6 +649,28 @@ local Library = (function()
 		})
 		local BackgroundImg = nil
 		local BackgroundVideo = nil
+		local BGDimOverlay = nil
+		local function ApplyBGDim()
+			if BGDimOverlay and BGDimOverlay.Parent then
+				return
+			end
+			BGDimOverlay = New("Frame", {
+				Name = "BGDimOverlay",
+				Size = UDim2.new(1, 0, 1, 0),
+				Position = UDim2.new(0, 0, 0, 0),
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 0.4,
+				Active = false,
+				ZIndex = 10000000,
+				Parent = Main,
+			})
+		end
+		local function ClearBGDim()
+			if BGDimOverlay and BGDimOverlay.Parent then
+				BGDimOverlay:Destroy()
+			end
+			BGDimOverlay = nil
+		end
 		local function ClearVideoBG()
 			if BackgroundVideo and BackgroundVideo.Parent then
 				BackgroundVideo:Destroy()
@@ -664,6 +683,11 @@ local Library = (function()
 			end
 			BackgroundImg = nil
 			ClearVideoBG()
+			ClearBGDim()
+			local sd = Main:FindFirstChild("SideDivider")
+			if sd then
+				sd.Visible = true
+			end
 			Body.BackgroundTransparency = 0
 			TabsContainer.BackgroundTransparency = 0
 		end
@@ -701,6 +725,11 @@ local Library = (function()
 			BackgroundImg.Image = resolved
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
+			local sd = Main:FindFirstChild("SideDivider")
+			if sd then
+				sd.Visible = false
+			end
+			ApplyBGDim()
 		end
 		local function SetBGVideo(url)
 			if type(url) ~= "string" or url == "" then
@@ -742,6 +771,11 @@ local Library = (function()
 			end)
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
+			local sd = Main:FindFirstChild("SideDivider")
+			if sd then
+				sd.Visible = false
+			end
+			ApplyBGDim()
 		end
 		if type(options.BackgroundImage) == "string" and options.BackgroundImage ~= "" then
 			SetBGImage(options.BackgroundImage)
