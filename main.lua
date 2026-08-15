@@ -2262,44 +2262,15 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		function Window:GetIcon()
 			return Window.Icon
 		end
-		local BackgroundImg = nil
-		function Window:SetBackgroundImage(url)
-			if not url then
-				return
-			end
-			if not BackgroundImg or not BackgroundImg.Parent then
-				BackgroundImg = New("ImageLabel", {
-					Name = "BackgroundImg",
-					Size = UDim2.new(1, 0, 1, 0),
-					Position = UDim2.new(0, 0, 0, 0),
-					BackgroundTransparency = 1,
-					ZIndex = 1,
-					Parent = Main,
-				})
-			end
+		function Window:SetBackgroundImage(img)
+			Main.BackgroundImage = img or ""
+			Main.BackgroundImageTransparency = 0
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
-			if string.match(url, "^rbxasset") or string.match(url, "roblox%.com") then
-				BackgroundImg.Image = url
-			elseif string.match(url, "^https?://") then
-				pcall(function()
-					local data = game:HttpGet(url)
-					if writefile then
-						local ext = string.match(url, "%.(png|jpg|jpeg|webp|gif)$")
-						local filename = "XHMUltraBG." .. (ext or "png")
-						writefile(filename, data)
-						if getcustomasset then
-							BackgroundImg.Image = getcustomasset(filename)
-						end
-					end
-				end)
-			end
 		end
 		function Window:RemoveBackgroundImage()
-			if BackgroundImg and BackgroundImg.Parent then
-				BackgroundImg:Destroy()
-			end
-			BackgroundImg = nil
+			Main.BackgroundImage = ""
+			Main.BackgroundImageTransparency = 1
 			Body.BackgroundTransparency = 0
 			TabsContainer.BackgroundTransparency = 0
 		end
