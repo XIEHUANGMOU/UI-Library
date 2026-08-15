@@ -211,7 +211,6 @@ local Library = (function()
 		local GreenBox = nil
 		local BlueBox = nil
 		local activeSlider = nil
-		local curInput = nil
 		local function CurrentColor()
 			return Color3.fromHSV(hue, sat, vib)
 		end
@@ -269,8 +268,7 @@ local Library = (function()
 			GreenBox = nil
 			BlueBox = nil
 			activeSlider = nil
-			curInput = nil
-			if OutsideConn then
+						if OutsideConn then
 				OutsideConn:Disconnect()
 				OutsideConn = nil
 			end
@@ -406,26 +404,18 @@ local Library = (function()
 			end
 			SatVibMap.InputBegan:Connect(function(input)
 				if IsPress(input) then
-					if curInput and curInput ~= input then
-						return
-					end
-					curInput = input
 					activeSlider = "SatVib"
 					UpdateSatVib(UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y)
 				end
 			end)
 			HueBar.InputBegan:Connect(function(input)
 				if IsPress(input) then
-					if curInput and curInput ~= input then
-						return
-					end
-					curInput = input
 					activeSlider = "Hue"
 					UpdateHue(UserInputService:GetMouseLocation().Y)
 				end
 			end)
 			UserInputService.InputChanged:Connect(function(input)
-				if curInput and input == curInput and activeSlider then
+				if activeSlider then
 					if activeSlider == "SatVib" then
 						UpdateSatVib(input.Position.X, input.Position.Y)
 					elseif activeSlider == "Hue" then
