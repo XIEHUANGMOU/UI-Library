@@ -148,6 +148,7 @@ local Library = (function()
 		Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
 		return Par
 	end
+	local function MakeColorpickerPanel(container, options)
 		local title = options.name or ""
 		local callback = options.callback
 		local ic = options.icon and Library:GetIcon(options.icon)
