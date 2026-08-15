@@ -2475,6 +2475,216 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			TweenService:Create(CloseIcon, TweenInfo.new(0.1), { ImageColor3 = Color3.fromRGB(160, 160, 170) }):Play()
 		end)
 		local Window = {
+			SearchGui = nil,
+			SearchPanel = nil,
+			SearchList = nil,
+			SearchBox = nil,
+		}
+		local function SearchContains(str, q)
+			if not str or not q or q == "" then
+				return false
+			end
+			return string.find(string.lower(str), string.lower(q), 1, true) ~= nil
+		end
+		local function SearchGatherItems()
+			local items = {}
+			for tabName, page in pairs(Tabs) do
+				local stack = { page }
+				while #stack > 0 do
+					local node = table.remove(stack)
+					for _, child in ipairs(node:GetChildren()) do
+						if child:IsA("TextButton") and child.Name ~= "" then
+							table.insert(stack, child)
+							local hasText = child:FindFirstChild("TextLabel") or child:FindFirstChild("Title")
+							if hasText then
+								table.insert(items, { Name = child.Name, Tab = tabName, Elem = child })
+							end
+						elseif child:IsA("Frame") then
+							table.insert(stack, child)
+						end
+					end
+				end
+			end
+			return items
+		end
+		local function Window_BuildResults(q)
+			for _, c in ipairs(Window.SearchList:GetChildren()) do
+				if c:IsA("TextButton") then
+					c:Destroy()
+				end
+			end
+			if not q or q == "" then
+				return
+			end
+			local items = SearchGatherItems()
+			local matches = {}
+			for _, it in ipairs(items) do
+				if SearchContains(it.Name, q) or SearchContains(it.Tab, q) then
+					table.insert(matches, it)
+				end
+			end
+			if #matches == 0 then
+				New("TextLabel", {
+					Name = "None",
+					Size = UDim2.new(1, 0, 0, 56),
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamMedium,
+					Text = "No results found",
+					TextSize = 15,
+					TextColor3 = Color3.fromRGB(170, 170, 180),
+					Parent = Window.SearchList,
+				})
+				return
+			end
+			for _, it in ipairs(matches) do
+				local Row = New("TextButton", {
+					Name = it.Name,
+					Size = UDim2.new(1, 0, 0, 40),
+					BackgroundColor3 = Color3.fromRGB(38, 38, 46),
+					BorderSizePixel = 0,
+					AutoButtonColor = false,
+					Text = "",
+					Parent = Window.SearchList,
+				})
+				New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Row })
+				New("TextLabel", {
+					Name = "Label",
+					Size = UDim2.new(1, -24, 1, 0),
+					Position = UDim2.new(0, 12, 0, 0),
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamMedium,
+					Text = it.Name .. "  ·  " .. it.Tab,
+					TextSize = 15,
+					TextColor3 = Color3.fromRGB(225, 225, 232),
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					Parent = Row,
+				})
+				Row.MouseButton1Click:Connect(function()
+					Window:SelectSearchResult(it)
+				end)
+			end
+		end
+		function Window:OpenSearch()
+			if Window.SearchGui and Window.SearchGui.Parent then
+				return
+			end
+			Window.SearchGui = New("ScreenGui", {
+				DisplayOrder = 1000000002,
+				ResetOnSpawn = false,
+				IgnoreGuiInset = true,
+				ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+				Parent = LocalPlayer:WaitForChild("PlayerGui"),
+			})
+			New("Frame", {
+				Name = "Dim",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 0.55,
+				Active = true,
+				ZIndex = 1,
+				Parent = Window.SearchGui,
+			})
+			Window.SearchPanel = New("Frame", {
+				Name = "Panel",
+				Size = UDim2.new(0, 460, 0, 420),
+				Position = UDim2.new(0.5, -230, 0.5, -210),
+				BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+				BorderSizePixel = 0,
+				ZIndex = 2,
+				Parent = Window.SearchGui,
+			})
+			New("UIStroke", { Color = Color3.fromRGB(90, 90, 100), Thickness = 1, Parent = Window.SearchPanel })
+			New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Window.SearchPanel })
+			Window.SearchBox = New("TextBox", {
+				Name = "SearchBox",
+				Size = UDim2.new(1, -40, 0, 30),
+				Position = UDim2.new(0, 20, 0, 10),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = "",
+				PlaceholderText = "Search...",
+				TextSize = 17,
+				TextColor3 = Color3.fromRGB(235, 235, 240),
+				PlaceholderColor3 = Color3.fromRGB(120, 120, 132),
+				ClearTextOnFocus = false,
+				Parent = Window.SearchPanel,
+			})
+			Window.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+				Window_BuildResults(Window.SearchBox.Text)
+			end)
+			local CloseBtn = New("ImageButton", {
+				Name = "Close",
+				Size = UDim2.new(0, 18, 0, 18),
+				Position = UDim2.new(1, -36, 0, 16),
+				BackgroundColor3 = Color3.fromRGB(230, 230, 236),
+				ImageColor3 = Color3.fromRGB(160, 160, 170),
+				Text = "",
+				Parent = Window.SearchPanel,
+			})
+			CloseBtn.MouseButton1Click:Connect(function()
+				Window:CloseSearch()
+			end)
+			Window.SearchList = New("ScrollingFrame", {
+				Name = "List",
+				Size = UDim2.new(1, -20, 1, -56),
+				Position = UDim2.new(0, 10, 0, 46),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				ScrollBarThickness = 4,
+				ScrollBarImageColor3 = Color3.fromRGB(70, 70, 80),
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(0, 0, 0, 0),
+				Parent = Window.SearchPanel,
+			})
+			New("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = Window.SearchList })
+			task.spawn(function()
+				Window.SearchBox:CaptureFocus()
+			end)
+		end
+		function Window:CloseSearch()
+			if Window.SearchGui and Window.SearchGui.Parent then
+				Window.SearchGui:Destroy()
+			end
+			Window.SearchGui = nil
+			Window.SearchPanel = nil
+			Window.SearchList = nil
+			Window.SearchBox = nil
+		end
+		function Window:SelectSearchResult(it)
+			if not it then
+				return
+			end
+			local page = Tabs[it.Tab]
+			if not page then
+				return
+			end
+			local btn = nil
+			for _, b in ipairs(TabButtons) do
+				if b.Name == it.Tab then
+					btn = b
+					break
+				end
+			end
+			if btn then
+				SelectTab(btn)
+			end
+			for _, pg in pairs(Tabs) do
+				pg.Visible = false
+			end
+			page.Visible = true
+			Window:CloseSearch()
+			task.wait()
+			local target = it.Elem
+			if target and target.Parent then
+				local top = target:FindFirstChild("TextLabel") or target:FindFirstChild("Title")
+				local y = target.AbsolutePosition.Y - page.AbsolutePosition.Y + page.CanvasPosition.Y
+				if top then
+					y = top.AbsolutePosition.Y - page.AbsolutePosition.Y + page.CanvasPosition.Y
+				end
+				page.CanvasPosition = Vector2.new(0, math.max(0, y - 8))
+			end
+		end
 			Title = title,
 			Icon = Logo.Image,
 		}
