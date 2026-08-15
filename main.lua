@@ -128,23 +128,26 @@ local Library = (function()
 				Parent = Par,
 			})
 		end
-		New("TextLabel", {
+		local BodyLabel = New("TextLabel", {
 			Name = "Text",
 			Size = UDim2.new(1, -28, 0, height - 44),
 			Position = UDim2.new(0, 14, 0, 36),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
 			Text = body,
+			TextSize = 20,
 			TextColor3 = Color3.fromRGB(200, 200, 210),
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
-			TextSize = 20,
 			Parent = Par,
 		})
+		task.wait()
+		local contentH = math.max(1, math.ceil(BodyLabel.TextBounds.Y))
+		BodyLabel.Size = UDim2.new(1, -28, 0, contentH)
+		Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
 		return Par
 	end
-	local function MakeColorpickerPanel(container, options)
 		local title = options.name or ""
 		local callback = options.callback
 		local ic = options.icon and Library:GetIcon(options.icon)
