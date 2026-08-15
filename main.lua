@@ -2490,6 +2490,13 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			end
 			return string.find(string.lower(str), string.lower(q), 1, true) ~= nil
 		end
+		local function SearchIsComponent(node)
+			if node.Name == "" then
+				return false
+			end
+			local lbl = node:FindFirstChild("TextLabel") or node:FindFirstChild("Title")
+			return lbl and lbl:IsA("TextLabel") and lbl.Text == node.Name
+		end
 		local function SearchGatherItems()
 			local items = {}
 			for tabName, page in pairs(Tabs) do
@@ -2497,14 +2504,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				while #stack > 0 do
 					local node = table.remove(stack)
 					for _, child in ipairs(node:GetChildren()) do
-						if child:IsA("TextButton") and child.Name ~= "" then
-							table.insert(stack, child)
-							local hasText = child:FindFirstChild("TextLabel") or child:FindFirstChild("Title")
-							if hasText then
+						if child:IsA("Frame") or child:IsA("TextButton") then
+							if SearchIsComponent(child) then
 								table.insert(items, { Name = child.Name, Tab = tabName, Elem = child })
+							else
+								table.insert(stack, child)
 							end
-						elseif child:IsA("Frame") then
-							table.insert(stack, child)
 						end
 					end
 				end
