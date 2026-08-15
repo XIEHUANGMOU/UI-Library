@@ -554,6 +554,7 @@ local Library = (function()
 			ZIndex = 999999,
 			Parent = Main,
 		})
+		local BackgroundImg = nil
 		local BackgroundVideo = nil
 		local function ClearVideoBG()
 			if BackgroundVideo and BackgroundVideo.Parent then
@@ -562,9 +563,11 @@ local Library = (function()
 			BackgroundVideo = nil
 		end
 		local function ClearBG()
+			if BackgroundImg and BackgroundImg.Parent then
+				BackgroundImg:Destroy()
+			end
+			BackgroundImg = nil
 			ClearVideoBG()
-			Main.BackgroundImage = ""
-			Main.BackgroundImageTransparency = 1
 			Body.BackgroundTransparency = 0
 			TabsContainer.BackgroundTransparency = 0
 		end
@@ -574,8 +577,17 @@ local Library = (function()
 				return
 			end
 			ClearVideoBG()
-			Main.BackgroundImage = img
-			Main.BackgroundImageTransparency = 0
+			if not BackgroundImg or not BackgroundImg.Parent then
+				BackgroundImg = New("ImageLabel", {
+					Name = "BackgroundImg",
+					Size = UDim2.new(1, 0, 1, 0),
+					Position = UDim2.new(0, 0, 0, 0),
+					BackgroundTransparency = 1,
+					ZIndex = 1,
+					Parent = Main,
+				})
+			end
+			BackgroundImg.Image = img
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
 		end
@@ -584,8 +596,10 @@ local Library = (function()
 				ClearBG()
 				return
 			end
-			Main.BackgroundImage = ""
-			Main.BackgroundImageTransparency = 1
+			if BackgroundImg and BackgroundImg.Parent then
+				BackgroundImg:Destroy()
+			end
+			BackgroundImg = nil
 			ClearVideoBG()
 			local asset = url
 			if string.match(url, "^http") then
