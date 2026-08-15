@@ -2571,7 +2571,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		function Window:OpenSearch()
 			if not Window.SearchInited then
-				Window.SearchToggle = New("ImageButton", {
+				Window.SearchToggle = New("TextButton", {
 					Name = "SearchToggle",
 					Size = UDim2.new(0, 30, 0, 30),
 					Position = UDim2.new(1, -98, 0, 4),
