@@ -89,6 +89,311 @@ local Library = (function()
 			end)
 		end
 	end
+	local function MakeParagraphPanel(container, options)
+		local title = options.name or ""
+		local body = options.text or ""
+		local color = options.color
+		local ic = options.icon and Library:GetIcon(options.icon)
+		local lines = math.max(1, math.ceil(string.len(body) / 20))
+		local height = 42 + lines * 19
+		local Par = New("Frame", {
+			Name = title,
+			Size = UDim2.new(1, 0, 0, height),
+			BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+			BorderSizePixel = 0,
+			Parent = container,
+		})
+		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Par })
+		New("TextLabel", {
+			Name = "Title",
+			Size = UDim2.new(1, -28, 0, 20),
+			Position = UDim2.new(0, ic and 40 or 14, 0, 11),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = title,
+			TextSize = 16,
+			TextColor3 = color or Color3.fromRGB(230, 230, 236),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = Par,
+		})
+		if ic then
+			New("ImageLabel", {
+				Name = "Icon",
+				Size = UDim2.new(0, 16, 0, 16),
+				Position = UDim2.new(0, 14, 0, 13),
+				BackgroundTransparency = 1,
+				Image = ic,
+				ImageColor3 = Color3.fromRGB(150, 160, 180),
+				Parent = Par,
+			})
+		end
+		New("TextLabel", {
+			Name = "Text",
+			Size = UDim2.new(1, -28, 0, height - 44),
+			Position = UDim2.new(0, 14, 0, 36),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamMedium,
+			Text = body,
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(200, 200, 210),
+			TextWrapped = true,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			Parent = Par,
+		})
+		return Par
+	end
+	local function MakeColorpickerPanel(container, options)
+		local title = options.name or ""
+		local callback = options.callback
+		local ic = options.icon and Library:GetIcon(options.icon)
+		local ph, ps, pv = Color3.toHSV(options.default or Color3.fromRGB(255, 255, 255))
+		local hue = ph or 0
+		local sat = 1
+		local val = pv or 1
+		local Ctrl = New("Frame", {
+			Name = title,
+			Size = UDim2.new(1, 0, 0, 44),
+			BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+			BorderSizePixel = 0,
+			Parent = container,
+		})
+		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Ctrl })
+		local CtrlTitle = New("TextLabel", {
+			Name = "TextLabel",
+			Size = UDim2.new(1, -90, 0, 20),
+			Position = UDim2.new(0, 14, 0, 12),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamMedium,
+			Text = title,
+			TextSize = 16,
+			TextColor3 = Color3.fromRGB(230, 230, 236),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = Ctrl,
+		})
+		if ic then
+			CtrlTitle.Position = UDim2.new(0, 40, 0, 12)
+			New("ImageLabel", {
+				Name = "Icon",
+				Size = UDim2.new(0, 16, 0, 16),
+				Position = UDim2.new(0, 14, 0, 14),
+				BackgroundTransparency = 1,
+				Image = ic,
+				ImageColor3 = Color3.fromRGB(150, 160, 180),
+				Parent = Ctrl,
+			})
+		end
+		local Swatch = New("TextButton", {
+			Name = "Swatch",
+			Size = UDim2.new(0, 60, 0, 24),
+			Position = UDim2.new(1, -70, 0, 10),
+			BackgroundColor3 = Color3.fromHSV(hue, sat, val),
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
+			Parent = Ctrl,
+		})
+		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Swatch })
+		local Preview
+		local HexBox = nil
+		local Popup = nil
+		local OutsideConn = nil
+		local function Apply()
+			local col = Color3.fromHSV(hue, sat, val)
+			Swatch.BackgroundColor3 = col
+			if Preview then
+				Preview.BackgroundColor3 = col
+			end
+			if HexBox then
+				HexBox.Text = "#" .. tostring(col:ToHex())
+			end
+			if callback then
+				pcall(callback, col)
+			end
+		end
+		local function ClosePopup()
+			if Popup and Popup.Parent then
+				Popup:Destroy()
+			end
+			Popup = nil
+			Preview = nil
+			HexBox = nil
+			if OutsideConn then
+				OutsideConn:Disconnect()
+				OutsideConn = nil
+			end
+		end
+		local function OpenPopup()
+			local screen = container:FindFirstAncestorOfClass("ScreenGui")
+			if not screen then
+				return
+			end
+			local pos = Ctrl.AbsolutePosition
+			Popup = New("Frame", {
+				Name = "ColorPopup",
+				Size = UDim2.new(0, 220, 0, 126),
+				Position = UDim2.fromOffset(pos.X, pos.Y + 50),
+				BackgroundColor3 = Color3.fromRGB(24, 24, 30),
+				BorderSizePixel = 0,
+				ZIndex = 1000002,
+				Parent = screen,
+			})
+			New("UIStroke", { Color = Color3.fromRGB(60, 60, 70), Thickness = 1, Parent = Popup })
+			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Popup })
+			local HueBar = New("Frame", {
+				Name = "HueBar",
+				Size = UDim2.new(1, -16, 0, 14),
+				Position = UDim2.new(0, 8, 0, 8),
+				BackgroundColor3 = Color3.fromRGB(40, 40, 48),
+				BorderSizePixel = 0,
+				Parent = Popup,
+			})
+			New("UICorner", { CornerRadius = UDim.new(0, 7), Parent = HueBar })
+			local seg = 32
+			for i = 0, seg - 1 do
+				New("Frame", {
+					Size = UDim2.new(1 / seg, 0, 1, 0),
+					Position = UDim2.new(i / seg, 0, 0, 0),
+					BackgroundColor3 = Color3.fromHSV(i / seg, 1, 1),
+					BorderSizePixel = 0,
+					Parent = HueBar,
+				})
+			end
+			local ValueBar = New("Frame", {
+				Name = "ValueBar",
+				Size = UDim2.new(1, -16, 0, 6),
+				Position = UDim2.new(0, 8, 0, 34),
+				BackgroundColor3 = Color3.fromRGB(20, 20, 24),
+				BorderSizePixel = 0,
+				Parent = Popup,
+			})
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueBar })
+			local ValueFill = New("Frame", {
+				Name = "Fill",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundColor3 = Color3.fromHSV(hue, sat, val),
+				BorderSizePixel = 0,
+				Parent = ValueBar,
+			})
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueFill })
+			local ValueGrab = New("Frame", {
+				Name = "Grab",
+				Size = UDim2.new(0, 10, 0, 10),
+				Position = UDim2.new(val, -5, 0, -2),
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				BorderSizePixel = 0,
+				Parent = ValueBar,
+			})
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ValueGrab })
+			local FunctionBar = New("Frame", {
+				Name = "FunctionBar",
+				Size = UDim2.new(1, -20, 0, 16),
+				Position = UDim2.new(0, 10, 0, 60),
+				BackgroundColor3 = Color3.fromRGB(16, 16, 20),
+				BorderSizePixel = 0,
+				Parent = Popup,
+			})
+			New("UICorner", { CornerRadius = UDim.new(0, 4), Parent = FunctionBar })
+			Preview = New("Frame", {
+				Name = "Preview",
+				Size = UDim2.new(0, 54, 1, 0),
+				BackgroundColor3 = Color3.fromHSV(hue, sat, val),
+				BorderSizePixel = 0,
+				Parent = FunctionBar,
+			})
+			New("UICorner", { CornerRadius = UDim.new(0, 4), Parent = Preview })
+			HexBox = New("TextLabel", {
+				Name = "HexText",
+				Size = UDim2.new(1, -54, 1, 0),
+				Position = UDim2.new(0, 54, 0, 0),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = "#" .. tostring(Color3.fromHSV(hue, sat, val):ToHex()),
+				TextSize = 13,
+				TextColor3 = Color3.fromRGB(230, 230, 236),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = FunctionBar,
+			})
+			local function UpdateHue(x)
+				local rel = math.clamp((x - HueBar.AbsolutePosition.X) / HueBar.AbsoluteSize.X, 0, 1)
+				hue = rel
+				Apply()
+			end
+			local function UpdateVal(x)
+				val = math.clamp((x - ValueBar.AbsolutePosition.X) / ValueBar.AbsoluteSize.X, 0, 1)
+				ValueFill.Size = UDim2.new(val, 0, 1, 0)
+				ValueFill.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
+				ValueGrab.Position = UDim2.new(val, -5, 0, -2)
+				Apply()
+			end
+			local hueDrag = false
+			local valDrag = false
+			local function IsPress(input)
+				return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
+			end
+			local function StopDrag(input)
+				if IsPress(input) then
+					hueDrag = false
+					valDrag = false
+				end
+			end
+			HueBar.InputBegan:Connect(function(input)
+				if IsPress(input) then
+					hueDrag = true
+					UpdateHue(UserInputService:GetMouseLocation().X)
+				end
+			end)
+			HueBar.InputEnded:Connect(StopDrag)
+			ValueBar.InputBegan:Connect(function(input)
+				if IsPress(input) then
+					valDrag = true
+					UpdateVal(UserInputService:GetMouseLocation().X)
+				end
+			end)
+			ValueBar.InputEnded:Connect(StopDrag)
+			RunService.RenderStepped:Connect(function()
+				if hueDrag then
+					UpdateHue(UserInputService:GetMouseLocation().X)
+				end
+				if valDrag then
+					UpdateVal(UserInputService:GetMouseLocation().X)
+				end
+			end)
+			UserInputService.InputEnded:Connect(StopDrag)
+			OutsideConn = UserInputService.InputBegan:Connect(function(input)
+				if IsPress(input) then
+					local p = input.Position
+					local ap = Popup.AbsolutePosition
+					local asz = Popup.AbsoluteSize
+					if p.X < ap.X or p.X > ap.X + asz.X or p.Y < ap.Y or p.Y > ap.Y + asz.Y then
+						ClosePopup()
+					end
+				end
+			end)
+		end
+		Swatch.MouseButton1Click:Connect(function()
+			if Popup and Popup.Parent then
+				ClosePopup()
+			else
+				OpenPopup()
+			end
+		end)
+		local ColorObj = {}
+		function ColorObj:Get()
+			return Color3.fromHSV(hue, sat, val)
+		end
+		function ColorObj:SetValue(c)
+			local nh, ns, nv = Color3.toHSV(c)
+			hue = nh or 0
+			sat = 1
+			val = nv or 1
+			Apply()
+		end
+		Apply()
+		return ColorObj
+	end
 	function Library:CreateWindow(options)
 		local title = options.Title or "XHM Ultra"
 		local size = options.Size or UDim2.new(0, 680, 0, 460)
@@ -1052,6 +1357,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					})
 					return Sep
 				end
+				function SectionObj:AddParagraph(options)
+					return MakeParagraphPanel(Section, options)
+				end
+				function SectionObj:AddColorpicker(options)
+					return MakeColorpickerPanel(Section, options)
+				end
 				return SectionObj
 			end
 			function Tab:AddLabel(options)
@@ -1723,6 +2034,12 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				end
 				return KeyObj
 			end
+			function Tab:AddParagraph(options)
+				return MakeParagraphPanel(TabPage, options)
+			end
+			function Tab:AddColorpicker(options)
+				return MakeColorpickerPanel(TabPage, options)
+			end
 			if #TabButtons == 1 then
 				OnTabClick()
 			end
@@ -1944,6 +2261,47 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 		end
 		function Window:GetIcon()
 			return Window.Icon
+		end
+		local BackgroundImg = nil
+		function Window:SetBackgroundImage(url)
+			if not url then
+				return
+			end
+			if not BackgroundImg or not BackgroundImg.Parent then
+				BackgroundImg = New("ImageLabel", {
+					Name = "BackgroundImg",
+					Size = UDim2.new(1, 0, 1, 0),
+					Position = UDim2.new(0, 0, 0, 0),
+					BackgroundTransparency = 1,
+					ZIndex = 1,
+					Parent = Main,
+				})
+			end
+			Body.BackgroundTransparency = 0.45
+			TabsContainer.BackgroundTransparency = 0.45
+			if string.match(url, "^rbxasset") or string.match(url, "roblox%.com") then
+				BackgroundImg.Image = url
+			elseif string.match(url, "^https?://") then
+				pcall(function()
+					local data = game:HttpGet(url)
+					if writefile then
+						local ext = string.match(url, "%.(png|jpg|jpeg|webp|gif)$")
+						local filename = "XHMUltraBG." .. (ext or "png")
+						writefile(filename, data)
+						if getcustomasset then
+							BackgroundImg.Image = getcustomasset(filename)
+						end
+					end
+				end)
+			end
+		end
+		function Window:RemoveBackgroundImage()
+			if BackgroundImg and BackgroundImg.Parent then
+				BackgroundImg:Destroy()
+			end
+			BackgroundImg = nil
+			Body.BackgroundTransparency = 0
+			TabsContainer.BackgroundTransparency = 0
 		end
 		function Window:Notify(n)
 			if type(n) == "string" then
