@@ -554,11 +554,74 @@ local Library = (function()
 			ZIndex = 999999,
 			Parent = Main,
 		})
-		if type(options.BackgroundImage) == "string" and options.BackgroundImage ~= "" then
-			Main.BackgroundImage = options.BackgroundImage
+		local BackgroundVideo = nil
+		local function ClearVideoBG()
+			if BackgroundVideo and BackgroundVideo.Parent then
+				BackgroundVideo:Destroy()
+			end
+			BackgroundVideo = nil
+		end
+		local function ClearBG()
+			ClearVideoBG()
+			Main.BackgroundImage = ""
+			Main.BackgroundImageTransparency = 1
+			Body.BackgroundTransparency = 0
+			TabsContainer.BackgroundTransparency = 0
+		end
+		local function SetBGImage(img)
+			if type(img) ~= "string" or img == "" then
+				ClearBG()
+				return
+			end
+			ClearVideoBG()
+			Main.BackgroundImage = img
 			Main.BackgroundImageTransparency = 0
 			Body.BackgroundTransparency = 0.45
 			TabsContainer.BackgroundTransparency = 0.45
+		end
+		local function SetBGVideo(url)
+			if type(url) ~= "string" or url == "" then
+				ClearBG()
+				return
+			end
+			Main.BackgroundImage = ""
+			Main.BackgroundImageTransparency = 1
+			ClearVideoBG()
+			local asset = url
+			if string.match(url, "^http") then
+				pcall(function()
+					local data = game:HttpGet(url)
+					if writefile then
+						local ext = string.match(url, "%.(%w+)$")
+						local filename = "XHMUltraBG." .. (ext or "webm")
+						writefile(filename, data)
+						if getcustomasset then
+							asset = getcustomasset(filename)
+						end
+					end
+				end)
+			end
+			BackgroundVideo = New("VideoFrame", {
+				Name = "BackgroundVideo",
+				Size = UDim2.new(1, 0, 1, 0),
+				Position = UDim2.new(0, 0, 0, 0),
+				BackgroundTransparency = 1,
+				Video = asset,
+				Looped = true,
+				Volume = 0,
+				ZIndex = 1,
+				Parent = Main,
+			})
+			pcall(function()
+				BackgroundVideo:Play()
+			end)
+			Body.BackgroundTransparency = 0.45
+			TabsContainer.BackgroundTransparency = 0.45
+		end
+		if type(options.BackgroundImage) == "string" and options.BackgroundImage ~= "" then
+			SetBGImage(options.BackgroundImage)
+		elseif type(options.BackgroundVideo) == "string" and options.BackgroundVideo ~= "" then
+			SetBGVideo(options.BackgroundVideo)
 		end
 		local TopDivider = New("Frame", {
 			Name = "TopDivider",
@@ -2269,16 +2332,16 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			return Window.Icon
 		end
 		function Window:SetBackgroundImage(img)
-			Main.BackgroundImage = img or ""
-			Main.BackgroundImageTransparency = 0
-			Body.BackgroundTransparency = 0.45
-			TabsContainer.BackgroundTransparency = 0.45
+			SetBGImage(img)
+		end
+		function Window:SetVideoBackground(url)
+			SetBGVideo(url)
 		end
 		function Window:RemoveBackgroundImage()
-			Main.BackgroundImage = ""
-			Main.BackgroundImageTransparency = 1
-			Body.BackgroundTransparency = 0
-			TabsContainer.BackgroundTransparency = 0
+			ClearBG()
+		end
+		function Window:RemoveVideoBackground()
+			ClearBG()
 		end
 		function Window:Notify(n)
 			if type(n) == "string" then
