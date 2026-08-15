@@ -331,17 +331,20 @@ local Library = (function()
 				Size = UDim2.new(0, 6, 0, 160),
 				Position = UDim2.new(0, 184, 0, 40),
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				BackgroundTransparency = 1,
 				BorderSizePixel = 0,
 				Parent = Popup,
 			})
 			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HueBar })
-			local steps = 10
-			local seq = {}
-			for i = 0, steps do
-				table.insert(seq, ColorSequenceKeypoint.new(i / steps, Color3.fromHSV(i / steps, 1, 1)))
+			local segH = 160 / 80
+			for i = 0, 79 do
+				New("Frame", {
+					Size = UDim2.new(1, 0, 0, segH + 0.2),
+					Position = UDim2.new(0, 0, 0, segH * i),
+					BackgroundColor3 = Color3.fromHSV(i / 80, 1, 1),
+					BorderSizePixel = 0,
+					Parent = HueBar,
+				})
 			end
-			New("UIGradient", { Color = ColorSequence.new(seq), Rotation = 90, Parent = HueBar })
 			HueDrag = New("Frame", {
 				Name = "Cursor",
 				Size = UDim2.new(0, 14, 0, 14),
