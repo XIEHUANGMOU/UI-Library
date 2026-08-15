@@ -336,7 +336,7 @@ local Library = (function()
 				Parent = Popup,
 			})
 			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HueBar })
-			local steps = 20
+			local steps = 19
 			local seq = {}
 			for i = 0, steps do
 				table.insert(seq, ColorSequenceKeypoint.new(i / steps, Color3.fromHSV(i / steps, 1, 1)))
