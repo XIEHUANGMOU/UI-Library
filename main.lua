@@ -2512,12 +2512,17 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			return items
 		end
 		local function Window_BuildResults(q)
-			for _, c in ipairs(Window.SearchList:GetChildren()) do
-				if c:IsA("TextButton") then
-					c:Destroy()
+			if Window.SearchList then
+				for _, c in ipairs(Window.SearchList:GetChildren()) do
+					if c:IsA("TextButton") then
+						c:Destroy()
+					end
 				end
 			end
 			if not q or q == "" then
+				if Window.SearchPanel then
+					Window.SearchPanel.Visible = false
+				end
 				return
 			end
 			local items = SearchGatherItems()
@@ -2526,6 +2531,9 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				if SearchContains(it.Name, q) or SearchContains(it.Tab, q) then
 					table.insert(matches, it)
 				end
+			end
+			if Window.SearchPanel then
+				Window.SearchPanel.Visible = true
 			end
 			if #matches == 0 then
 				New("TextLabel", {
