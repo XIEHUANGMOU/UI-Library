@@ -2875,13 +2875,15 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				end
 			end
 		end
-		UserInputService.InputBegan:Connect(function(input, gpe)
+		local SearchBindConn = UserInputService.InputBegan:Connect(function(input, gpe)
 			if not gpe then
 				OnSearchHotkey(input)
 			end
 		end)
 		ScreenGui.Destroying:Connect(function()
-			UserInputService.InputBegan:Disconnect(OnSearchHotkey)
+			if SearchBindConn then
+				SearchBindConn:Disconnect()
+			end
 		end)
 		if UserInputService.TouchEnabled then
 			Window:OpenSearch()
