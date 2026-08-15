@@ -94,8 +94,8 @@ local Library = (function()
 		local body = options.text or ""
 		local color = options.color
 		local ic = options.icon and Library:GetIcon(options.icon)
-		local lines = math.max(1, math.ceil(string.len(body) / 20))
-		local height = 42 + lines * 19
+		local lines = math.max(1, math.ceil(string.len(body) / 15))
+		local height = 44 + lines * 28
 		local Par = New("Frame", {
 			Name = title,
 			Size = UDim2.new(1, 0, 0, height),
@@ -135,11 +135,11 @@ local Library = (function()
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
 			Text = body,
-			TextSize = 13,
 			TextColor3 = Color3.fromRGB(200, 200, 210),
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
+			TextSize = 20,
 			Parent = Par,
 		})
 		return Par
@@ -1236,6 +1236,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						TextXAlignment = Enum.TextXAlignment.Right,
 						Parent = Slider,
 					})
+					New("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = ValueText })
 					local SliderBar = New("Frame", {
 						Name = "Bar",
 						Size = UDim2.new(1, -24, 0, 4),
@@ -1841,6 +1842,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					TextXAlignment = Enum.TextXAlignment.Right,
 					Parent = Slider,
 				})
+				New("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = ValueText })
 				local SliderBar = New("Frame", {
 					Name = "Bar",
 					Size = UDim2.new(1, -24, 0, 4),
