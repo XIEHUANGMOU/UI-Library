@@ -2479,6 +2479,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			SearchPanel = nil,
 			SearchList = nil,
 			SearchBox = nil,
+			Title = title,
+			Icon = Logo.Image,
 		}
 		local function SearchContains(str, q)
 			if not str or not q or q == "" then
@@ -2529,7 +2531,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					Size = UDim2.new(1, 0, 0, 56),
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamMedium,
-					Text = "No results found",
+					Text = "未找到相关结果",
 					TextSize = 15,
 					TextColor3 = Color3.fromRGB(170, 170, 180),
 					Parent = Window.SearchList,
@@ -2603,7 +2605,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamMedium,
 				Text = "",
-				PlaceholderText = "Search...",
+				PlaceholderText = "搜索...",
 				TextSize = 17,
 				TextColor3 = Color3.fromRGB(235, 235, 240),
 				PlaceholderColor3 = Color3.fromRGB(120, 120, 132),
@@ -2685,9 +2687,6 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				page.CanvasPosition = Vector2.new(0, math.max(0, y - 8))
 			end
 		end
-			Title = title,
-			Icon = Logo.Image,
-		}
 		function Window:AddTab(options)
 			return CreateTab(options.name, options.icon)
 		end
@@ -2839,6 +2838,22 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 			Size = size,
 			Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
 		}):Play()
+		local function OnSearchHotkey(input)
+			if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
+				local ctrl = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+				if ctrl then
+					Window:OpenSearch()
+				end
+			end
+		end
+		UserInputService.InputBegan:Connect(function(input, gpe)
+			if not gpe then
+				OnSearchHotkey(input)
+			end
+		end)
+		ScreenGui.Destroying:Connect(function()
+			UserInputService.InputBegan:Disconnect(OnSearchHotkey)
+		end)
 		return Window
 	end
 	local NotifyGui = nil
