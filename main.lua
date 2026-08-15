@@ -554,6 +554,12 @@ local Library = (function()
 			ZIndex = 999999,
 			Parent = Main,
 		})
+		if type(options.BackgroundImage) == "string" and options.BackgroundImage ~= "" then
+			Main.BackgroundImage = options.BackgroundImage
+			Main.BackgroundImageTransparency = 0
+			Body.BackgroundTransparency = 0.45
+			TabsContainer.BackgroundTransparency = 0.45
+		end
 		local TopDivider = New("Frame", {
 			Name = "TopDivider",
 			Size = UDim2.new(1, 0, 0, 1),
