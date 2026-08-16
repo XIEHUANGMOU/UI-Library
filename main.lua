@@ -1275,9 +1275,8 @@ local Library = (function()
 					else
 						selected = (Value ~= nil) and (OptionTitle(Value) == title) or false
 					end
-					if query ~= "" and not string.find(string.lower(title), string.lower(query), 1, true) then
-						goto continue
-					end
+					local skipItem = (query ~= "") and (not string.find(string.lower(title), string.lower(query), 1, true))
+					if not skipItem then
 					local Item = New("TextButton", {
 						Name = title,
 						Size = UDim2.new(1, 0, 0, ItemHeight + (desc and 12 or 0)),
@@ -1363,7 +1362,7 @@ local Library = (function()
 							Rebuild(false)
 						end
 					end)
-					::continue::
+					end
 				end
 				if #Items == 0 then
 					local Empty = New("TextLabel", {
@@ -1566,6 +1565,7 @@ local Library = (function()
 			local Tab = {}
 			function Tab:AddSection(options)
 				local text = options.name
+				local desc = options.desc
 				local SectionIcon = Library:GetIcon(options.icon)
 				local Section = New("Frame", {
 					Name = text,
