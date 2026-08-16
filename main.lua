@@ -350,7 +350,7 @@ local Library = (function()
 		local vib = pv or 1
 		local Ctrl = New("Frame", {
 			Name = title,
-			Size = UDim2.new(1, 0, 0, 44),
+			Size = UDim2.new(1, 0, 0, 36),
 			BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 			BorderSizePixel = 0,
 			Parent = container,
@@ -703,10 +703,20 @@ local Library = (function()
 			Scale = 0.85,
 			Parent = ScreenGui,
 		})
-		local FitViewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
-		local FitScale = math.min(1, math.min((FitViewport.X - 24) / size.X.Offset, (FitViewport.Y - 24) / size.Y.Offset))
-		if FitScale < 1 then
-			WindowScale.Scale = WindowScale.Scale * FitScale
+		local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
+		local BaseDPI = 1
+		if type(options.DPI) == "number" and options.DPI > 0 then
+			BaseDPI = options.DPI
+		else
+			BaseDPI = math.clamp(ViewportSize.X / 1920, 0.5, 1.5)
+		end
+		local FitScale = math.min(1, math.min((ViewportSize.X - 24) / size.X.Offset, (ViewportSize.Y - 24) / size.Y.Offset))
+		WindowScale.Scale = WindowScale.Scale * BaseDPI * (FitScale < 1 and FitScale or 1)
+		UIScale = BaseDPI
+		local function ApplyDPI()
+			if WindowScale then
+				WindowScale.Scale = 0.85 * UIScale * (FitScale < 1 and FitScale or 1)
+			end
 		end
 		pcall(function()
 			local CoreGui = game:GetService("CoreGui")
@@ -774,8 +784,9 @@ local Library = (function()
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			Parent = TopBar,
 		})
+		local SubtitleLabel = nil
 		if options.Subtitle then
-			New("TextLabel", {
+			SubtitleLabel = New("TextLabel", {
 				Name = "Subtitle",
 				Size = UDim2.new(0.5, -44, 0, 13),
 				Position = UDim2.new(0, 38, 0, 21),
@@ -789,12 +800,14 @@ local Library = (function()
 				TextTruncate = Enum.TextTruncate.AtEnd,
 				Parent = TopBar,
 			})
+			SubtitleLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+				LayoutTopBarTags()
+			end)
 		end
 		local TopBarTags = New("ScrollingFrame", {
 			Name = "TitleTags",
 			Size = UDim2.new(0, 240, 0, 26),
-			Position = UDim2.new(1, -322, 0, 6),
-			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(0, 46, 0, 6),
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			ScrollBarThickness = 0,
@@ -832,6 +845,25 @@ local Library = (function()
 				TagsDragging = false
 			end
 		end)
+		local function LayoutTopBarTags()
+			local tbW = TopBar.AbsoluteSize.X
+			local rightEdge = math.max(120, tbW - 322)
+			local leftBound = 46
+			local guard = 0
+			if SubtitleLabel and SubtitleLabel.AbsoluteSize.X > 0 then
+				guard = SubtitleLabel.AbsolutePosition.X + SubtitleLabel.AbsoluteSize.X
+			elseif TitleLabel and TitleLabel.AbsoluteSize.X > 0 then
+				guard = TitleLabel.AbsolutePosition.X + TitleLabel.AbsoluteSize.X
+			end
+			if guard > 0 then
+				leftBound = guard + 8
+			end
+			local w = math.max(0, rightEdge - leftBound)
+			TopBarTags.Position = UDim2.new(0, leftBound, 0, 6)
+			TopBarTags.Size = UDim2.new(0, w, 0, 26)
+		end
+		TopBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(LayoutTopBarTags)
+		task.defer(LayoutTopBarTags)
 		local MinimizeButton = New("TextButton", {
 			Name = "Minimize",
 			Size = UDim2.new(0, 30, 0, 30),
@@ -1629,7 +1661,7 @@ local Library = (function()
 				})
 				local Header = New("TextButton", {
 					Name = "Header",
-					Size = UDim2.new(1, 0, 0, 34),
+				Size = UDim2.new(1, 0, 0, 36),
 					BackgroundTransparency = 1,
 					AutoButtonColor = false,
 					Text = "",
@@ -1717,8 +1749,49 @@ local Library = (function()
 				})
 				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingBottom = UDim.new(0, 2), Parent = SectionContent })
 				local SectionOpened = true
+				local ContentPadTop = 4
+				local ContentPadBot = 2
+				local ContentGap = 6
+				local function IsSectionVisible()
+					local node = SectionContent
+					while node and node:IsA("GuiObject") do
+						if not node.Visible then
+							return false
+						end
+						node = node.Parent
+					end
+					return true
+				end
+				local function EstimateContentHeight()
+					local h = 0
+					local n = 0
+					for _, child in ipairs(SectionContent:GetChildren()) do
+						if child:IsA("GuiObject") then
+							local y = child.AbsoluteSize.Y
+							if y <= 0 then
+								y = (child.Size and child.Size.Y.Offset) or 0
+							end
+							if y > 0 then
+								h = h + y
+								n = n + 1
+							end
+						end
+					end
+					if n > 1 then
+						h = h + (n - 1) * ContentGap
+					end
+					return h
+				end
 				local function SectionOpenHeight()
-					return math.clamp(SectionContentLayout.AbsoluteContentSize.Y, 0, 10000)
+					local abs = SectionContentLayout.AbsoluteContentSize.Y
+					if abs > 0 then
+						return math.clamp(abs + ContentPadTop + ContentPadBot, 0, 10000)
+					end
+					local est = EstimateContentHeight()
+					if est > 0 then
+						return math.clamp(est + ContentPadTop + ContentPadBot, 0, 10000)
+					end
+					return ContentPadTop + ContentPadBot
 				end
 				local function SetSectionOpened(v, animate)
 					SectionOpened = v
@@ -1731,7 +1804,6 @@ local Library = (function()
 						}):Play()
 						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 0 }):Play()
 					else
-						local from = SectionContent.Size.Y.Offset
 						TweenService:Create(SectionContent, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
 							Size = UDim2.new(1, 0, 0, 0),
 						}):Play()
@@ -1743,12 +1815,23 @@ local Library = (function()
 						end)
 					end
 				end
+				local function SyncSectionHeight()
+					if SectionOpened and SectionContent.Visible then
+						SectionContent.Size = UDim2.new(1, 0, 0, SectionOpenHeight())
+					end
+				end
 				Header.MouseButton1Click:Connect(function()
 					SetSectionOpened(not SectionOpened, true)
 				end)
-				SectionContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-					if SectionOpened and SectionContent.Visible then
-						SectionContent.Size = UDim2.new(1, 0, 0, SectionOpenHeight())
+				SectionContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(SyncSectionHeight)
+				task.spawn(function()
+					local waited = 0
+					while waited < 300 do
+						if IsSectionVisible() then
+							SyncSectionHeight()
+						end
+						task.wait(0.2)
+						waited = waited + 1
 					end
 				end)
 				local SectionObj = {}
@@ -1758,7 +1841,7 @@ local Library = (function()
 					local ic = Library:GetIcon(options.icon)
 					local Button = New("TextButton", {
 						Name = text,
-						Size = UDim2.new(1, 0, 0, 32),
+					Size = UDim2.new(1, 0, 0, 36),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
 						AutoButtonColor = false,
@@ -1976,7 +2059,7 @@ local Library = (function()
 					local ic = Library:GetIcon(options.icon)
 					local Slider = New("Frame", {
 						Name = text,
-						Size = UDim2.new(1, 0, 0, 48),
+					Size = UDim2.new(1, 0, 0, 36),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
 						Parent = SectionContent,
@@ -2070,7 +2153,7 @@ local Library = (function()
 					local SliderBar = New("Frame", {
 						Name = "Bar",
 						Size = UDim2.new(1, -24, 0, 4),
-						Position = UDim2.new(0, 12, 0, 32),
+						Position = UDim2.new(0, 12, 0, 28),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Parent = Slider,
@@ -2328,7 +2411,7 @@ PlaceholderText = "请输入",
 				local ic = Library:GetIcon(options.icon)
 				local Button = New("TextButton", {
 					Name = text,
-					Size = UDim2.new(1, 0, 0, 32),
+				Size = UDim2.new(1, 0, 0, 36),
 					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 					BorderSizePixel = 0,
 					AutoButtonColor = false,
@@ -2495,7 +2578,7 @@ PlaceholderText = "请输入",
 				local ic = Library:GetIcon(options.icon)
 				local Slider = New("Frame", {
 					Name = text,
-					Size = UDim2.new(1, 0, 0, 48),
+				Size = UDim2.new(1, 0, 0, 36),
 					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 					BorderSizePixel = 0,
 					Parent = TabPage,
@@ -2589,7 +2672,7 @@ PlaceholderText = "请输入",
 				local SliderBar = New("Frame", {
 					Name = "Bar",
 					Size = UDim2.new(1, -24, 0, 4),
-					Position = UDim2.new(0, 12, 0, 32),
+					Position = UDim2.new(0, 12, 0, 28),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Parent = Slider,
@@ -3501,6 +3584,89 @@ PlaceholderText = "请输入",
 		end)
 		if UserInputService.TouchEnabled then
 			Window:OpenSearch()
+		end
+		local MinSizeX = size.X.Offset
+		local MinSizeY = size.Y.Offset
+		local function ClampMainSize()
+			local w = math.max(MinSizeX, Main.Size.X.Offset)
+			local h = math.max(MinSizeY, Main.Size.Y.Offset)
+			Main.Size = UDim2.new(0, w, 0, h)
+			Main.Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2)
+		end
+		local BottomBar = New("Frame", {
+			Name = "BottomResizeBar",
+			Size = UDim2.new(1, 0, 0, 5),
+			Position = UDim2.new(0, 0, 1, -5),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.75,
+			BorderSizePixel = 0,
+			ZIndex = 1000000,
+			Parent = Main,
+		})
+		local ResizeHandle = New("ImageLabel", {
+			Name = "ResizeHandle",
+			Size = UDim2.new(0, 14, 0, 14),
+			Position = UDim2.new(1, -8, 1, -8),
+			AnchorPoint = Vector2.new(1, 1),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("grip-horizontal"),
+			ImageColor3 = Color3.fromRGB(235, 235, 240),
+			ScaleType = Enum.ScaleType.Fit,
+			ZIndex = 1000001,
+			Parent = Main,
+		})
+		Library:SetIcon(ResizeHandle, "grip-horizontal", 12)
+		local ResizeDrag = false
+		local ResizeStart = Vector2.new(0, 0)
+		local ResizeOrigin = Vector2.new(0, 0)
+		local function BeginResize(input)
+			ResizeDrag = true
+			ResizeStart = input.Position
+			ResizeOrigin = Vector2.new(Main.Size.X.Offset, Main.Size.Y.Offset)
+		end
+		local function UpdateResize(input)
+			if not ResizeDrag then
+				return
+			end
+			local dx = input.Position.X - ResizeStart.X
+			local dy = input.Position.Y - ResizeStart.Y
+			Main.Size = UDim2.new(0, math.max(MinSizeX, ResizeOrigin.X + dx), 0, math.max(MinSizeY, ResizeOrigin.Y + dy))
+			ClampMainSize()
+		end
+		local function EndResize(input)
+			ResizeDrag = false
+		end
+		ResizeHandle.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				BeginResize(input)
+			end
+		end)
+		BottomBar.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				BeginResize(input)
+			end
+		end)
+		BottomBar.InputChanged:Connect(function(input)
+			if ResizeDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				UpdateResize(input)
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(input)
+			if ResizeDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				UpdateResize(input)
+			end
+		end)
+		UserInputService.InputEnded:Connect(EndResize)
+		function Window:SetSize(w, h)
+			Main.Size = UDim2.new(0, math.max(MinSizeX, w or Main.Size.X.Offset), 0, math.max(MinSizeY, h or Main.Size.Y.Offset))
+			ClampMainSize()
+		end
+		function Window:GetSize()
+			return Main.Size
+		end
+		function Window:SetDPI(d)
+			UIScale = (type(d) == "number" and d > 0) and d or 1
+			ApplyDPI()
 		end
 		return Window
 	end
