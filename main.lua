@@ -46,7 +46,7 @@ local Library = (function()
 		end
 		LoadingGui = New("ScreenGui", {
 			Name = "XHMLoading",
-			DisplayOrder = 999999999,
+			DisplayOrder = 1000000002,
 			ResetOnSpawn = true,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
