@@ -790,6 +790,48 @@ local Library = (function()
 				Parent = TopBar,
 			})
 		end
+		local TopBarTags = New("ScrollingFrame", {
+			Name = "TitleTags",
+			Size = UDim2.new(0, 240, 0, 26),
+			Position = UDim2.new(1, -322, 0, 6),
+			AnchorPoint = Vector2.new(1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ScrollBarThickness = 0,
+			ScrollingDirection = Enum.ScrollingDirection.X,
+			AutomaticCanvasSize = Enum.AutomaticSize.X,
+			CanvasSize = UDim2.new(0, 0, 0, 0),
+			Parent = TopBar,
+		})
+		New("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 6),
+			Parent = TopBarTags,
+		})
+		New("UIPadding", { PaddingRight = UDim.new(0, 4), Parent = TopBarTags })
+		local TagsDragging = false
+		local TagsDragStart = 0
+		local TagsStartCanvas = 0
+		TopBarTags.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				TagsDragging = true
+				TagsDragStart = input.Position.X
+				TagsStartCanvas = TopBarTags.CanvasPosition.X
+			end
+		end)
+		TopBarTags.InputChanged:Connect(function(input)
+			if TagsDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local maxX = math.max(0, TopBarTags.AbsoluteCanvasSize.X - TopBarTags.AbsoluteSize.X)
+				TopBarTags.CanvasPosition = Vector2.new(math.clamp(TagsStartCanvas + (TagsDragStart - input.Position.X), 0, maxX), 0)
+			end
+		end)
+		TopBarTags.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				TagsDragging = false
+			end
+		end)
 		local MinimizeButton = New("TextButton", {
 			Name = "Minimize",
 			Size = UDim2.new(0, 30, 0, 30),
@@ -1380,7 +1422,18 @@ local Library = (function()
 			end
 			local function UpdatePosition()
 				local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
-				Menu.Position = UDim2.fromOffset(math.min(frame.AbsolutePosition.X, viewport.X - Menu.AbsoluteSize.X - 8), 0)
+				local rightEdge = frame.AbsolutePosition.X + frame.AbsoluteSize.X
+				local mw = Menu.AbsoluteSize.X
+				if mw <= 0 then
+					mw = MenuWidth
+				end
+				local left = rightEdge + 4
+				if left + mw > viewport.X - 8 then
+					left = rightEdge - mw - 4
+					if left < 0 then
+						left = 0
+					end
+				end
 				local below = viewport.Y - (frame.AbsolutePosition.Y + frame.AbsoluteSize.Y)
 				local req = ScrollListLayout.AbsoluteContentSize.Y + 12
 				local y = frame.AbsolutePosition.Y + frame.AbsoluteSize.Y + 2
@@ -1390,7 +1443,7 @@ local Library = (function()
 						y = 0
 					end
 				end
-				Menu.Position = UDim2.fromOffset(Menu.Position.X.Offset, y)
+				Menu.Position = UDim2.fromOffset(left, y)
 			end
 			local function OpenMenu()
 				if isLocked then
@@ -1587,7 +1640,8 @@ local Library = (function()
 					HeaderIcon = New("ImageLabel", {
 						Name = "Icon",
 						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(0, 14, 0, 9),
+						Position = UDim2.new(0, 14, 0.5, -8),
+						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
 						Image = SectionIcon,
 						ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -1641,7 +1695,7 @@ local Library = (function()
 					Name = "Content",
 					Size = UDim2.new(1, 0, 0, 0),
 					BackgroundTransparency = 1,
-					AutomaticSize = Enum.AutomaticSize.Y,
+					ClipsDescendants = true,
 					Parent = Section,
 				})
 				New("Frame", {
@@ -1656,17 +1710,46 @@ local Library = (function()
 					Padding = UDim.new(0, 0),
 					Parent = Section,
 				})
-				New("UIListLayout", {
+				local SectionContentLayout = New("UIListLayout", {
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					Padding = UDim.new(0, 6),
 					Parent = SectionContent,
 				})
 				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingBottom = UDim.new(0, 2), Parent = SectionContent })
 				local SectionOpened = true
+				local function SectionOpenHeight()
+					return math.clamp(SectionContentLayout.AbsoluteContentSize.Y, 0, 10000)
+				end
+				local function SetSectionOpened(v, animate)
+					SectionOpened = v
+					if v then
+						SectionContent.Visible = true
+						local target = SectionOpenHeight()
+						SectionContent.Size = UDim2.new(1, 0, 0, 0)
+						TweenService:Create(SectionContent, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+							Size = UDim2.new(1, 0, 0, target),
+						}):Play()
+						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 0 }):Play()
+					else
+						local from = SectionContent.Size.Y.Offset
+						TweenService:Create(SectionContent, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+							Size = UDim2.new(1, 0, 0, 0),
+						}):Play()
+						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 180 }):Play()
+						task.delay(0.2, function()
+							if not SectionOpened then
+								SectionContent.Visible = false
+							end
+						end)
+					end
+				end
 				Header.MouseButton1Click:Connect(function()
-					SectionOpened = not SectionOpened
-					SectionContent.Visible = SectionOpened
-					Chevron.Rotation = SectionOpened and 0 or 180
+					SetSectionOpened(not SectionOpened, true)
+				end)
+				SectionContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+					if SectionOpened and SectionContent.Visible then
+						SectionContent.Size = UDim2.new(1, 0, 0, SectionOpenHeight())
+					end
 				end)
 				local SectionObj = {}
 				function SectionObj:AddButton(options)
@@ -1865,7 +1948,8 @@ local Library = (function()
 						New("ImageLabel", {
 							Name = "Icon",
 							Size = UDim2.new(0, 16, 0, 16),
-							Position = UDim2.new(0, 14, 0, 6),
+							Position = UDim2.new(0, 14, 0.5, -8),
+							AnchorPoint = Vector2.new(0, 0),
 							BackgroundTransparency = 1,
 							Image = ic,
 							ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -2219,7 +2303,8 @@ PlaceholderText = "请输入",
 					New("ImageLabel", {
 						Name = "Icon",
 						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(0, 14, 0, 6),
+						Position = UDim2.new(0, 14, 0.5, -8),
+						AnchorPoint = Vector2.new(0, 0),
 						BackgroundTransparency = 1,
 						Image = ic,
 						ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -3250,6 +3335,9 @@ PlaceholderText = "请输入",
 		function Window:SetTitle(t)
 			Window.Title = t
 			TitleLabel.Text = t
+		end
+		function Window:AddTag(options)
+			return MakeTag(TopBarTags, options)
 		end
 		function Window:GetScreenGui()
 			return ScreenGui
