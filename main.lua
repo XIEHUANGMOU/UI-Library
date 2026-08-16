@@ -96,40 +96,48 @@ local Library = (function()
 		local ic = options.icon and Library:GetIcon(options.icon)
 		local Par = New("Frame", {
 			Name = title,
-			Size = UDim2.new(1, 0, 0, 46),
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 			BorderSizePixel = 0,
 			Parent = container,
 		})
 		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Par })
-		New("TextLabel", {
-			Name = "Title",
-			Size = UDim2.new(1, -28, 0, 20),
-			Position = UDim2.new(0, ic and 40 or 14, 0, 11),
-			BackgroundTransparency = 1,
-			Font = Enum.Font.GothamSemibold,
-			Text = title,
-			TextSize = 16,
-			TextColor3 = color or Color3.fromRGB(230, 230, 236),
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextTruncate = Enum.TextTruncate.AtEnd,
+		local iconPad = ic and 40 or 14
+		local ParLayout = New("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 6),
 			Parent = Par,
 		})
+		New("UIPadding", { PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, iconPad), PaddingRight = UDim.new(0, 14), Parent = Par })
 		if ic then
 			New("ImageLabel", {
 				Name = "Icon",
 				Size = UDim2.new(0, 16, 0, 16),
-				Position = UDim2.new(0, 14, 0, 13),
+				Position = UDim2.new(0, 0, 0, 12),
 				BackgroundTransparency = 1,
 				Image = ic,
 				ImageColor3 = Color3.fromRGB(150, 160, 180),
 				Parent = Par,
 			})
 		end
+		local TitleLabel = New("TextLabel", {
+			Name = "Title",
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = title,
+			TextSize = 16,
+			TextColor3 = color or Color3.fromRGB(230, 230, 236),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = true,
+			Parent = Par,
+		})
 		local BodyLabel = New("TextLabel", {
 			Name = "Text",
-			Size = UDim2.new(1, -28, 0, 32),
-			Position = UDim2.new(0, 14, 0, 36),
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
 			Text = body,
@@ -140,93 +148,20 @@ local Library = (function()
 			TextYAlignment = Enum.TextYAlignment.Top,
 			Parent = Par,
 		})
-		local function CountChars(str)
-			local n = 0
-			for _ in string.gmatch(str or "", "[^\128-\191]") do
-				n = n + 1
-			end
-			return n
-		end
-		local function IsActuallyVisible()
-			local node = Par
-			while node and node:IsA("GuiObject") do
-				if not node.Visible then
-					return false
-				end
-				node = node.Parent
-			end
-			return true
-		end
-		local function EstimateHeight()
-			local w = Par.AbsoluteSize.X - 28
-			if w <= 0 then
-				w = (container and container.AbsoluteSize.X or 400) - 28
-			end
-			if w <= 0 then
-				w = 400
-			end
-			local perLine = math.max(1, math.floor(w / 20))
-			local lines = math.max(1, math.ceil(CountChars(BodyLabel.Text) / perLine))
-			return 44 + lines * 28
-		end
-		local function ApplyHeight(contentH)
-			contentH = math.max(1, math.ceil(contentH or 0))
-			BodyLabel.Size = UDim2.new(1, -28, 0, contentH)
-			Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
-		end
-		local function PreciseRefresh()
-			if not IsActuallyVisible() then
-				return false
-			end
-			task.wait()
-			if not IsActuallyVisible() then
-				return false
-			end
-			ApplyHeight(BodyLabel.TextBounds.Y)
-			return true
-		end
-		local NeedPrecise = true
-		local function ApplyCurrent()
-			if PreciseRefresh() then
-				NeedPrecise = false
-				return
-			end
-			ApplyHeight(EstimateHeight())
-			NeedPrecise = true
-		end
-		task.spawn(function()
-			while NeedPrecise do
-				if task.wait(0.15) == nil then
-					break
-				end
-				if IsActuallyVisible() then
-					if PreciseRefresh() then
-						NeedPrecise = false
-						break
-					end
-				end
-			end
-		end)
 		local ParObj = {
 			Frame = Par,
 			Instance = Par,
+			Layout = ParLayout,
 		}
 		function ParObj:SetText(t)
 			BodyLabel.Text = t or ""
-			ApplyHeight(EstimateHeight())
-			NeedPrecise = true
-			task.spawn(function()
-				if PreciseRefresh() then
-					NeedPrecise = false
-					return
-				end
-				NeedPrecise = true
-			end)
+		end
+		function ParObj:SetTitle(t)
+			TitleLabel.Text = t or ""
 		end
 		function ParObj:GetFrame()
 			return Par
 		end
-		ApplyCurrent()
 		return ParObj
 	end
 	local function MakeTag(container, options)
@@ -374,7 +309,7 @@ local Library = (function()
 			New("ImageLabel", {
 				Name = "Icon",
 				Size = UDim2.new(0, 16, 0, 16),
-				Position = UDim2.new(0, 14, 0, 14),
+				Position = UDim2.new(0, 14, 0.5, -8),
 				BackgroundTransparency = 1,
 				Image = ic,
 				ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -949,7 +884,8 @@ local Library = (function()
 		end)
 		local function LayoutTopBarTags()
 			local tbW = TopBar.AbsoluteSize.X
-			local rightEdge = math.max(120, tbW - 322)
+			local sb = TopBar:FindFirstChild("SearchBox")
+			local rightEdge = math.max(120, (sb and sb.Visible) and (tbW - 252) or (tbW - 136))
 			local leftBound = 46
 			local guard = 0
 			if SubtitleLabel and SubtitleLabel.TextBounds.X > 0 then
@@ -1901,7 +1837,7 @@ local Library = (function()
 						New("ImageLabel", {
 							Name = "Icon",
 							Size = UDim2.new(0, 16, 0, 16),
-							Position = UDim2.new(0, 14, 0, 8),
+							Position = UDim2.new(0, 14, 0.5, -8),
 							BackgroundTransparency = 1,
 							Image = ic,
 							ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -2471,7 +2407,7 @@ PlaceholderText = "请输入",
 					New("ImageLabel", {
 						Name = "Icon",
 						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(0, 14, 0, 8),
+						Position = UDim2.new(0, 14, 0.5, -8),
 						BackgroundTransparency = 1,
 						Image = ic,
 						ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -3397,6 +3333,7 @@ PlaceholderText = "请输入",
 			Window.SearchBox.Visible = true
 			Window.SearchPanel.Visible = true
 			Window_BuildResults(Window.SearchBox.Text)
+			LayoutTopBarTags()
 			if not UserInputService.TouchEnabled then
 				task.spawn(function()
 					Window.SearchBox:CaptureFocus()
@@ -3411,6 +3348,7 @@ PlaceholderText = "请输入",
 			Window.SearchBox.Visible = false
 			Window.SearchBox.Text = ""
 			Window.SearchPanel.Visible = false
+			LayoutTopBarTags()
 		end
 		function Window:SelectSearchResult(it)
 			if not it then
