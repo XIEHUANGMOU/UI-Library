@@ -1292,7 +1292,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Slider })
 					local SliderText = New("TextLabel", {
 						Name = "TextLabel",
-						Size = UDim2.new(0.7, 0, 0, 20),
+						Size = UDim2.new(0.56, 0, 0, 20),
 						Position = UDim2.new(0, ic and 40 or 14, 0, 6),
 						BackgroundTransparency = 1,
 						Font = Enum.Font.GothamMedium,
@@ -1317,7 +1317,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					local ValueBox = New("TextBox", {
 						Name = "ValueText",
 						Size = UDim2.new(0.3, -16, 0, 22),
-						Position = UDim2.new(0.7, 0, 0, 5),
+						Position = UDim2.new(0.72, 0, 0, 5),
 						BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 						BorderSizePixel = 0,
 						Font = Enum.Font.GothamBold,
@@ -1333,8 +1333,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = ValueBox })
 					local MinusBtn = New("TextButton", {
 						Name = "Minus",
-						Size = UDim2.new(0, 18, 0, 18),
-						Position = UDim2.new(0, 6, 0, 25),
+						Size = UDim2.new(0, 18, 0, 16),
+						Position = UDim2.new(0.66, -20, 0, 6),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Text = "",
@@ -1355,8 +1355,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					Library:SetIcon(MinusIcon, "minus", 12)
 					local PlusBtn = New("TextButton", {
 						Name = "Plus",
-						Size = UDim2.new(0, 18, 0, 18),
-						Position = UDim2.new(1, -24, 0, 25),
+						Size = UDim2.new(0, 18, 0, 16),
+						Position = UDim2.new(0.66, 4, 0, 6),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Text = "",
@@ -1377,8 +1377,8 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					Library:SetIcon(PlusIcon, "plus", 12)
 					local SliderBar = New("Frame", {
 						Name = "Bar",
-						Size = UDim2.new(1, -64, 0, 4),
-						Position = UDim2.new(0, 30, 0, 32),
+						Size = UDim2.new(1, -24, 0, 4),
+						Position = UDim2.new(0, 12, 0, 32),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Parent = Slider,
@@ -1968,7 +1968,7 @@ local Selected = default or "未选择"
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Slider })
 				local SliderText = New("TextLabel", {
 					Name = "TextLabel",
-					Size = UDim2.new(0.7, 0, 0, 20),
+					Size = UDim2.new(0.56, 0, 0, 20),
 					Position = UDim2.new(0, ic and 40 or 14, 0, 6),
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamMedium,
@@ -1993,7 +1993,7 @@ local Selected = default or "未选择"
 				local ValueBox = New("TextBox", {
 					Name = "ValueText",
 					Size = UDim2.new(0.3, -16, 0, 22),
-					Position = UDim2.new(0.7, 0, 0, 5),
+					Position = UDim2.new(0.72, 0, 0, 5),
 					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 					BorderSizePixel = 0,
 					Font = Enum.Font.GothamBold,
@@ -2009,8 +2009,8 @@ local Selected = default or "未选择"
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = ValueBox })
 				local MinusBtn = New("TextButton", {
 					Name = "Minus",
-					Size = UDim2.new(0, 18, 0, 18),
-					Position = UDim2.new(0, 6, 0, 25),
+					Size = UDim2.new(0, 18, 0, 16),
+					Position = UDim2.new(0.66, -20, 0, 6),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Text = "",
@@ -2031,8 +2031,8 @@ local Selected = default or "未选择"
 				Library:SetIcon(MinusIcon, "minus", 12)
 				local PlusBtn = New("TextButton", {
 					Name = "Plus",
-					Size = UDim2.new(0, 18, 0, 18),
-					Position = UDim2.new(1, -24, 0, 25),
+					Size = UDim2.new(0, 18, 0, 16),
+					Position = UDim2.new(0.66, 4, 0, 6),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Text = "",
@@ -2053,8 +2053,8 @@ local Selected = default or "未选择"
 				Library:SetIcon(PlusIcon, "plus", 12)
 				local SliderBar = New("Frame", {
 					Name = "Bar",
-					Size = UDim2.new(1, -64, 0, 4),
-					Position = UDim2.new(0, 30, 0, 32),
+					Size = UDim2.new(1, -24, 0, 4),
+					Position = UDim2.new(0, 12, 0, 32),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Parent = Slider,
