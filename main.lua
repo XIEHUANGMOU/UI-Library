@@ -737,6 +737,111 @@ local Library = (function()
 			Parent = ScreenGui,
 		})
 		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
+		local MinSizeX = size.X.Offset
+		local MinSizeY = size.Y.Offset
+		local function ClampMainSize()
+			local w = math.max(MinSizeX, Main.Size.X.Offset)
+			local h = math.max(MinSizeY, Main.Size.Y.Offset)
+			Main.Size = UDim2.new(0, w, 0, h)
+			Main.Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2)
+		end
+		local BottomBar = New("Frame", {
+			Name = "BottomDragBar",
+			Size = UDim2.new(0, 160, 0, 4),
+			Position = UDim2.new(0.5, 0, 1, 4),
+			AnchorPoint = Vector2.new(0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.2,
+			BorderSizePixel = 0,
+			ZIndex = 1000000,
+			Parent = Main,
+		})
+		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = BottomBar })
+		local BottomDragHit = New("TextButton", {
+			Name = "Hit",
+			Size = UDim2.new(1, 12, 1, 12),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Text = "",
+			Active = true,
+			ZIndex = 1000001,
+			Parent = BottomBar,
+		})
+		local BottomDragging = false
+		local BottomDragStart = Vector2.new(0, 0)
+		local BottomDragOrigin = UDim2.new(0, 0, 0, 0)
+		BottomDragHit.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				BottomDragging = true
+				BottomDragStart = input.Position
+				BottomDragOrigin = Main.Position
+			end
+		end)
+		BottomDragHit.InputChanged:Connect(function(input)
+			if BottomDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				Main.Position = UDim2.new(0, BottomDragOrigin.X.Offset + (input.Position.X - BottomDragStart.X), 0, BottomDragOrigin.Y.Offset + (input.Position.Y - BottomDragStart.Y))
+			end
+		end)
+		BottomDragHit.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				BottomDragging = false
+			end
+		end)
+		local ResizeHandle = New("Frame", {
+			Name = "ResizeHandle",
+			Size = UDim2.new(0, 32, 0, 32),
+			Position = UDim2.new(1, 0, 1, 0),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Active = true,
+			ZIndex = 1000000,
+			Parent = Main,
+		})
+		local ResizeArrow = New("ImageLabel", {
+			Name = "Arrow",
+			Size = UDim2.new(0, 22, 0, 22),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("arrow-down-right"),
+			ImageColor3 = Color3.fromRGB(235, 235, 240),
+			ImageTransparency = 0.3,
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = ResizeHandle,
+		})
+		Library:SetIcon(ResizeArrow, "arrow-down-right", 12)
+		local ResizeDrag = false
+		local ResizeStart = Vector2.new(0, 0)
+		local ResizeOrigin = Vector2.new(0, 0)
+		local function BeginResize(input)
+			ResizeDrag = true
+			ResizeStart = input.Position
+			ResizeOrigin = Vector2.new(Main.Size.X.Offset, Main.Size.Y.Offset)
+		end
+		local function UpdateResize(input)
+			if not ResizeDrag then
+				return
+			end
+			local dx = input.Position.X - ResizeStart.X
+			local dy = input.Position.Y - ResizeStart.Y
+			Main.Size = UDim2.new(0, math.max(MinSizeX, ResizeOrigin.X + dx), 0, math.max(MinSizeY, ResizeOrigin.Y + dy))
+			ClampMainSize()
+		end
+		local function EndResize(input)
+			ResizeDrag = false
+		end
+		ResizeHandle.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				BeginResize(input)
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(input)
+			if ResizeDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				UpdateResize(input)
+			end
+		end)
+		UserInputService.InputEnded:Connect(EndResize)
 		local TopBar = New("Frame", {
 			Name = "TopBar",
 			Size = UDim2.new(1, 0, 0, 38),
@@ -1050,6 +1155,9 @@ local Library = (function()
 			ZIndex = 1000000,
 			Parent = Main,
 		})
+		if BackgroundImg and BackgroundImg.Parent then
+			SideDivider.Visible = false
+		end
 		local TabButtons = {}
 		local TabIndicator = New("Frame", {
 			Name = "Indicator",
@@ -2902,6 +3010,8 @@ PlaceholderText = "请输入",
 			task.wait(0.15)
 			TabsContainer.Visible = true
 			Body.Visible = true
+			BottomBar.Visible = true
+			ResizeHandle.Visible = true
 		end
 		local function MinimizeWindow()
 			if Minimized then
@@ -2913,6 +3023,8 @@ PlaceholderText = "请输入",
 			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(size.X.Scale, size.X.Offset, 0, 38) }):Play()
 			TabsContainer.Visible = false
 			Body.Visible = false
+			BottomBar.Visible = false
+			ResizeHandle.Visible = false
 		end
 		MinimizeButton.MouseButton1Click:Connect(MinimizeWindow)
 		local function CloseWindow()
@@ -3513,78 +3625,6 @@ PlaceholderText = "请输入",
 		if UserInputService.TouchEnabled then
 			Window:OpenSearch()
 		end
-		local MinSizeX = size.X.Offset
-		local MinSizeY = size.Y.Offset
-		local function ClampMainSize()
-			local w = math.max(MinSizeX, Main.Size.X.Offset)
-			local h = math.max(MinSizeY, Main.Size.Y.Offset)
-			Main.Size = UDim2.new(0, w, 0, h)
-			Main.Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2)
-		end
-		local BottomBar = New("Frame", {
-			Name = "BottomResizeBar",
-			Size = UDim2.new(1, 0, 0, 5),
-			Position = UDim2.new(0, 0, 1, -5),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			BackgroundTransparency = 0.75,
-			BorderSizePixel = 0,
-			ZIndex = 1000000,
-			Parent = Main,
-		})
-		local ResizeHandle = New("ImageLabel", {
-			Name = "ResizeHandle",
-			Size = UDim2.new(0, 14, 0, 14),
-			Position = UDim2.new(1, -8, 1, -8),
-			AnchorPoint = Vector2.new(1, 1),
-			BackgroundTransparency = 1,
-			Image = Library:GetIcon("grip-horizontal"),
-			ImageColor3 = Color3.fromRGB(235, 235, 240),
-			ScaleType = Enum.ScaleType.Fit,
-			ZIndex = 1000001,
-			Parent = Main,
-		})
-		Library:SetIcon(ResizeHandle, "grip-horizontal", 12)
-		local ResizeDrag = false
-		local ResizeStart = Vector2.new(0, 0)
-		local ResizeOrigin = Vector2.new(0, 0)
-		local function BeginResize(input)
-			ResizeDrag = true
-			ResizeStart = input.Position
-			ResizeOrigin = Vector2.new(Main.Size.X.Offset, Main.Size.Y.Offset)
-		end
-		local function UpdateResize(input)
-			if not ResizeDrag then
-				return
-			end
-			local dx = input.Position.X - ResizeStart.X
-			local dy = input.Position.Y - ResizeStart.Y
-			Main.Size = UDim2.new(0, math.max(MinSizeX, ResizeOrigin.X + dx), 0, math.max(MinSizeY, ResizeOrigin.Y + dy))
-			ClampMainSize()
-		end
-		local function EndResize(input)
-			ResizeDrag = false
-		end
-		ResizeHandle.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				BeginResize(input)
-			end
-		end)
-		BottomBar.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				BeginResize(input)
-			end
-		end)
-		BottomBar.InputChanged:Connect(function(input)
-			if ResizeDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-				UpdateResize(input)
-			end
-		end)
-		UserInputService.InputChanged:Connect(function(input)
-			if ResizeDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-				UpdateResize(input)
-			end
-		end)
-		UserInputService.InputEnded:Connect(EndResize)
 		function Window:SetSize(w, h)
 			Main.Size = UDim2.new(0, math.max(MinSizeX, w or Main.Size.X.Offset), 0, math.max(MinSizeY, h or Main.Size.Y.Offset))
 			ClampMainSize()
