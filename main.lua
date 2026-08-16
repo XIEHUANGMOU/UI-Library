@@ -1235,7 +1235,8 @@ local Library = (function()
 					local ic = Library:GetIcon(options.icon)
 					local Label = New("Frame", {
 						Name = text,
-						Size = UDim2.new(1, 0, 0, 28),
+						Size = UDim2.new(1, 0, 0, 0),
+						AutomaticSize = Enum.AutomaticSize.Y,
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
 						Parent = Section,
@@ -1243,16 +1244,19 @@ local Library = (function()
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Label })
 					local LabelText = New("TextLabel", {
 						Name = "TextLabel",
-						Size = UDim2.new(1, 0, 1, 0),
+						Size = UDim2.new(1, 0, 0, 0),
+						AutomaticSize = Enum.AutomaticSize.Y,
 						BackgroundTransparency = 1,
 						Font = Enum.Font.GothamMedium,
 						Text = text,
 						TextSize = 16,
 						TextColor3 = color or Color3.fromRGB(230, 230, 236),
+						TextWrapped = true,
 						TextXAlignment = Enum.TextXAlignment.Left,
+						TextYAlignment = Enum.TextYAlignment.Top,
 						Parent = Label,
 					})
-New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelText })
+					New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
 					if ic then
 						New("ImageLabel", {
 							Name = "Icon",
@@ -1747,7 +1751,8 @@ local Selected = default or "未选择"
 				local ic = Library:GetIcon(options.icon)
 				local Label = New("Frame", {
 					Name = text,
-					Size = UDim2.new(1, 0, 0, 28),
+					Size = UDim2.new(1, 0, 0, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
 					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 					BorderSizePixel = 0,
 					Parent = TabPage,
@@ -1755,16 +1760,19 @@ local Selected = default or "未选择"
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Label })
 				local LabelText = New("TextLabel", {
 					Name = "TextLabel",
-					Size = UDim2.new(1, 0, 1, 0),
+					Size = UDim2.new(1, 0, 0, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamMedium,
 					Text = text,
 					TextSize = 16,
 					TextColor3 = color or Color3.fromRGB(230, 230, 236),
+					TextWrapped = true,
 					TextXAlignment = Enum.TextXAlignment.Left,
+					TextYAlignment = Enum.TextYAlignment.Top,
 					Parent = Label,
 				})
-				New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelText })
+				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
 				if ic then
 					New("ImageLabel", {
 						Name = "Icon",
