@@ -800,9 +800,6 @@ local Library = (function()
 				TextTruncate = Enum.TextTruncate.AtEnd,
 				Parent = TopBar,
 			})
-			SubtitleLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-				LayoutTopBarTags()
-			end)
 		end
 		local TopBarTags = New("ScrollingFrame", {
 			Name = "TitleTags",
@@ -863,6 +860,9 @@ local Library = (function()
 			TopBarTags.Size = UDim2.new(0, w, 0, 26)
 		end
 		TopBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(LayoutTopBarTags)
+		if SubtitleLabel then
+			SubtitleLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(LayoutTopBarTags)
+		end
 		task.defer(LayoutTopBarTags)
 		local MinimizeButton = New("TextButton", {
 			Name = "Minimize",
@@ -1727,7 +1727,7 @@ local Library = (function()
 					Name = "Content",
 					Size = UDim2.new(1, 0, 0, 0),
 					BackgroundTransparency = 1,
-					ClipsDescendants = true,
+					AutomaticSize = Enum.AutomaticSize.Y,
 					Parent = Section,
 				})
 				New("Frame", {
@@ -1742,97 +1742,32 @@ local Library = (function()
 					Padding = UDim.new(0, 0),
 					Parent = Section,
 				})
-				local SectionContentLayout = New("UIListLayout", {
+				New("UIListLayout", {
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					Padding = UDim.new(0, 6),
 					Parent = SectionContent,
 				})
 				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingBottom = UDim.new(0, 2), Parent = SectionContent })
 				local SectionOpened = true
-				local ContentPadTop = 4
-				local ContentPadBot = 2
-				local ContentGap = 6
-				local function IsSectionVisible()
-					local node = SectionContent
-					while node and node:IsA("GuiObject") do
-						if not node.Visible then
-							return false
-						end
-						node = node.Parent
-					end
-					return true
-				end
-				local function EstimateContentHeight()
-					local h = 0
-					local n = 0
-					for _, child in ipairs(SectionContent:GetChildren()) do
-						if child:IsA("GuiObject") then
-							local y = child.AbsoluteSize.Y
-							if y <= 0 then
-								y = (child.Size and child.Size.Y.Offset) or 0
-							end
-							if y > 0 then
-								h = h + y
-								n = n + 1
-							end
-						end
-					end
-					if n > 1 then
-						h = h + (n - 1) * ContentGap
-					end
-					return h
-				end
-				local function SectionOpenHeight()
-					local abs = SectionContentLayout.AbsoluteContentSize.Y
-					if abs > 0 then
-						return math.clamp(abs + ContentPadTop + ContentPadBot, 0, 10000)
-					end
-					local est = EstimateContentHeight()
-					if est > 0 then
-						return math.clamp(est + ContentPadTop + ContentPadBot, 0, 10000)
-					end
-					return ContentPadTop + ContentPadBot
-				end
-				local function SetSectionOpened(v, animate)
+				local function SetSectionOpened(v)
 					SectionOpened = v
 					if v then
 						SectionContent.Visible = true
-						local target = SectionOpenHeight()
-						SectionContent.Size = UDim2.new(1, 0, 0, 0)
-						TweenService:Create(SectionContent, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-							Size = UDim2.new(1, 0, 0, target),
-						}):Play()
+						SectionContent.BackgroundTransparency = 0
+						TweenService:Create(SectionContent, TweenInfo.new(0.15), { BackgroundTransparency = 0 }):Play()
 						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 0 }):Play()
 					else
-						TweenService:Create(SectionContent, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-							Size = UDim2.new(1, 0, 0, 0),
-						}):Play()
+						TweenService:Create(SectionContent, TweenInfo.new(0.15), { BackgroundTransparency = 1 }):Play()
 						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 180 }):Play()
-						task.delay(0.2, function()
+						task.delay(0.15, function()
 							if not SectionOpened then
 								SectionContent.Visible = false
 							end
 						end)
 					end
 				end
-				local function SyncSectionHeight()
-					if SectionOpened and SectionContent.Visible then
-						SectionContent.Size = UDim2.new(1, 0, 0, SectionOpenHeight())
-					end
-				end
 				Header.MouseButton1Click:Connect(function()
-					SetSectionOpened(not SectionOpened, true)
-				end)
-				SectionContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(SyncSectionHeight)
-				task.spawn(function()
-					local waited = 0
-					while waited < 300 do
-						if IsSectionVisible() then
-							SyncSectionHeight()
-						end
-						task.wait(0.2)
-						waited = waited + 1
-					end
+					SetSectionOpened(not SectionOpened)
 				end)
 				local SectionObj = {}
 				function SectionObj:AddButton(options)
@@ -2217,13 +2152,13 @@ local Library = (function()
 							dragging = true
 							UpdateSlider(UserInputService:GetMouseLocation().X)
 							if input.UserInputType == Enum.UserInputType.Touch then
-								input.Handled = true
+								pcall(function() input.Handled = true end)
 							end
 						end
 					end)
 					Slider.InputChanged:Connect(function(input)
 						if dragging and input.UserInputType == Enum.UserInputType.Touch then
-							input.Handled = true
+							pcall(function() input.Handled = true end)
 						end
 					end)
 					Slider.InputEnded:Connect(StopDrag)
@@ -2736,13 +2671,13 @@ PlaceholderText = "请输入",
 						dragging = true
 						UpdateSlider(UserInputService:GetMouseLocation().X)
 						if input.UserInputType == Enum.UserInputType.Touch then
-							input.Handled = true
+							pcall(function() input.Handled = true end)
 						end
 					end
 				end)
 				Slider.InputChanged:Connect(function(input)
 					if dragging and input.UserInputType == Enum.UserInputType.Touch then
-						input.Handled = true
+						pcall(function() input.Handled = true end)
 					end
 				end)
 				Slider.InputEnded:Connect(StopDrag)
