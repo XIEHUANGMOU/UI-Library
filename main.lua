@@ -142,10 +142,17 @@ local Library = (function()
 			TextYAlignment = Enum.TextYAlignment.Top,
 			Parent = Par,
 		})
-		task.wait()
-		local contentH = math.max(1, math.ceil(BodyLabel.TextBounds.Y))
-		BodyLabel.Size = UDim2.new(1, -28, 0, contentH)
-		Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
+		local function ParagraphRefresh()
+			task.wait()
+			local contentH = math.max(1, math.ceil(BodyLabel.TextBounds.Y))
+			BodyLabel.Size = UDim2.new(1, -28, 0, contentH)
+			Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
+		end
+		ParagraphRefresh()
+		function Par:SetText(t)
+			BodyLabel.Text = t or ""
+			ParagraphRefresh()
+		end
 		return Par
 	end
 	local function MakeColorpickerPanel(container, options)
