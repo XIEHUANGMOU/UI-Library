@@ -1753,17 +1753,10 @@ local Library = (function()
 					SectionOpened = v
 					if v then
 						SectionContent.Visible = true
-						SectionContent.BackgroundTransparency = 0
-						TweenService:Create(SectionContent, TweenInfo.new(0.15), { BackgroundTransparency = 0 }):Play()
 						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 0 }):Play()
 					else
-						TweenService:Create(SectionContent, TweenInfo.new(0.15), { BackgroundTransparency = 1 }):Play()
+						SectionContent.Visible = false
 						TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = 180 }):Play()
-						task.delay(0.15, function()
-							if not SectionOpened then
-								SectionContent.Visible = false
-							end
-						end)
 					end
 				end
 				Header.MouseButton1Click:Connect(function()
