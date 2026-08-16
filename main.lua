@@ -94,11 +94,9 @@ local Library = (function()
 		local body = options.text or ""
 		local color = options.color
 		local ic = options.icon and Library:GetIcon(options.icon)
-		local lines = math.max(1, math.ceil(string.len(body) / 15))
-		local height = 44 + lines * 28
 		local Par = New("Frame", {
 			Name = title,
-			Size = UDim2.new(1, 0, 0, height),
+			Size = UDim2.new(1, 0, 0, 46),
 			BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 			BorderSizePixel = 0,
 			Parent = container,
@@ -130,7 +128,7 @@ local Library = (function()
 		end
 		local BodyLabel = New("TextLabel", {
 			Name = "Text",
-			Size = UDim2.new(1, -28, 0, height - 44),
+			Size = UDim2.new(1, -28, 0, 32),
 			Position = UDim2.new(0, 14, 0, 36),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
@@ -142,24 +140,93 @@ local Library = (function()
 			TextYAlignment = Enum.TextYAlignment.Top,
 			Parent = Par,
 		})
-		local function ParagraphRefresh()
-			task.wait()
-			local contentH = math.max(1, math.ceil(BodyLabel.TextBounds.Y))
+		local function CountChars(str)
+			local n = 0
+			for _ in string.gmatch(str or "", "[^\128-\191]") do
+				n = n + 1
+			end
+			return n
+		end
+		local function IsActuallyVisible()
+			local node = Par
+			while node and node:IsA("GuiObject") do
+				if not node.Visible then
+					return false
+				end
+				node = node.Parent
+			end
+			return true
+		end
+		local function EstimateHeight()
+			local w = Par.AbsoluteSize.X - 28
+			if w <= 0 then
+				w = (container and container.AbsoluteSize.X or 400) - 28
+			end
+			if w <= 0 then
+				w = 400
+			end
+			local perLine = math.max(1, math.floor(w / 20))
+			local lines = math.max(1, math.ceil(CountChars(BodyLabel.Text) / perLine))
+			return 44 + lines * 28
+		end
+		local function ApplyHeight(contentH)
+			contentH = math.max(1, math.ceil(contentH or 0))
 			BodyLabel.Size = UDim2.new(1, -28, 0, contentH)
 			Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
 		end
-		ParagraphRefresh()
+		local function PreciseRefresh()
+			if not IsActuallyVisible() then
+				return false
+			end
+			task.wait()
+			if not IsActuallyVisible() then
+				return false
+			end
+			ApplyHeight(BodyLabel.TextBounds.Y)
+			return true
+		end
+		local NeedPrecise = true
+		local function ApplyCurrent()
+			if PreciseRefresh() then
+				NeedPrecise = false
+				return
+			end
+			ApplyHeight(EstimateHeight())
+			NeedPrecise = true
+		end
+		task.spawn(function()
+			while NeedPrecise do
+				if task.wait(0.15) == nil then
+					break
+				end
+				if IsActuallyVisible() then
+					if PreciseRefresh() then
+						NeedPrecise = false
+						break
+					end
+				end
+			end
+		end)
 		local ParObj = {
 			Frame = Par,
 			Instance = Par,
 		}
 		function ParObj:SetText(t)
 			BodyLabel.Text = t or ""
-			ParagraphRefresh()
+			ApplyHeight(EstimateHeight())
+			NeedPrecise = true
+			task.spawn(function()
+				if PreciseRefresh() then
+					NeedPrecise = false
+					return
+				end
+				NeedPrecise = true
+			end)
 		end
 		function ParObj:GetFrame()
 			return Par
 		end
+		ApplyCurrent()
 		return ParObj
 	end
 	local function MakeColorpickerPanel(container, options)
