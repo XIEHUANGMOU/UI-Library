@@ -149,11 +149,18 @@ local Library = (function()
 			Par.Size = UDim2.new(1, 0, 0, math.max(46, 36 + 6 + contentH))
 		end
 		ParagraphRefresh()
-		function Par:SetText(t)
+		local ParObj = {
+			Frame = Par,
+			Instance = Par,
+		}
+		function ParObj:SetText(t)
 			BodyLabel.Text = t or ""
 			ParagraphRefresh()
 		end
-		return Par
+		function ParObj:GetFrame()
+			return Par
+		end
+		return ParObj
 	end
 	local function MakeColorpickerPanel(container, options)
 		local title = options.name or ""
