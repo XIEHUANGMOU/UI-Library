@@ -1314,23 +1314,71 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 							Parent = Slider,
 						})
 					end
-					local ValueText = New("TextLabel", {
+					local ValueBox = New("TextBox", {
 						Name = "ValueText",
-						Size = UDim2.new(0.3, 0, 0, 20),
-						Position = UDim2.new(0.7, 0, 0, 6),
-						BackgroundTransparency = 1,
+						Size = UDim2.new(0.3, -16, 0, 22),
+						Position = UDim2.new(0.7, 0, 0, 5),
+						BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+						BorderSizePixel = 0,
 						Font = Enum.Font.GothamBold,
-						Text = tostring(default),
+						Text = tostring(default or Min or 0),
 						TextSize = 15,
 						TextColor3 = Color3.fromRGB(90, 160, 255),
-						TextXAlignment = Enum.TextXAlignment.Right,
+						PlaceholderText = "数值",
+						PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
+						TextXAlignment = Enum.TextXAlignment.Center,
+						ClearTextOnFocus = true,
 						Parent = Slider,
 					})
-					New("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = ValueText })
+					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = ValueBox })
+					local MinusBtn = New("TextButton", {
+						Name = "Minus",
+						Size = UDim2.new(0, 18, 0, 18),
+						Position = UDim2.new(0, 6, 0, 25),
+						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
+						BorderSizePixel = 0,
+						Text = "",
+						AutoButtonColor = false,
+						Parent = Slider,
+					})
+					New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = MinusBtn })
+					local MinusIcon = New("ImageLabel", {
+						Name = "Icon",
+						Size = UDim2.new(0, 12, 0, 12),
+						Position = UDim2.new(0.5, -6, 0.5, -6),
+						BackgroundTransparency = 1,
+						Image = Library:GetIcon("minus"),
+						ImageColor3 = Color3.fromRGB(200, 200, 210),
+						ScaleType = Enum.ScaleType.Fit,
+						Parent = MinusBtn,
+					})
+					Library:SetIcon(MinusIcon, "minus", 12)
+					local PlusBtn = New("TextButton", {
+						Name = "Plus",
+						Size = UDim2.new(0, 18, 0, 18),
+						Position = UDim2.new(1, -24, 0, 25),
+						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
+						BorderSizePixel = 0,
+						Text = "",
+						AutoButtonColor = false,
+						Parent = Slider,
+					})
+					New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = PlusBtn })
+					local PlusIcon = New("ImageLabel", {
+						Name = "Icon",
+						Size = UDim2.new(0, 12, 0, 12),
+						Position = UDim2.new(0.5, -6, 0.5, -6),
+						BackgroundTransparency = 1,
+						Image = Library:GetIcon("plus"),
+						ImageColor3 = Color3.fromRGB(200, 200, 210),
+						ScaleType = Enum.ScaleType.Fit,
+						Parent = PlusBtn,
+					})
+					Library:SetIcon(PlusIcon, "plus", 12)
 					local SliderBar = New("Frame", {
 						Name = "Bar",
-						Size = UDim2.new(1, -24, 0, 4),
-						Position = UDim2.new(0, 12, 0, 32),
+						Size = UDim2.new(1, -64, 0, 4),
+						Position = UDim2.new(0, 30, 0, 32),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Parent = Slider,
@@ -1356,16 +1404,29 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					local Min = min or 0
 					local Max = max or 100
 					local Current = default or Min
+					local Step = options.step or math.max(1, math.round((Max - Min) / 100))
 					local function UpdateSlider(x)
 						local relX = math.clamp((x - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
 						Current = math.round(Min + ((Max - Min) * relX))
 						local displayRelX = (Current - Min) / (Max - Min)
-						ValueText.Text = tostring(Current)
+						ValueBox.Text = tostring(Current)
 						SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
 						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
 						if callback then
 							pcall(callback, Current)
 						end
+					end
+					local function ApplyValue(v)
+						v = math.clamp(math.round(v), Min, Max)
+						local displayRelX = (v - Min) / (Max - Min)
+						Current = v
+						ValueBox.Text = tostring(v)
+						SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
+						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+						if callback then
+							pcall(callback, v)
+						end
+						return v
 					end
 					local dragging = false
 					local function IsPress(input)
@@ -1397,20 +1458,29 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 							UpdateSlider(UserInputService:GetMouseLocation().X)
 						end
 					end)
+					MinusBtn.MouseButton1Click:Connect(function()
+						ApplyValue(Current - Step)
+					end)
+					PlusBtn.MouseButton1Click:Connect(function()
+						ApplyValue(Current + Step)
+					end)
+					ValueBox.FocusLost:Connect(function(enter)
+						local n = tonumber(ValueBox.Text)
+						if n then
+							ApplyValue(n)
+						else
+							ValueBox.Text = tostring(Current)
+						end
+						if not enter then
+							ValueBox:ReleaseFocus()
+						end
+					end)
 					local SliderObj = {}
 					function SliderObj:Get()
 						return Current
 					end
 					function SliderObj:SetValue(v)
-						v = math.round(v)
-						local relX = (v - Min) / (Max - Min)
-						Current = v
-						ValueText.Text = tostring(v)
-						SliderFill.Size = UDim2.new(relX, 0, 1, 0)
-						SliderGrab.Position = UDim2.new(relX, -6, 0, -4)
-						if callback then
-							pcall(callback, v)
-						end
+						ApplyValue(v)
 					end
 					SliderObj:SetValue(Current)
 					return SliderObj
@@ -1461,7 +1531,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						BorderSizePixel = 0,
 						Font = Enum.Font.GothamMedium,
 						Text = default or "",
-						PlaceholderText = "Input...",
+PlaceholderText = "请输入",
 						TextSize = 16,
 						TextColor3 = Color3.fromRGB(230, 230, 236),
 						PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
@@ -1537,7 +1607,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						Position = UDim2.new(0.45, 0, 0, 0),
 						BackgroundTransparency = 1,
 						Font = Enum.Font.GothamSemibold,
-						Text = default or "None",
+						Text = default or "未选择",
 						TextSize = 15,
 						TextColor3 = Color3.fromRGB(90, 160, 255),
 						TextXAlignment = Enum.TextXAlignment.Right,
@@ -1563,7 +1633,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						Parent = DropList,
 					})
 					New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = DropList })
-					local Selected = default or "None"
+local Selected = default or "未选择"
 					local Open = false
 					local OutsideConnection = nil
 					local function Close()
@@ -1920,23 +1990,71 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						Parent = Slider,
 					})
 				end
-				local ValueText = New("TextLabel", {
+				local ValueBox = New("TextBox", {
 					Name = "ValueText",
-					Size = UDim2.new(0.3, 0, 0, 20),
-					Position = UDim2.new(0.7, 0, 0, 6),
-					BackgroundTransparency = 1,
+					Size = UDim2.new(0.3, -16, 0, 22),
+					Position = UDim2.new(0.7, 0, 0, 5),
+					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+					BorderSizePixel = 0,
 					Font = Enum.Font.GothamBold,
-					Text = tostring(default),
+					Text = tostring(default or Min or 0),
 					TextSize = 15,
 					TextColor3 = Color3.fromRGB(90, 160, 255),
-					TextXAlignment = Enum.TextXAlignment.Right,
+					PlaceholderText = "数值",
+					PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
+					TextXAlignment = Enum.TextXAlignment.Center,
+					ClearTextOnFocus = true,
 					Parent = Slider,
 				})
-				New("UIPadding", { PaddingRight = UDim.new(0, 8), Parent = ValueText })
+				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = ValueBox })
+				local MinusBtn = New("TextButton", {
+					Name = "Minus",
+					Size = UDim2.new(0, 18, 0, 18),
+					Position = UDim2.new(0, 6, 0, 25),
+					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
+					BorderSizePixel = 0,
+					Text = "",
+					AutoButtonColor = false,
+					Parent = Slider,
+				})
+				New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = MinusBtn })
+				local MinusIcon = New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 12, 0, 12),
+					Position = UDim2.new(0.5, -6, 0.5, -6),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon("minus"),
+					ImageColor3 = Color3.fromRGB(200, 200, 210),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = MinusBtn,
+				})
+				Library:SetIcon(MinusIcon, "minus", 12)
+				local PlusBtn = New("TextButton", {
+					Name = "Plus",
+					Size = UDim2.new(0, 18, 0, 18),
+					Position = UDim2.new(1, -24, 0, 25),
+					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
+					BorderSizePixel = 0,
+					Text = "",
+					AutoButtonColor = false,
+					Parent = Slider,
+				})
+				New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = PlusBtn })
+				local PlusIcon = New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 12, 0, 12),
+					Position = UDim2.new(0.5, -6, 0.5, -6),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon("plus"),
+					ImageColor3 = Color3.fromRGB(200, 200, 210),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = PlusBtn,
+				})
+				Library:SetIcon(PlusIcon, "plus", 12)
 				local SliderBar = New("Frame", {
 					Name = "Bar",
-					Size = UDim2.new(1, -24, 0, 4),
-					Position = UDim2.new(0, 12, 0, 32),
+					Size = UDim2.new(1, -64, 0, 4),
+					Position = UDim2.new(0, 30, 0, 32),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Parent = Slider,
@@ -1962,16 +2080,29 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				local Min = min or 0
 				local Max = max or 100
 				local Current = default or Min
+				local Step = options.step or math.max(1, math.round((Max - Min) / 100))
 				local function UpdateSlider(x)
 					local relX = math.clamp((x - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
 					Current = math.round(Min + ((Max - Min) * relX))
 					local displayRelX = (Current - Min) / (Max - Min)
-					ValueText.Text = tostring(Current)
+					ValueBox.Text = tostring(Current)
 					SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
 					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
 					if callback then
 						pcall(callback, Current)
 					end
+				end
+				local function ApplyValue(v)
+					v = math.clamp(math.round(v), Min, Max)
+					local displayRelX = (v - Min) / (Max - Min)
+					Current = v
+					ValueBox.Text = tostring(v)
+					SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
+					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+					if callback then
+						pcall(callback, v)
+					end
+					return v
 				end
 				local dragging = false
 				local function IsPress(input)
@@ -2003,20 +2134,29 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 						UpdateSlider(UserInputService:GetMouseLocation().X)
 					end
 				end)
+				MinusBtn.MouseButton1Click:Connect(function()
+					ApplyValue(Current - Step)
+				end)
+				PlusBtn.MouseButton1Click:Connect(function()
+					ApplyValue(Current + Step)
+				end)
+				ValueBox.FocusLost:Connect(function(enter)
+					local n = tonumber(ValueBox.Text)
+					if n then
+						ApplyValue(n)
+					else
+						ValueBox.Text = tostring(Current)
+					end
+					if not enter then
+						ValueBox:ReleaseFocus()
+					end
+				end)
 				local SliderObj = {}
 				function SliderObj:Get()
 					return Current
 				end
 				function SliderObj:SetValue(v)
-					v = math.round(v)
-					local relX = (v - Min) / (Max - Min)
-					Current = v
-					ValueText.Text = tostring(v)
-					SliderFill.Size = UDim2.new(relX, 0, 1, 0)
-					SliderGrab.Position = UDim2.new(relX, -6, 0, -4)
-					if callback then
-						pcall(callback, v)
-					end
+					ApplyValue(v)
 				end
 				SliderObj:SetValue(Current)
 				return SliderObj
@@ -2066,7 +2206,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					BorderSizePixel = 0,
 					Font = Enum.Font.GothamMedium,
 					Text = default or "",
-					PlaceholderText = "Input...",
+					PlaceholderText = "请输入",
 					TextSize = 16,
 					TextColor3 = Color3.fromRGB(230, 230, 236),
 					PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
@@ -2142,7 +2282,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					Position = UDim2.new(0.45, 0, 0, 0),
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamSemibold,
-					Text = default or "None",
+					Text = default or "未选择",
 					TextSize = 15,
 					TextColor3 = Color3.fromRGB(90, 160, 255),
 					TextXAlignment = Enum.TextXAlignment.Right,
@@ -2164,7 +2304,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = DropList })
 				New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = DropList })
 				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = DropList })
-				local Selected = default or "None"
+				local Selected = default or "未选择"
 				local Open = false
 				local OutsideConnection = nil
 				local function Close()
@@ -2298,7 +2438,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 					BorderSizePixel = 0,
 					AutoButtonColor = false,
-					Text = tostring(default or "None"),
+					Text = tostring(default or "未绑定"),
 					Font = Enum.Font.GothamSemibold,
 					TextSize = 15,
 					TextColor3 = Color3.fromRGB(200, 200, 210),
@@ -2317,7 +2457,7 @@ New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = LabelTex
 					elseif code == Enum.UserInputType.MouseButton3 then
 						return "M3"
 					end
-					return "None"
+					return "未绑定"
 				end
 				local InputConnection
 				KeyButton.MouseButton1Click:Connect(function()
