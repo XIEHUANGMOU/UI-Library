@@ -229,6 +229,117 @@ local Library = (function()
 		ApplyCurrent()
 		return ParObj
 	end
+	local function MakeTag(container, options)
+		local title = options.title or options.name or "标签"
+		local tColor = options.color or Color3.fromRGB(49, 101, 255)
+		local radius = options.radius or 999
+		local ic = options.icon
+		local textSize = options.textSize or 14
+		local iconAsset = ic and Library:GetIcon(ic)
+		local function ContrastText(c)
+			local _, _, v = Color3.toHSV(typeof(c) == "Color3" and c or Color3.new(1, 1, 1))
+			if v > 0.55 then
+				return Color3.fromRGB(24, 24, 28)
+			end
+			return Color3.fromRGB(240, 240, 245)
+		end
+		local TagFrame = New("Frame", {
+			Name = title,
+			Size = UDim2.new(0, 0, 0, 24),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundColor3 = tColor,
+			BorderSizePixel = 0,
+			Parent = container,
+		})
+		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TagFrame })
+		local TagContent = New("Frame", {
+			Name = "Content",
+			Size = UDim2.new(0, 0, 0, 24),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			Parent = TagFrame,
+		})
+		local ContentLayout = New("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 6),
+			Parent = TagContent,
+		})
+		New("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = TagContent })
+		local TagIcon
+		if iconAsset then
+			TagIcon = New("ImageLabel", {
+				Name = "Icon",
+				Size = UDim2.new(0, 14, 0, 14),
+				BackgroundTransparency = 1,
+				Image = iconAsset,
+				ImageColor3 = ContrastText(tColor),
+				ScaleType = Enum.ScaleType.Fit,
+				Parent = TagContent,
+			})
+			Library:SetIcon(TagIcon, ic, 10)
+		end
+		local TagTitle = New("TextLabel", {
+			Name = "Title",
+			Size = UDim2.new(0, 0, 0, 24),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = title,
+			TextSize = textSize,
+			TextColor3 = ContrastText(tColor),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = TagContent,
+		})
+		local TagModule = {
+			Title = title,
+			Color = tColor,
+		}
+		function TagModule:SetTitle(text)
+			TagModule.Title = text
+			TagTitle.Text = text
+			return TagModule
+		end
+		function TagModule:SetColor(color)
+			TagModule.Color = color
+			if typeof(color) == "Color3" then
+				TagFrame.BackgroundColor3 = color
+				TagTitle.TextColor3 = ContrastText(color)
+				if TagIcon then
+					TagIcon.ImageColor3 = ContrastText(color)
+				end
+			end
+			return TagModule
+		end
+		function TagModule:SetIcon(icon)
+			if TagIcon then
+				TagIcon:Destroy()
+				TagIcon = nil
+			end
+			local asset = icon and Library:GetIcon(icon)
+			if asset then
+				TagIcon = New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 14, 0, 14),
+					BackgroundTransparency = 1,
+					Image = asset,
+					ImageColor3 = ContrastText(TagModule.Color),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = TagContent,
+				})
+				Library:SetIcon(TagIcon, icon, 10)
+			end
+			return TagModule
+		end
+		function TagModule:GetFrame()
+			return TagFrame
+		end
+		function TagModule:Destroy()
+			TagFrame:Destroy()
+		end
+		return TagModule
+	end
 	local function MakeColorpickerPanel(container, options)
 		local title = options.name or ""
 		local callback = options.callback
@@ -935,6 +1046,451 @@ local Library = (function()
 			end)
 		end
 		DragWindow(TopBar)
+		local DropdownGui = ScreenGui
+		local function MakeDropdown(container, options)
+			local text = options.name or "下拉框"
+			local list = options.list or {}
+			local default = options.default
+			local callback = options.callback
+			local ic = Library:GetIcon(options.icon)
+			local multi = options.multi or false
+			local searchEnabled = options.search or false
+			local isLocked = options.locked or false
+			local MenuWidth = options.menuWidth or 200
+			local ItemHeight = 36
+			local MenuPadding = 6
+			local function OptionTitle(v)
+				return (typeof(v) == "table") and (v.Title or tostring(v)) or tostring(v)
+			end
+			local function OptionIcon(v)
+				return (typeof(v) == "table") and v.Icon or nil
+			end
+			local function OptionDesc(v)
+				return (typeof(v) == "table") and v.Desc or nil
+			end
+			local function NormalizeDefault()
+				if multi then
+					if typeof(default) == "table" then
+						return { default }
+					elseif default then
+						return { default }
+					end
+					return {}
+				end
+				return default
+			end
+			local Value = NormalizeDefault()
+			local FunctionValueDisplay
+			FunctionValueDisplay = function()
+				if multi then
+					local parts = {}
+					local set = {}
+					if typeof(Value) == "table" then
+						for _, v in ipairs(Value) do
+							local t = OptionTitle(v)
+							set[t] = true
+						end
+					end
+					for _, v in ipairs(list) do
+						local t = OptionTitle(v)
+						if set[t] then
+							table.insert(parts, t)
+						end
+					end
+					return (#parts > 0) and table.concat(parts, ", ") or "未选择"
+				end
+				return (Value ~= nil) and OptionTitle(Value) or "未选择"
+			end
+			local frame = New("Frame", {
+				Name = text,
+				Size = UDim2.new(1, 0, 0, 36),
+				BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+				BorderSizePixel = 0,
+				Parent = container,
+			})
+			New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = frame })
+			if ic then
+				New("ImageLabel", {
+					Name = "Icon",
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(0, 14, 0, 10),
+					BackgroundTransparency = 1,
+					Image = ic,
+					ImageColor3 = Color3.fromRGB(150, 160, 180),
+					Parent = frame,
+				})
+			end
+			local TitleLabel = New("TextLabel", {
+				Name = "TextLabel",
+				Size = UDim2.new(0.5, 0, 0, 36),
+				Position = UDim2.new(0, ic and 40 or 14, 0, 0),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamMedium,
+				Text = text,
+				TextSize = 16,
+				TextColor3 = Color3.fromRGB(230, 230, 236),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				Parent = frame,
+			})
+			local ValueLabel = New("TextLabel", {
+				Name = "Selected",
+				Size = UDim2.new(0.46, -28, 0, 36),
+				Position = UDim2.new(0.54, 0, 0, 0),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamSemibold,
+				Text = FunctionValueDisplay(),
+				TextSize = 15,
+				TextColor3 = Color3.fromRGB(90, 160, 255),
+				TextXAlignment = Enum.TextXAlignment.Right,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				Parent = frame,
+			})
+			local Chevron = New("ImageLabel", {
+				Name = "Chevron",
+				Size = UDim2.new(0, 14, 0, 14),
+				Position = UDim2.new(1, -22, 0.5, -7),
+				BackgroundTransparency = 1,
+				Image = Library:GetIcon("chevron-down"),
+				ImageColor3 = Color3.fromRGB(160, 160, 170),
+				ScaleType = Enum.ScaleType.Fit,
+				Parent = frame,
+			})
+			Library:SetIcon(Chevron, "chevron-down", 12)
+			local Trigger = New("TextButton", {
+				Name = "Button",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Text = "",
+				AutoButtonColor = false,
+				Parent = frame,
+			})
+			local Menu = New("Frame", {
+				Name = "Menu",
+				Size = UDim2.new(0, MenuWidth, 0, 0),
+				BackgroundColor3 = Color3.fromRGB(24, 24, 30),
+				BorderSizePixel = 0,
+				ClipsDescendants = true,
+				Visible = false,
+				ZIndex = 100000000,
+				Parent = DropdownGui,
+			})
+			New("UIStroke", { Color = Color3.fromRGB(90, 90, 100), Thickness = 1, Parent = Menu })
+			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Menu })
+			New("UIPadding", { PaddingLeft = UDim.new(0, MenuPadding), PaddingRight = UDim.new(0, MenuPadding), Parent = Menu })
+			local ScrollList = New("ScrollingFrame", {
+				Name = "List",
+				Size = UDim2.new(1, 0, 0, 0),
+				Position = UDim2.new(0, 0, 0, searchEnabled and 34 or 4),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(0, 0, 0, 0),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				ScrollBarThickness = 4,
+				ScrollBarImageColor3 = Color3.fromRGB(70, 70, 80),
+				ScrollBarImageTransparency = 0.5,
+				Parent = Menu,
+			})
+			New("UIListLayout", {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Padding = UDim.new(0, 4),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				Parent = ScrollList,
+			})
+			New("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, MenuPadding), PaddingRight = UDim.new(0, MenuPadding), Parent = ScrollList })
+			local ScrollListLayout = ScrollList:FindFirstChildOfClass("UIListLayout")
+			local MenuLayout = ScrollListLayout
+			local SearchBox
+			if searchEnabled then
+				SearchBox = New("TextBox", {
+					Name = "Search",
+					Size = UDim2.new(1, -12, 0, 26),
+					Position = UDim2.new(0, 0, 0, 4),
+					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+					BorderSizePixel = 0,
+					Font = Enum.Font.GothamMedium,
+					Text = "",
+					PlaceholderText = "搜索...",
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(230, 230, 236),
+					PlaceholderColor3 = Color3.fromRGB(110, 110, 120),
+					ClearTextOnFocus = false,
+					LayoutOrder = -1000,
+					Parent = Menu,
+				})
+				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = SearchBox })
+				New("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = SearchBox })
+			end
+			local Items = {}
+			local Opened = false
+			local OutsideConn = nil
+			local function CloseMenu(instant)
+				Opened = false
+				Chevron.Rotation = 0
+				if instant then
+					Menu.Visible = false
+					Menu.Size = UDim2.new(0, MenuWidth, 0, 0)
+					return
+				end
+				TweenService:Create(Menu, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+					Size = UDim2.new(0, MenuWidth, 0, 0),
+				}):Play()
+				task.delay(0.15, function()
+					if not Opened then
+						Menu.Visible = false
+					end
+				end)
+				Menu.BackgroundTransparency = 0.12
+			end
+			local function Rebuild(keepValue)
+				if not keepValue then
+					if multi then
+						Value = {}
+					else
+						Value = default
+					end
+				end
+				local query = searchEnabled and SearchBox and SearchBox.Text or ""
+				for _, old in ipairs(Items) do
+					if old.Parent then
+						old:Destroy()
+					end
+				end
+				Items = {}
+				for idx, v in ipairs(list) do
+					local title = OptionTitle(v)
+					local desc = OptionDesc(v)
+					local icon = OptionIcon(v)
+					local iconAsset = icon and Library:GetIcon(icon)
+					local itemLocked = isLocked or ((typeof(v) == "table") and v.Locked or false)
+					local selected = false
+					if multi and typeof(Value) == "table" then
+						for _, sv in ipairs(Value) do
+							if OptionTitle(sv) == title then
+								selected = true
+								break
+							end
+						end
+					else
+						selected = (Value ~= nil) and (OptionTitle(Value) == title) or false
+					end
+					if query ~= "" and not string.find(string.lower(title), string.lower(query), 1, true) then
+						goto continue
+					end
+					local Item = New("TextButton", {
+						Name = title,
+						Size = UDim2.new(1, 0, 0, ItemHeight + (desc and 12 or 0)),
+						BackgroundColor3 = Color3.fromRGB(38, 38, 46),
+						BorderSizePixel = 0,
+						AutoButtonColor = false,
+						Text = "",
+						LayoutOrder = idx,
+						Parent = ScrollList,
+					})
+					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Item })
+					if iconAsset then
+						New("ImageLabel", {
+							Name = "Icon",
+							Size = UDim2.new(0, 16, 0, 16),
+							Position = UDim2.new(0, 10, 0.5, -8),
+							BackgroundTransparency = 1,
+							Image = iconAsset,
+							ImageColor3 = selected and Color3.fromRGB(90, 160, 255) or Color3.fromRGB(150, 160, 180),
+							Parent = Item,
+						})
+						Library:SetIcon(Item:FindFirstChild("Icon"), icon, 10)
+					end
+					local ItemTitle = New("TextLabel", {
+						Name = "Title",
+						Size = UDim2.new(1, -(icon and 36 or 20), 0, desc and 16 or ItemHeight),
+						Position = UDim2.new(0, icon and 36 or 14, 0, desc and 3 or 0),
+						BackgroundTransparency = 1,
+						Font = Enum.Font.GothamMedium,
+						Text = title,
+						TextSize = 15,
+						TextColor3 = selected and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(225, 225, 232),
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextTruncate = Enum.TextTruncate.AtEnd,
+						Parent = Item,
+					})
+					if desc then
+						New("TextLabel", {
+							Name = "Desc",
+							Size = UDim2.new(1, -(icon and 36 or 20), 0, 14),
+							Position = UDim2.new(0, icon and 36 or 14, 0, 20),
+							BackgroundTransparency = 1,
+							Font = Enum.Font.GothamMedium,
+							Text = desc,
+							TextSize = 12,
+							TextColor3 = Color3.fromRGB(150, 150, 165),
+							TextXAlignment = Enum.TextXAlignment.Left,
+							TextTruncate = Enum.TextTruncate.AtEnd,
+							Parent = Item,
+						})
+					end
+					Item.BackgroundColor3 = selected and Color3.fromRGB(48, 60, 92) or Color3.fromRGB(38, 38, 46)
+					table.insert(Items, Item)
+					Item.MouseButton1Click:Connect(function()
+						if itemLocked then
+							return
+						end
+						if multi then
+							if not selected then
+								if typeof(Value) ~= "table" then
+									Value = {}
+								end
+								table.insert(Value, v)
+							else
+								if not (options.allowNone == false and #Value <= 1) then
+									for i, sv in ipairs(Value) do
+										if OptionTitle(sv) == title then
+											table.remove(Value, i)
+											break
+										end
+									end
+								end
+							end
+						else
+							Value = v
+							CloseMenu(false)
+						end
+						ValueLabel.Text = FunctionValueDisplay()
+						if callback then
+							pcall(callback, multi and Value or Value, v, idx)
+						end
+						if not multi then
+							Rebuild(false)
+						end
+					end)
+					::continue::
+				end
+				if #Items == 0 then
+					local Empty = New("TextLabel", {
+						Name = "Empty",
+						Size = UDim2.new(1, 0, 0, 40),
+						BackgroundTransparency = 1,
+						Font = Enum.Font.GothamMedium,
+						Text = "无匹配选项",
+						TextSize = 14,
+						TextColor3 = Color3.fromRGB(150, 150, 165),
+						Parent = ScrollList,
+					})
+					table.insert(Items, Empty)
+				end
+			end
+			local function UpdatePosition()
+				local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
+				Menu.Position = UDim2.fromOffset(math.min(frame.AbsolutePosition.X, viewport.X - Menu.AbsoluteSize.X - 8), 0)
+				local below = viewport.Y - (frame.AbsolutePosition.Y + frame.AbsoluteSize.Y)
+				local req = ScrollListLayout.AbsoluteContentSize.Y + 12
+				local y = frame.AbsolutePosition.Y + frame.AbsoluteSize.Y + 2
+				if req > below then
+					y = frame.AbsolutePosition.Y - req - 2
+					if y < 0 then
+						y = 0
+					end
+				end
+				Menu.Position = UDim2.fromOffset(Menu.Position.X.Offset, y)
+			end
+			local function OpenMenu()
+				if isLocked then
+					return
+				end
+				if Opened then
+					CloseMenu(false)
+					return
+				end
+				Opened = true
+				Chevron.Rotation = 180
+				Rebuild(false)
+				Menu.Visible = true
+				Menu.BackgroundTransparency = 0.12
+				UpdatePosition()
+				local maxContent = (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 600) - 70
+				local searchH = searchEnabled and 32 or 0
+				local contentH = ScrollListLayout.AbsoluteContentSize.Y
+				local listH = math.min(contentH, math.max(0, maxContent - searchH - MenuPadding * 2 - 8))
+				ScrollList.AutomaticSize = Enum.AutomaticSize.None
+				ScrollList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+				ScrollList.CanvasSize = UDim2.new(0, 0, 0, contentH)
+				ScrollList.Size = UDim2.new(1, 0, 0, listH)
+				local targetH = searchH + listH + MenuPadding * 2
+				Menu.Size = UDim2.new(0, MenuWidth, 0, 0)
+				Menu.BackgroundTransparency = 0.12
+				TweenService:Create(Menu, TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+					Size = UDim2.new(0, MenuWidth, 0, targetH),
+					BackgroundTransparency = 0.12,
+				}):Play()
+				if OutsideConn then
+					OutsideConn:Disconnect()
+				end
+				OutsideConn = UserInputService.InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						local p = input.Position
+						local mPos, mSize = Menu.AbsolutePosition, Menu.AbsoluteSize
+						local fPos, fSize = frame.AbsolutePosition, frame.AbsoluteSize
+						local inMenu = p.X >= mPos.X and p.X <= mPos.X + mSize.X and p.Y >= mPos.Y and p.Y <= mPos.Y + mSize.Y
+						local inFrame = p.X >= fPos.X and p.X <= fPos.X + fSize.X and p.Y >= fPos.Y and p.Y <= fPos.Y + fSize.Y
+						if Opened and not inMenu and not inFrame then
+							CloseMenu(false)
+							OutsideConn:Disconnect()
+							OutsideConn = nil
+						end
+					end
+				end)
+			end
+			Trigger.MouseButton1Click:Connect(function()
+				if isLocked or (multi and #list == 0) then
+					return
+				end
+				OpenMenu()
+			end)
+			if searchEnabled and SearchBox then
+				SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+					Rebuild(false)
+				end)
+			end
+			local dropObj = {}
+			function dropObj:Get()
+				return Value
+			end
+			function dropObj:SetValue(v)
+				Value = v
+				ValueLabel.Text = FunctionValueDisplay()
+				Rebuild(false)
+			end
+			function dropObj:Refresh(newValues)
+				if newValues then
+					list = newValues
+				end
+				Rebuild(false)
+			end
+			function dropObj:Select(v)
+				if v == nil then
+					if multi then
+						Value = {}
+					else
+						Value = nil
+					end
+				else
+					Value = v
+				end
+				ValueLabel.Text = FunctionValueDisplay()
+				if callback then
+					pcall(callback, Value)
+				end
+				CloseMenu(false)
+			end
+			function dropObj:Open()
+				OpenMenu()
+			end
+			function dropObj:Close()
+				CloseMenu(true)
+			end
+			ValueLabel.Text = FunctionValueDisplay()
+			return dropObj
+		end
 		local Tabs = {}
 		local TabsList = {}
 		local function CreateTab(name, icon)
@@ -1018,52 +1574,100 @@ local Library = (function()
 					AutomaticSize = Enum.AutomaticSize.Y,
 					Parent = TabPage,
 				})
-				local SectionTitle = New("Frame", {
-					Name = "SectionTitle",
-					Size = UDim2.new(1, 0, 0, 18),
+				local Header = New("TextButton", {
+					Name = "Header",
+					Size = UDim2.new(1, 0, 0, 34),
 					BackgroundTransparency = 1,
+					AutoButtonColor = false,
+					Text = "",
 					Parent = Section,
+				})
+				local HeaderIcon = nil
+				if SectionIcon then
+					HeaderIcon = New("ImageLabel", {
+						Name = "Icon",
+						Size = UDim2.new(0, 16, 0, 16),
+						Position = UDim2.new(0, 14, 0, 9),
+						BackgroundTransparency = 1,
+						Image = SectionIcon,
+						ImageColor3 = Color3.fromRGB(150, 160, 180),
+						Parent = Header,
+					})
+				end
+				local HeaderCol = New("Frame", {
+					Name = "TitleCol",
+					Size = UDim2.new(1, -58, 0, 0),
+					Position = UDim2.new(0, SectionIcon and 40 or 12, 0, 0),
+					BackgroundTransparency = 1,
+					Parent = Header,
 				})
 				local SectionText = New("TextLabel", {
 					Name = "Text",
-					Size = UDim2.new(1, 0, 1, 0),
+					Size = UDim2.new(1, 0, 0, 16),
+					Position = UDim2.new(0, 0, 0, 3),
 					BackgroundTransparency = 1,
 					Font = Enum.Font.GothamBold,
 					Text = text,
 					TextSize = 16,
 					TextColor3 = Color3.fromRGB(255, 255, 255),
 					TextXAlignment = Enum.TextXAlignment.Left,
-					Parent = SectionTitle,
+					Parent = HeaderCol,
 				})
-				New("UIPadding", { PaddingLeft = UDim.new(0, SectionIcon and 34 or 14), Parent = SectionText })
-				if SectionIcon then
-					New("ImageLabel", {
-						Name = "Icon",
-						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(0, 14, 0, 1),
-						BackgroundTransparency = 1,
-						Image = SectionIcon,
-						ImageColor3 = Color3.fromRGB(150, 160, 180),
-						Parent = SectionTitle,
-					})
-				end
-				local Divider = New("Frame", {
+				local SectionDesc = New("TextLabel", {
+					Name = "Desc",
+					Size = UDim2.new(1, 0, 0, 12),
+					Position = UDim2.new(0, 0, 0, 19),
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamMedium,
+					Text = desc or "",
+					TextSize = 12,
+					TextColor3 = Color3.fromRGB(130, 130, 145),
+					TextXAlignment = Enum.TextXAlignment.Left,
+					Visible = desc ~= nil,
+					Parent = HeaderCol,
+				})
+				local Chevron = New("ImageLabel", {
+					Name = "Chevron",
+					Size = UDim2.new(0, 16, 0, 16),
+					Position = UDim2.new(1, -30, 0, 9),
+					BackgroundTransparency = 1,
+					Image = Library:GetIcon("chevron-down"),
+					ImageColor3 = Color3.fromRGB(140, 140, 155),
+					ScaleType = Enum.ScaleType.Fit,
+					Parent = Header,
+				})
+				Library:SetIcon(Chevron, "chevron-down", 12)
+				local SectionContent = New("Frame", {
+					Name = "Content",
+					Size = UDim2.new(1, 0, 0, 0),
+					BackgroundTransparency = 1,
+					AutomaticSize = Enum.AutomaticSize.Y,
+					Parent = Section,
+				})
+				New("Frame", {
 					Name = "Divider",
 					Size = UDim2.new(1, 0, 0, 1),
-					Position = UDim2.new(0, 0, 0, 20),
 					BackgroundColor3 = Color3.fromRGB(50, 50, 60),
 					BorderSizePixel = 0,
 					Parent = Section,
 				})
-				local SectionLayout = New("UIListLayout", {
+				New("UIListLayout", {
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = UDim.new(0, 0),
+					Parent = Section,
+				})
+				New("UIListLayout", {
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					Padding = UDim.new(0, 6),
-					Parent = Section,
+					Parent = SectionContent,
 				})
-				local SectionPad = New("UIPadding", {
-					PaddingTop = UDim.new(0, 22),
-					Parent = Section,
-				})
+				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingBottom = UDim.new(0, 2), Parent = SectionContent })
+				local SectionOpened = true
+				Header.MouseButton1Click:Connect(function()
+					SectionOpened = not SectionOpened
+					SectionContent.Visible = SectionOpened
+					Chevron.Rotation = SectionOpened and 0 or 180
+				end)
 				local SectionObj = {}
 				function SectionObj:AddButton(options)
 					local text = options.name
@@ -1076,7 +1680,7 @@ local Library = (function()
 						BorderSizePixel = 0,
 						AutoButtonColor = false,
 						Text = "",
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Button })
 					local ButtonText = New("TextLabel", {
@@ -1144,7 +1748,7 @@ local Library = (function()
 						Size = UDim2.new(1, 0, 0, 36),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Toggle })
 					local ToggleText = New("TextLabel", {
@@ -1239,7 +1843,7 @@ local Library = (function()
 						AutomaticSize = Enum.AutomaticSize.Y,
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Label })
 					local LabelText = New("TextLabel", {
@@ -1291,7 +1895,7 @@ local Library = (function()
 						Size = UDim2.new(1, 0, 0, 48),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Slider })
 					local SliderText = New("TextLabel", {
@@ -1499,7 +2103,7 @@ local Library = (function()
 						Size = UDim2.new(1, 0, 0, 36),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = BoxFrame })
 					local BoxTitle = New("TextLabel", {
@@ -1560,172 +2164,7 @@ PlaceholderText = "请输入",
 					return BoxObj
 				end
 				function SectionObj:AddDropdown(options)
-					local text = options.name
-					local list = options.list
-					local default = options.default
-					local callback = options.callback
-					local ic = Library:GetIcon(options.icon)
-					local Dropdown = New("Frame", {
-						Name = text,
-						Size = UDim2.new(1, 0, 0, 36),
-						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
-						BorderSizePixel = 0,
-						Parent = Section,
-					})
-					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Dropdown })
-					local DropdownText = New("TextLabel", {
-						Name = "TextLabel",
-						Size = UDim2.new(1, -40, 0, 36),
-						BackgroundTransparency = 1,
-						Font = Enum.Font.GothamMedium,
-						Text = text,
-						TextSize = 16,
-						TextColor3 = Color3.fromRGB(230, 230, 236),
-						TextXAlignment = Enum.TextXAlignment.Left,
-						TextTruncate = Enum.TextTruncate.AtEnd,
-						Parent = Dropdown,
-					})
-					New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = DropdownText })
-					if ic then
-						New("ImageLabel", {
-							Name = "Icon",
-							Size = UDim2.new(0, 16, 0, 16),
-							Position = UDim2.new(0, 14, 0, 10),
-							BackgroundTransparency = 1,
-							Image = ic,
-							ImageColor3 = Color3.fromRGB(150, 160, 180),
-							Parent = Dropdown,
-						})
-					end
-					local DropdownButton = New("TextButton", {
-						Name = "Button",
-						Size = UDim2.new(1, 0, 0, 36),
-						BackgroundTransparency = 1,
-						Text = "",
-						AutoButtonColor = false,
-						Parent = Dropdown,
-					})
-					local SelectedLabel = New("TextLabel", {
-						Name = "Selected",
-						Size = UDim2.new(0.55, 0, 0, 36),
-						Position = UDim2.new(0.45, 0, 0, 0),
-						BackgroundTransparency = 1,
-						Font = Enum.Font.GothamSemibold,
-						Text = default or "未选择",
-						TextSize = 15,
-						TextColor3 = Color3.fromRGB(90, 160, 255),
-						TextXAlignment = Enum.TextXAlignment.Right,
-						TextTruncate = Enum.TextTruncate.AtEnd,
-						Parent = Dropdown,
-					})
-					New("UIPadding", { PaddingRight = UDim.new(0, 12), Parent = SelectedLabel })
-					local DropList = New("Frame", {
-						Name = "List",
-						Size = UDim2.new(1, 0, 0, 0),
-						Position = UDim2.new(0, 0, 0, 38),
-						BackgroundColor3 = Color3.fromRGB(28, 28, 34),
-						BorderSizePixel = 0,
-						ClipsDescendants = true,
-						Visible = false,
-						ZIndex = 1000001,
-						Parent = Dropdown,
-					})
-					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = DropList })
-					local DropLayout = New("UIListLayout", {
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 4),
-						Parent = DropList,
-					})
-					New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = DropList })
-local Selected = default or "未选择"
-					local Open = false
-					local OutsideConnection = nil
-					local function Close()
-						Open = false
-						TweenService:Create(DropList, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = UDim2.new(1, 0, 0, 0) }):Play()
-						TweenService:Create(Dropdown, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = UDim2.new(1, 0, 0, 36) }):Play()
-						task.delay(0.15, function()
-							if not Open then
-								DropList.Visible = false
-							end
-						end)
-						if OutsideConnection then
-							OutsideConnection:Disconnect()
-							OutsideConnection = nil
-						end
-					end
-					local function OpenList()
-						Open = true
-						DropList.Visible = true
-						local totalHeight = (#list * 30) + 8
-						DropList.Size = UDim2.new(1, 0, 0, 0)
-						TweenService:Create(DropList, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, totalHeight) }):Play()
-						TweenService:Create(Dropdown, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 36 + totalHeight) }):Play()
-						OutsideConnection = UserInputService.InputBegan:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-								local clickPos = input.Position
-								local absPos = Dropdown.AbsolutePosition
-								local absSize = Dropdown.AbsoluteSize
-								if clickPos.X < absPos.X or clickPos.X > absPos.X + absSize.X or clickPos.Y < absPos.Y or clickPos.Y > absPos.Y + absSize.Y then
-									Close()
-								end
-							end
-						end)
-					end
-					local function AddOption(option)
-						local Item = New("TextButton", {
-							Name = option,
-							Size = UDim2.new(1, 0, 0, 26),
-							BackgroundColor3 = Color3.fromRGB(40, 40, 48),
-							BorderSizePixel = 0,
-							AutoButtonColor = false,
-							Text = "",
-							Parent = DropList,
-						})
-						New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = Item })
-						local ItemText = New("TextLabel", {
-							Name = "TextLabel",
-							Size = UDim2.new(1, 0, 1, 0),
-							BackgroundTransparency = 1,
-							Font = Enum.Font.GothamMedium,
-							Text = option,
-							TextSize = 15,
-							TextColor3 = Color3.fromRGB(220, 220, 228),
-							TextXAlignment = Enum.TextXAlignment.Left,
-							Parent = Item,
-						})
-						New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = Item })
-						Item.MouseButton1Click:Connect(function()
-							Selected = option
-							SelectedLabel.Text = option
-							Close()
-							if callback then
-								pcall(callback, option)
-							end
-						end)
-					end
-					DropdownButton.MouseButton1Click:Connect(function()
-						if Open then
-							Close()
-						else
-							OpenList()
-						end
-					end)
-					for _, option in pairs(list) do
-						AddOption(option)
-					end
-					local DropObj = {}
-					function DropObj:Get()
-						return Selected
-					end
-					function DropObj:SetValue(v)
-						Selected = v
-						SelectedLabel.Text = v
-						if callback then
-							pcall(callback, v)
-						end
-					end
-					return DropObj
+					return MakeDropdown(SectionContent, options)
 				end
 				function SectionObj:AddSeparator()
 					local Sep = New("Frame", {
@@ -1733,15 +2172,18 @@ local Selected = default or "未选择"
 						Size = UDim2.new(1, 0, 0, 1),
 						BackgroundColor3 = Color3.fromRGB(45, 45, 54),
 						BorderSizePixel = 0,
-						Parent = Section,
+						Parent = SectionContent,
 					})
 					return Sep
 				end
 				function SectionObj:AddParagraph(options)
-					return MakeParagraphPanel(Section, options)
+					return MakeParagraphPanel(SectionContent, options)
 				end
 				function SectionObj:AddColorpicker(options)
-					return MakeColorpickerPanel(Section, options)
+					return MakeColorpickerPanel(SectionContent, options)
+				end
+				function SectionObj:AddTag(options)
+					return MakeTag(SectionContent, options)
 				end
 				return SectionObj
 			end
@@ -2239,168 +2681,7 @@ local Selected = default or "未选择"
 				return BoxObj
 			end
 			function Tab:AddDropdown(options)
-				local text = options.name
-				local list = options.list
-				local default = options.default
-				local callback = options.callback
-				local ic = Library:GetIcon(options.icon)
-				local Dropdown = New("Frame", {
-					Name = text,
-					Size = UDim2.new(1, 0, 0, 36),
-					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
-					BorderSizePixel = 0,
-					Parent = TabPage,
-				})
-				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Dropdown })
-				local DropdownText = New("TextLabel", {
-					Name = "TextLabel",
-					Size = UDim2.new(1, -40, 0, 36),
-					BackgroundTransparency = 1,
-					Font = Enum.Font.GothamMedium,
-					Text = text,
-					TextSize = 16,
-					TextColor3 = Color3.fromRGB(230, 230, 236),
-					TextXAlignment = Enum.TextXAlignment.Left,
-					TextTruncate = Enum.TextTruncate.AtEnd,
-					Parent = Dropdown,
-				})
-				New("UIPadding", { PaddingLeft = UDim.new(0, ic and 40 or 14), Parent = DropdownText })
-				if ic then
-					New("ImageLabel", {
-						Name = "Icon",
-						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(0, 14, 0, 10),
-						BackgroundTransparency = 1,
-						Image = ic,
-						ImageColor3 = Color3.fromRGB(150, 160, 180),
-						Parent = Dropdown,
-					})
-				end
-				local DropdownButton = New("TextButton", {
-					Name = "Button",
-					Size = UDim2.new(1, 0, 0, 36),
-					BackgroundTransparency = 1,
-					Text = "",
-					AutoButtonColor = false,
-					Parent = Dropdown,
-				})
-				local SelectedLabel = New("TextLabel", {
-					Name = "Selected",
-					Size = UDim2.new(0.55, 0, 0, 36),
-					Position = UDim2.new(0.45, 0, 0, 0),
-					BackgroundTransparency = 1,
-					Font = Enum.Font.GothamSemibold,
-					Text = default or "未选择",
-					TextSize = 15,
-					TextColor3 = Color3.fromRGB(90, 160, 255),
-					TextXAlignment = Enum.TextXAlignment.Right,
-					TextTruncate = Enum.TextTruncate.AtEnd,
-					Parent = Dropdown,
-				})
-				New("UIPadding", { PaddingRight = UDim.new(0, 12), Parent = SelectedLabel })
-				local DropList = New("Frame", {
-					Name = "List",
-					Size = UDim2.new(1, 0, 0, 0),
-					Position = UDim2.new(0, 0, 0, 38),
-					BackgroundColor3 = Color3.fromRGB(28, 28, 34),
-					BorderSizePixel = 0,
-					ClipsDescendants = true,
-					Visible = false,
-					ZIndex = 1000001,
-					Parent = Dropdown,
-				})
-				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = DropList })
-				New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = DropList })
-				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = DropList })
-				local Selected = default or "未选择"
-				local Open = false
-				local OutsideConnection = nil
-				local function Close()
-					Open = false
-					TweenService:Create(DropList, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = UDim2.new(1, 0, 0, 0) }):Play()
-					TweenService:Create(Dropdown, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = UDim2.new(1, 0, 0, 36) }):Play()
-					task.delay(0.15, function()
-						if not Open then
-							DropList.Visible = false
-						end
-					end)
-					if OutsideConnection then
-						OutsideConnection:Disconnect()
-						OutsideConnection = nil
-					end
-				end
-				local function OpenList()
-					Open = true
-					DropList.Visible = true
-					local totalHeight = (#list * 30) + 8
-					DropList.Size = UDim2.new(1, 0, 0, 0)
-					TweenService:Create(DropList, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, totalHeight) }):Play()
-					TweenService:Create(Dropdown, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(1, 0, 0, 36 + totalHeight) }):Play()
-					OutsideConnection = UserInputService.InputBegan:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-							local clickPos = input.Position
-							local absPos = Dropdown.AbsolutePosition
-							local absSize = Dropdown.AbsoluteSize
-							if clickPos.X < absPos.X or clickPos.X > absPos.X + absSize.X or clickPos.Y < absPos.Y or clickPos.Y > absPos.Y + absSize.Y then
-								Close()
-							end
-						end
-					end)
-				end
-				local function AddOption(option)
-					local Item = New("TextButton", {
-						Name = option,
-						Size = UDim2.new(1, 0, 0, 26),
-						BackgroundColor3 = Color3.fromRGB(40, 40, 48),
-						BorderSizePixel = 0,
-						AutoButtonColor = false,
-						Text = "",
-						Parent = DropList,
-					})
-					New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = Item })
-					local ItemText = New("TextLabel", {
-						Name = "TextLabel",
-						Size = UDim2.new(1, 0, 1, 0),
-						BackgroundTransparency = 1,
-						Font = Enum.Font.GothamMedium,
-						Text = option,
-						TextSize = 15,
-						TextColor3 = Color3.fromRGB(220, 220, 228),
-						TextXAlignment = Enum.TextXAlignment.Left,
-						Parent = Item,
-					})
-					New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = Item })
-					Item.MouseButton1Click:Connect(function()
-						Selected = option
-						SelectedLabel.Text = option
-						Close()
-						if callback then
-							pcall(callback, option)
-						end
-					end)
-				end
-				DropdownButton.MouseButton1Click:Connect(function()
-					if Open then
-						Close()
-					else
-						OpenList()
-					end
-				end)
-				for _, option in pairs(list) do
-					AddOption(option)
-				end
-				local DropObj = {}
-				function DropObj:Get()
-					return Selected
-				end
-				function DropObj:SetValue(v)
-					Selected = v
-					SelectedLabel.Text = v
-					if callback then
-						pcall(callback, v)
-					end
-				end
-				return DropObj
+				return MakeDropdown(TabPage, options)
 			end
 			function Tab:AddKeybind(options)
 				local text = options.name
@@ -2506,6 +2787,9 @@ local Selected = default or "未选择"
 			end
 			function Tab:AddColorpicker(options)
 				return MakeColorpickerPanel(TabPage, options)
+			end
+			function Tab:AddTag(options)
+				return MakeTag(TabPage, options)
 			end
 			if #TabButtons == 1 then
 				OnTabClick()
