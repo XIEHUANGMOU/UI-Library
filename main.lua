@@ -952,15 +952,15 @@ local Library = (function()
 			local rightEdge = math.max(120, tbW - 322)
 			local leftBound = 46
 			local guard = 0
-			if SubtitleLabel and SubtitleLabel.AbsoluteSize.X > 0 then
-				guard = SubtitleLabel.AbsolutePosition.X + SubtitleLabel.AbsoluteSize.X
-			elseif TitleLabel and TitleLabel.AbsoluteSize.X > 0 then
-				guard = TitleLabel.AbsolutePosition.X + TitleLabel.AbsoluteSize.X
+			if SubtitleLabel and SubtitleLabel.TextBounds.X > 0 then
+				guard = SubtitleLabel.AbsolutePosition.X + SubtitleLabel.TextBounds.X
+			elseif TitleLabel and TitleLabel.TextBounds.X > 0 then
+				guard = TitleLabel.AbsolutePosition.X + TitleLabel.TextBounds.X
 			end
 			if guard > 0 then
-				leftBound = guard + 8
+				leftBound = math.min(guard + 8, rightEdge - 80)
 			end
-			local w = math.max(0, rightEdge - leftBound)
+			local w = math.max(90, rightEdge - leftBound)
 			TopBarTags.Position = UDim2.new(0, leftBound, 0, 6)
 			TopBarTags.Size = UDim2.new(0, w, 0, 26)
 		end
@@ -3846,20 +3846,44 @@ PlaceholderText = "请输入",
 		end)
 		return notify
 	end
-	function Library:Notification(n)
-		if type(n) == "string" then
-			n = { Text = n }
+	local function NotifyEvictIfFull()
+			local max = NotifyMax or 5
+			if #NotifyActive < max then
+				return
+			end
+			-- notify counted by our own limiter
+			local oldest = NotifyActive[1]
+			if not oldest then
+				return
+			end
+			-- 最旧(底部)那条：引出动画 —— 滑向右上角并淡出，腾出空位
+			local c = oldest.Container
+			local m = c and c:FindFirstChild("Notify")
+			oldest.Closed = true
+			table.remove(NotifyActive, 1)
+			if m then
+				TweenService:Create(m, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+					Position = UDim2.new(1.2, 0, -0.6, 0),
+					BackgroundTransparency = 1,
+				}):Play()
+			end
+			task.delay(0.45, function()
+				if c and c.Parent then
+					c:Destroy()
+				end
+			end)
 		end
-		n.Title = n.Title or ""
-		n.Text = n.Text or n.Content or ""
-		n.Duration = n.Duration or 5
-		EnsureNotifyUI()
-		if #NotifyActive >= NotifyMax then
-			table.insert(NotifyQueue, n)
-			return nil
+		function Library:Notification(n)
+			if type(n) == "string" then
+				n = { Text = n }
+			end
+			n.Title = n.Title or ""
+			n.Text = n.Text or n.Content or ""
+			n.Duration = n.Duration or 5
+			EnsureNotifyUI()
+			NotifyEvictIfFull()
+			return ShowNotification(n)
 		end
-		return ShowNotification(n)
-	end
 	function Library:CreateNotify(text, duration)
 		if type(text) == "table" then
 			return self:Notification(text)
