@@ -3085,6 +3085,9 @@ PlaceholderText = "请输入",
 			end
 			return Tab
 		end
+		local OBtnDragging = false
+		local OBtnStart = Vector2.new(0, 0)
+		local OBtnPos = UDim2.new(0, 16, 0, 90)
 		local function RestoreWindow()
 			if not Minimized then
 				return
@@ -3468,9 +3471,6 @@ local OpenButtonBar = New("Frame", {
 		FixBtn.MouseLeave:Connect(function()
 			TweenService:Create(FixBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0 }):Play()
 		end)
-		local OBtnDragging = false
-		local OBtnStart = Vector2.new(0, 0)
-		local OBtnPos = UDim2.new(0, 16, 0, 90)
 		OpenButtonBar.Position = OBtnPos
 		DragHandle.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
