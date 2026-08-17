@@ -782,8 +782,9 @@ local Library = (function()
 			ZIndex = 999999,
 			Parent = ScreenGui,
 		})
-		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
-		New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Main })
+		local MainCorner = UDim.new(0, 12)
+		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Main })
+		New("UICorner", { CornerRadius = MainCorner, Parent = Main })
 		local MinSizeX = size.X.Offset
 		local MinSizeY = size.Y.Offset
 		local function ClampMainSize()
