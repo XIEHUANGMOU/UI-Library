@@ -783,7 +783,6 @@ local Library = (function()
 			Parent = ScreenGui,
 		})
 		local MainCorner = UDim.new(0, 12)
-		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Main })
 		New("UICorner", { CornerRadius = MainCorner, Parent = Main })
 		local MinSizeX = size.X.Offset
 		local MinSizeY = size.Y.Offset
@@ -3569,6 +3568,7 @@ local OpenButtonBar = New("Frame", {
 			ControlGui:Destroy()
 		end)
 		Main.Size = UDim2.new(0, 0, 0, 0)
+		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 		local function SearchContains(str, q)
 			if not str or not q or q == "" then
 				return false
