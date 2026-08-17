@@ -10,6 +10,7 @@ local Library = (function()
 	end
 	local UIScale = 1
 	local WindowScale = nil
+	local GlobalScale = nil
 	local Connections = {}
 	local Opened = true
 	local Minimized = false
@@ -698,21 +699,71 @@ local Library = (function()
 			Scale = 0.85,
 			Parent = ScreenGui,
 		})
-		local ViewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
-		local BaseDPI = 1
-		if type(options.DPI) == "number" and options.DPI > 0 then
-			BaseDPI = options.DPI
-		else
-			BaseDPI = math.clamp(ViewportSize.X / 1920, 0.5, 1.5)
+		local WinScale = WindowScale
+		local UserDPI = (type(options.DPI) == "number" and options.DPI > 0) and options.DPI or nil
+		local function GetViewport()
+			local cam = workspace.CurrentCamera
+			return cam and cam.ViewportSize or Vector2.new(900, 600)
 		end
-		local FitScale = math.min(1, math.min((ViewportSize.X - 24) / size.X.Offset, (ViewportSize.Y - 24) / size.Y.Offset))
-		WindowScale.Scale = WindowScale.Scale * BaseDPI * (FitScale < 1 and FitScale or 1)
-		UIScale = BaseDPI
-		local function ApplyDPI()
-			if WindowScale then
-				WindowScale.Scale = 0.85 * UIScale * (FitScale < 1 and FitScale or 1)
+		local function DeviceKind()
+			local touch = false
+			pcall(function()
+				touch = UserInputService.TouchEnabled
+			end)
+			if not touch then
+				return "PC"
 			end
+			local vp = GetViewport()
+			return vp.X >= 600 and "Tablet" or "Phone"
 		end
+		local function DeviceBase(vp, kind)
+			if UserDPI then
+				return UserDPI
+			end
+			if kind == "Tablet" then
+				return math.clamp(vp.X / 1024, 0.75, 1.0)
+			elseif kind == "Phone" then
+				return math.clamp(vp.X / 520, 0.7, 1.0)
+			end
+			return math.clamp(vp.X / 1920, 0.5, 1.25)
+		end
+		local function FitScaleOf(vp)
+			if size.X.Offset <= 0 or size.Y.Offset <= 0 then
+				return 1
+			end
+			return math.min(1, (vp.X - 24) / size.X.Offset, (vp.Y - 24) / size.Y.Offset)
+		end
+		local function ApplyAutoScale()
+			if not WinScale then
+				return
+			end
+			if GlobalScale then
+				WinScale.Scale = GlobalScale
+				return
+			end
+			local vp = GetViewport()
+			local kind = DeviceKind()
+			local base = DeviceBase(vp, kind)
+			local fit = FitScaleOf(vp)
+			local floor = kind == "Tablet" and 0.6 or (kind == "Phone" and 0.45 or 0.5)
+			UIScale = base
+			WinScale.Scale = 0.85 * base * math.max(fit, floor)
+		end
+		local function WatchViewport(cam)
+			if not cam then
+				return
+			end
+			pcall(function()
+				cam:GetPropertyChangedSignal("ViewportSize"):Connect(ApplyAutoScale)
+			end)
+		end
+		ApplyAutoScale()
+		WatchViewport(workspace.CurrentCamera)
+		pcall(function()
+			workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+				WatchViewport(workspace.CurrentCamera)
+			end)
+		end)
 		pcall(function()
 			local CoreGui = game:GetService("CoreGui")
 			if not CoreGui:FindFirstChild("XHMUltraLib") then
@@ -3845,8 +3896,8 @@ local OpenButtonBar = New("Frame", {
 			return Main.Size
 		end
 		function Window:SetDPI(d)
-			UIScale = (type(d) == "number" and d > 0) and d or 1
-			ApplyDPI()
+			UserDPI = (type(d) == "number" and d > 0) and d or nil
+			ApplyAutoScale()
 		end
 		task.spawn(function()
 			task.wait(1.35)
@@ -4112,9 +4163,9 @@ local OpenButtonBar = New("Frame", {
 		end
 	end
 	function Library:SetScale(s)
-		UIScale = s
+		GlobalScale = (type(s) == "number" and s > 0) and s or nil
 		if WindowScale then
-			WindowScale.Scale = s
+			WindowScale.Scale = GlobalScale or 1
 		end
 	end
 	return Library
