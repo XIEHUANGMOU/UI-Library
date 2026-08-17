@@ -14,10 +14,7 @@ local Library = (function()
 	local Opened = true
 	local Minimized = false
 	local function IsEmpty(s)
-		for _, ch in utf8.names(s) do
-			return false
-		end
-		return true
+		return (s == nil) or (not s:find("%S"))
 	end
 	local function New(class, props)
 		local inst = Instance.new(class)
@@ -28,6 +25,59 @@ local Library = (function()
 		end
 		inst.Parent = props.Parent
 		return inst
+	end
+	local ConfigPath = nil
+	local ConfigData = {}
+	local function ConfigInit(filename)
+		ConfigPath = nil
+		ConfigData = {}
+		if type(filename) ~= "string" or filename == "" then
+			return
+		end
+		local ok, http = pcall(function()
+			return game:GetService("HttpService")
+		end)
+		pcall(function()
+			if makefolder then
+				makefolder("XHMUltraUI")
+			end
+		end)
+		ConfigPath = "XHMUltraUI/" .. filename .. ".json"
+		if ok and http and isfile and readfile and isfile(ConfigPath) then
+			pcall(function()
+				local raw = readfile(ConfigPath)
+				local data = http:JSONDecode(raw)
+				if type(data) == "table" then
+					ConfigData = data
+				end
+			end)
+		end
+	end
+	local function ConfigGet(key, def)
+		local v = ConfigData[key]
+		if v == nil then
+			return def
+		end
+		return v
+	end
+	local function ConfigSet(key, value)
+		if not ConfigPath then
+			return
+		end
+		if value == nil then
+			ConfigData[key] = nil
+		else
+			ConfigData[key] = value
+		end
+		local ok, http = pcall(function()
+			return game:GetService("HttpService")
+		end)
+		if not (ok and http and writefile) then
+			return
+		end
+		pcall(function()
+			writefile(ConfigPath, http:JSONEncode(ConfigData))
+		end)
 	end
 	local function CreateShadow(parent, transparency)
 		local shadow = New("ImageLabel", {
@@ -103,18 +153,18 @@ local Library = (function()
 			Parent = container,
 		})
 		New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = Par })
-		local iconPad = ic and 40 or 14
+		local contentPad = ic and 22 or 0
 		local ParLayout = New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Padding = UDim.new(0, 6),
 			Parent = Par,
 		})
-		New("UIPadding", { PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, iconPad), PaddingRight = UDim.new(0, 14), Parent = Par })
+		New("UIPadding", { PaddingTop = UDim.new(0, 12), PaddingBottom = UDim.new(0, 12), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 12), Parent = Par })
 		if ic then
 			New("ImageLabel", {
 				Name = "Icon",
 				Size = UDim2.new(0, 16, 0, 16),
-				Position = UDim2.new(0, 0, 0, 12),
+				Position = UDim2.new(0, 10, 0, 12),
 				BackgroundTransparency = 1,
 				Image = ic,
 				ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -134,6 +184,7 @@ local Library = (function()
 			TextWrapped = true,
 			Parent = Par,
 		})
+		New("UIPadding", { PaddingLeft = UDim.new(0, contentPad), PaddingRight = UDim.new(0, 14), Parent = TitleLabel })
 		local BodyLabel = New("TextLabel", {
 			Name = "Text",
 			Size = UDim2.new(1, 0, 0, 0),
@@ -148,6 +199,7 @@ local Library = (function()
 			TextYAlignment = Enum.TextYAlignment.Top,
 			Parent = Par,
 		})
+		New("UIPadding", { PaddingLeft = UDim.new(0, contentPad), PaddingRight = UDim.new(0, 14), Parent = BodyLabel })
 		local ParObj = {
 			Frame = Par,
 			Instance = Par,
@@ -279,7 +331,11 @@ local Library = (function()
 		local title = options.name or ""
 		local callback = options.callback
 		local ic = options.icon and Library:GetIcon(options.icon)
-		local ph, ps, pv = Color3.toHSV(options.default or Color3.fromRGB(255, 255, 255))
+		local saved = (options.save and ConfigGet(title, options.default)) or options.default
+		if type(saved) == "table" and saved.R ~= nil and saved.G ~= nil and saved.B ~= nil then
+			saved = Color3.new(saved.R, saved.G, saved.B)
+		end
+		local ph, ps, pv = Color3.toHSV(saved or Color3.fromRGB(255, 255, 255))
 		local hue = ph or 0
 		local sat = ps or 1
 		local vib = pv or 1
@@ -369,6 +425,9 @@ local Library = (function()
 			end
 			if callback then
 				pcall(callback, col)
+			end
+			if options.save then
+				ConfigSet(title, { R = col.R, G = col.G, B = col.B })
 			end
 		end
 		local function SetsRGB(r, g, b)
@@ -624,6 +683,7 @@ local Library = (function()
 		return ColorObj
 	end
 	function Library:CreateWindow(options)
+		ConfigInit(type(options) == "table" and options.Config or nil)
 		local title = options.Title or "XHM Ultra"
 		local size = options.Size or UDim2.new(0, 680, 0, 460)
 		local ScreenGui = New("ScreenGui", {
@@ -1197,7 +1257,19 @@ local Library = (function()
 				end
 				return default
 			end
-			local Value = NormalizeDefault()
+			local effectiveDefault = (options.save and ConfigGet(text, default)) or default
+			local Value
+			if multi then
+				if type(effectiveDefault) == "table" then
+					Value = effectiveDefault
+				elseif effectiveDefault ~= nil then
+					Value = { effectiveDefault }
+				else
+					Value = {}
+				end
+			else
+				Value = effectiveDefault
+			end
 			local FunctionValueDisplay
 			FunctionValueDisplay = function()
 				if multi then
@@ -1473,6 +1545,9 @@ local Library = (function()
 							CloseMenu(false)
 						end
 						ValueLabel.Text = FunctionValueDisplay()
+						if options.save then
+							ConfigSet(text, Value)
+						end
 						if callback then
 							pcall(callback, multi and Value or Value, v, idx)
 						end
@@ -1586,6 +1661,9 @@ local Library = (function()
 			function dropObj:SetValue(v)
 				Value = v
 				ValueLabel.Text = FunctionValueDisplay()
+				if options.save then
+					ConfigSet(text, Value)
+				end
 				Rebuild(false)
 			end
 			function dropObj:Refresh(newValues)
@@ -1605,6 +1683,9 @@ local Library = (function()
 					Value = v
 				end
 				ValueLabel.Text = FunctionValueDisplay()
+				if options.save then
+					ConfigSet(text, Value)
+				end
 				if callback then
 					pcall(callback, Value)
 				end
@@ -1933,7 +2014,7 @@ local Library = (function()
 						Parent = Holder,
 					})
 					New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ToggleButton })
-					local Value = default or false
+					local Value = (options.save and ConfigGet(text, default or false)) or (default or false)
 					local function SetValue(v, animate)
 						Value = v
 						if v then
@@ -1956,7 +2037,11 @@ local Library = (function()
 						Parent = Toggle,
 					})
 					RowButton.MouseButton1Click:Connect(function()
-						SetValue(not Value)
+						local nv = not Value
+						SetValue(nv)
+						if options.save then
+							ConfigSet(text, nv)
+						end
 					end)
 					SetValue(Value, true)
 					local ToggleObj = {
@@ -1968,6 +2053,9 @@ local Library = (function()
 					end
 					function ToggleObj:SetValue(v)
 						SetValue(v)
+						if options.save then
+							ConfigSet(text, v)
+						end
 					end
 					return ToggleObj
 				end
@@ -2150,7 +2238,7 @@ local Library = (function()
 					New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = SliderGrab })
 					local Min = min or 0
 					local Max = max or 100
-					local Current = default or Min
+					local Current = math.clamp((options.save and ConfigGet(text, default or Min)) or (default or Min), Min, Max)
 					local Step = options.step or math.max(1, math.round((Max - Min) / 100))
 					local function UpdateSlider(x)
 						local relX = math.clamp((x - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
@@ -2173,9 +2261,13 @@ local Library = (function()
 						if callback then
 							pcall(callback, v)
 						end
+						if options.save then
+							ConfigSet(text, v)
+						end
 						return v
 					end
 					local dragging = false
+					local TouchAnchor = Vector2.new(0, 0)
 					local function IsPress(input)
 						return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 					end
@@ -2186,22 +2278,40 @@ local Library = (function()
 					end
 					Slider.InputBegan:Connect(function(input)
 						if IsPress(input) then
-							dragging = true
-							UpdateSlider(UserInputService:GetMouseLocation().X)
 							if input.UserInputType == Enum.UserInputType.Touch then
-								pcall(function() input.Handled = true end)
+								TouchAnchor = input.Position
+							else
+								dragging = true
+								UpdateSlider(UserInputService:GetMouseLocation().X)
 							end
 						end
 					end)
 					Slider.InputChanged:Connect(function(input)
-						if dragging and input.UserInputType == Enum.UserInputType.Touch then
+						if input.UserInputType == Enum.UserInputType.Touch then
+							if not dragging then
+								local dx = input.Position.X - TouchAnchor.X
+								local dy = input.Position.Y - TouchAnchor.Y
+								if math.max(math.abs(dx), math.abs(dy)) > 10 then
+									if math.abs(dx) >= math.abs(dy) then
+										dragging = true
+										UpdateSlider(input.Position.X)
+									end
+								end
+							else
+								UpdateSlider(input.Position.X)
+							end
 							pcall(function() input.Handled = true end)
 						end
 					end)
-					Slider.InputEnded:Connect(StopDrag)
+					Slider.InputEnded:Connect(function(input)
+						StopDrag(input)
+						if options.save then
+							ConfigSet(text, Current)
+						end
+					end)
 					UserInputService.InputEnded:Connect(StopDrag)
 					RunService.RenderStepped:Connect(function()
-						if dragging then
+						if dragging and not UserInputService.TouchEnabled then
 							UpdateSlider(UserInputService:GetMouseLocation().X)
 						end
 					end)
@@ -2277,7 +2387,7 @@ local Library = (function()
 						BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 						BorderSizePixel = 0,
 						Font = Enum.Font.GothamMedium,
-						Text = default or "",
+						Text = (options.save and ConfigGet(text, default or "")) or (default or ""),
 PlaceholderText = "请输入",
 						TextSize = 16,
 						TextColor3 = Color3.fromRGB(230, 230, 236),
@@ -2289,6 +2399,9 @@ PlaceholderText = "请输入",
 					New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = TextBox })
 					New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = TextBox })
 					TextBox.FocusLost:Connect(function()
+						if options.save then
+							ConfigSet(text, TextBox.Text)
+						end
 						if callback then
 							pcall(callback, TextBox.Text)
 						end
@@ -2503,7 +2616,7 @@ PlaceholderText = "请输入",
 					Parent = Holder,
 				})
 				New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ToggleButton })
-				local Value = default or false
+				local Value = (options.save and ConfigGet(text, default or false)) or (default or false)
 				local function SetValue(v)
 					Value = v
 					if v then
@@ -2526,7 +2639,11 @@ PlaceholderText = "请输入",
 					Parent = Toggle,
 				})
 				RowButton.MouseButton1Click:Connect(function()
-					SetValue(not Value)
+					local nv = not Value
+					SetValue(nv)
+					if options.save then
+						ConfigSet(text, nv)
+					end
 				end)
 				SetValue(Value)
 				local ToggleObj = {
@@ -2538,6 +2655,9 @@ PlaceholderText = "请输入",
 				end
 				function ToggleObj:SetValue(v)
 					SetValue(v)
+					if options.save then
+						ConfigSet(text, v)
+					end
 				end
 				return ToggleObj
 			end
@@ -2669,7 +2789,7 @@ PlaceholderText = "请输入",
 				New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = SliderGrab })
 				local Min = min or 0
 				local Max = max or 100
-				local Current = default or Min
+				local Current = math.clamp((options.save and ConfigGet(text, default or Min)) or (default or Min), Min, Max)
 				local Step = options.step or math.max(1, math.round((Max - Min) / 100))
 				local function UpdateSlider(x)
 					local relX = math.clamp((x - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
@@ -2692,9 +2812,13 @@ PlaceholderText = "请输入",
 					if callback then
 						pcall(callback, v)
 					end
+					if options.save then
+						ConfigSet(text, v)
+					end
 					return v
 				end
 				local dragging = false
+				local TouchAnchor = Vector2.new(0, 0)
 				local function IsPress(input)
 					return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 				end
@@ -2705,22 +2829,40 @@ PlaceholderText = "请输入",
 				end
 				Slider.InputBegan:Connect(function(input)
 					if IsPress(input) then
-						dragging = true
-						UpdateSlider(UserInputService:GetMouseLocation().X)
 						if input.UserInputType == Enum.UserInputType.Touch then
-							pcall(function() input.Handled = true end)
+							TouchAnchor = input.Position
+						else
+							dragging = true
+							UpdateSlider(UserInputService:GetMouseLocation().X)
 						end
 					end
 				end)
 				Slider.InputChanged:Connect(function(input)
-					if dragging and input.UserInputType == Enum.UserInputType.Touch then
+					if input.UserInputType == Enum.UserInputType.Touch then
+						if not dragging then
+							local dx = input.Position.X - TouchAnchor.X
+							local dy = input.Position.Y - TouchAnchor.Y
+							if math.max(math.abs(dx), math.abs(dy)) > 10 then
+								if math.abs(dx) >= math.abs(dy) then
+									dragging = true
+									UpdateSlider(input.Position.X)
+								end
+							end
+						else
+							UpdateSlider(input.Position.X)
+						end
 						pcall(function() input.Handled = true end)
 					end
 				end)
-				Slider.InputEnded:Connect(StopDrag)
+				Slider.InputEnded:Connect(function(input)
+					StopDrag(input)
+					if options.save then
+						ConfigSet(text, Current)
+					end
+				end)
 				UserInputService.InputEnded:Connect(StopDrag)
 				RunService.RenderStepped:Connect(function()
-					if dragging then
+					if dragging and not UserInputService.TouchEnabled then
 						UpdateSlider(UserInputService:GetMouseLocation().X)
 					end
 				end)
@@ -2795,7 +2937,7 @@ PlaceholderText = "请输入",
 					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 					BorderSizePixel = 0,
 					Font = Enum.Font.GothamMedium,
-					Text = default or "",
+					Text = (options.save and ConfigGet(text, default or "")) or (default or ""),
 					PlaceholderText = "请输入",
 					TextSize = 16,
 					TextColor3 = Color3.fromRGB(230, 230, 236),
@@ -2807,6 +2949,9 @@ PlaceholderText = "请输入",
 				New("UICorner", { CornerRadius = UDim.new(0, 6), Parent = TextBox })
 				New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = TextBox })
 				TextBox.FocusLost:Connect(function()
+					if options.save then
+						ConfigSet(text, TextBox.Text)
+					end
 					if callback then
 						pcall(callback, TextBox.Text)
 					end
@@ -2867,7 +3012,7 @@ PlaceholderText = "请输入",
 					BackgroundColor3 = Color3.fromRGB(22, 22, 28),
 					BorderSizePixel = 0,
 					AutoButtonColor = false,
-					Text = tostring(default or "未绑定"),
+					Text = tostring((options.save and ConfigGet(text, default)) or default or "未绑定"),
 					Font = Enum.Font.GothamSemibold,
 					TextSize = 15,
 					TextColor3 = Color3.fromRGB(200, 200, 210),
@@ -2907,6 +3052,9 @@ PlaceholderText = "请输入",
 							Binding = false
 							InputConnection:Disconnect()
 							InputConnection = nil
+							if options.save then
+								ConfigSet(text, KeyButton.Text)
+							end
 							if callback then
 								pcall(callback, KeyButton.Text)
 							end
