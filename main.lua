@@ -3477,6 +3477,14 @@ local OpenButtonBar = New("Frame", {
 				OBtnDragging = true
 				OBtnStart = input.Position
 				OBtnPos = OpenButtonBar.Position
+				local startX = OBtnPos.X.Offset
+				local startY = OBtnPos.Y.Offset
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						OBtnDragging = false
+						OBtnPos = OpenButtonBar.Position
+					end
+				end)
 			end
 		end)
 		UserInputService.InputChanged:Connect(function(input)
@@ -3484,13 +3492,13 @@ local OpenButtonBar = New("Frame", {
 				local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
 				local nx = math.clamp(OBtnPos.X.Offset + (input.Position.X - OBtnStart.X), 0, viewport.X - 240)
 				local ny = math.clamp(OBtnPos.Y.Offset + (input.Position.Y - OBtnStart.Y), 0, viewport.Y - 60)
-				OBtnPos = UDim2.new(0, nx, 0, ny)
-				OpenButtonBar.Position = OBtnPos
+				OpenButtonBar.Position = UDim2.new(0, nx, 0, ny)
 			end
 		end)
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				OBtnDragging = false
+				OBtnPos = OpenButtonBar.Position
 			end
 		end)
 		FixBtn.MouseButton1Click:Connect(function()
