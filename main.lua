@@ -719,13 +719,6 @@ local Library = (function()
 				New("Folder", { Name = "XHMUltraLib", Parent = CoreGui })
 			end
 		end)
-		local MainCanvas = New("CanvasGroup", {
-			Name = "MainCanvas",
-			GroupTransparency = 0,
-			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			Parent = ScreenGui,
-		})
 		local Main = New("Frame", {
 			Name = "Main",
 			Size = size,
@@ -736,7 +729,7 @@ local Library = (function()
 			ClipsDescendants = true,
 			Active = true,
 			ZIndex = 999999,
-			Parent = MainCanvas,
+			Parent = ScreenGui,
 		})
 		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
 		New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Main })
@@ -3104,16 +3097,15 @@ PlaceholderText = "请输入",
 			if ob and ob.Visible then
 				fromPos = ob.Position
 			end
-			MainCanvas.Visible = true
 			Main.Visible = true
 			Main.Size = UDim2.new(0, 260, 0, 44)
 			Main.Position = fromPos
-			MainCanvas.GroupTransparency = 1
+			Main.BackgroundTransparency = 1
 			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
 				Size = size,
 				Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
+				BackgroundTransparency = 0.04,
 			}):Play()
-			TweenService:Create(MainCanvas, TweenInfo.new(0.35, Enum.EasingStyle.Linear), { GroupTransparency = 0 }):Play()
 			if ob then
 				ob.Visible = false
 			end
@@ -3144,15 +3136,16 @@ PlaceholderText = "请输入",
 			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {
 				Size = pillSize,
 				Position = pillPos,
+				BackgroundTransparency = 1,
 			}):Play()
-			TweenService:Create(MainCanvas, TweenInfo.new(0.4, Enum.EasingStyle.Linear), { GroupTransparency = 1 }):Play()
 			if ob then
 				ob.Position = pillPos
 				ob.Visible = true
 			end
 			task.delay(0.55, function()
 				if Minimized then
-					MainCanvas.Visible = false
+					Main.Visible = false
+					Main.BackgroundTransparency = 1
 				end
 			end)
 		end
