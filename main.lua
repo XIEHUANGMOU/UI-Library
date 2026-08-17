@@ -732,6 +732,7 @@ local Library = (function()
 			Parent = ScreenGui,
 		})
 		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
+		New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Main })
 		local MinSizeX = size.X.Offset
 		local MinSizeY = size.Y.Offset
 		local function ClampMainSize()
@@ -3090,18 +3091,21 @@ PlaceholderText = "请输入",
 			end
 			Minimized = false
 			MinimizeIcon.Image = Library:GetIcon("minus")
-			Main.Visible = true
-			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size }):Play()
-			task.wait(0.15)
-			TabsContainer.Visible = true
-			Body.Visible = true
-			BottomBar.Visible = true
-			ResizeHandle.Visible = true
 			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
 			local ob = cg and cg:FindFirstChild("OpenButton")
 			if ob then
 				ob.Visible = false
 			end
+			Main.Visible = true
+			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+				Size = size,
+				Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
+			}):Play()
+			task.wait(0.2)
+			TabsContainer.Visible = true
+			Body.Visible = true
+			BottomBar.Visible = true
+			ResizeHandle.Visible = true
 		end
 		local function MinimizeWindow()
 			if Minimized then
@@ -3110,19 +3114,25 @@ PlaceholderText = "请输入",
 			end
 			Minimized = true
 			MinimizeIcon.Image = Library:GetIcon("maximize")
-			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(size.X.Scale, size.X.Offset, 0, 38) }):Play()
+			local pillPos = UDim2.new(0, 16, 0, 90)
+			local pillSize = UDim2.new(0, 260, 0, 44)
 			TabsContainer.Visible = false
 			Body.Visible = false
 			BottomBar.Visible = false
 			ResizeHandle.Visible = false
-			task.delay(0.3, function()
+			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {
+				Size = pillSize,
+				Position = pillPos,
+			}):Play()
+			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
+			local ob = cg and cg:FindFirstChild("OpenButton")
+			if ob then
+				ob.Position = pillPos
+				ob.Visible = true
+			end
+			task.delay(0.55, function()
 				if Minimized then
 					Main.Visible = false
-					local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
-					local ob = cg and cg:FindFirstChild("OpenButton")
-					if ob then
-						ob.Visible = true
-					end
 				end
 			end)
 		end
@@ -3313,7 +3323,7 @@ PlaceholderText = "请输入",
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = ScreenGui.Parent,
 		})
-		local OpenButtonBar = New("Frame", {
+local OpenButtonBar = New("Frame", {
 			Name = "OpenButton",
 			Size = UDim2.new(0, 0, 0, 44),
 			AutomaticSize = Enum.AutomaticSize.X,
@@ -3326,26 +3336,27 @@ PlaceholderText = "请输入",
 			ZIndex = 999999,
 			Parent = ControlGui,
 		})
+		New("UIScale", { Name = "Scale", Scale = 0.85, Parent = OpenButtonBar })
 		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = OpenButtonBar })
 		New("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Transparency = 0.6, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = OpenButtonBar })
-		local OpenLayout = New("UIListLayout", {
+		New("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = OpenButtonBar })
+		New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			FillDirection = Enum.FillDirection.Horizontal,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
-			Padding = UDim.new(0, 6),
+			Padding = UDim.new(0, 3),
 			Parent = OpenButtonBar,
 		})
 		local DragHandle = New("Frame", {
 			Name = "Drag",
-			Size = UDim2.new(0, 32, 0, 36),
+			Size = UDim2.new(0, 24, 0, 34),
 			BackgroundTransparency = 1,
-			LayoutOrder = 0,
 			Parent = OpenButtonBar,
 		})
 		local DragIcon = New("ImageLabel", {
 			Name = "Icon",
-			Size = UDim2.new(0, 18, 0, 18),
-			Position = UDim2.new(0.5, -9, 0.5, -9),
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0.5, -8, 0.5, -8),
 			BackgroundTransparency = 1,
 			Image = Library:GetIcon("move"),
 			ImageColor3 = Color3.fromRGB(170, 170, 180),
@@ -3354,19 +3365,54 @@ PlaceholderText = "请输入",
 			Parent = DragHandle,
 		})
 		Library:SetIcon(DragIcon, "move", 12)
+		New("Frame", { Name = "Divider", Size = UDim2.new(0, 1, 0, 24), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = OpenButtonBar })
+		local TitleBtn = New("TextButton", {
+			Name = "Title",
+			Size = UDim2.new(0, 0, 0, 32),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Text = "",
+			Parent = OpenButtonBar,
+		})
+		New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), Parent = TitleBtn })
+		New("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = TitleBtn })
+		local TitleIcon = New("ImageLabel", {
+			Name = "Icon",
+			Size = UDim2.new(0, 16, 0, 16),
+			BackgroundTransparency = 1,
+			Image = Logo.Image,
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = TitleBtn,
+		})
+		local TitleLbl = New("TextLabel", {
+			Name = "Text",
+			Size = UDim2.new(0, 0, 0, 20),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = title,
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(235, 235, 240),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = TitleBtn,
+		})
+		New("Frame", { Name = "Divider", Size = UDim2.new(0, 1, 0, 24), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = OpenButtonBar })
 		local VisBtn = New("TextButton", {
 			Name = "Vis",
-			Size = UDim2.new(0, 110, 0, 36),
+			Size = UDim2.new(0, 76, 0, 32),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
 			Text = "",
 			Parent = OpenButtonBar,
 		})
 		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = VisBtn })
+		New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 4), Parent = VisBtn })
+		New("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = VisBtn })
 		local VisIconImg = New("ImageLabel", {
 			Name = "IconImg",
 			Size = UDim2.new(0, 16, 0, 16),
-			Position = UDim2.new(0, 12, 0.5, -8),
 			BackgroundTransparency = 1,
 			Image = Library:GetIcon("eye-off"),
 			ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -3376,30 +3422,32 @@ PlaceholderText = "请输入",
 		Library:SetIcon(VisIconImg, "eye-off", 10)
 		local VisLabel = New("TextLabel", {
 			Name = "Text",
-			Size = UDim2.new(1, -46, 1, 0),
-			Position = UDim2.new(0, 34, 0, 0),
+			Size = UDim2.new(0, 0, 0, 18),
+			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamSemibold,
 			Text = "隐藏",
-			TextSize = 13,
+			TextSize = 12,
 			TextColor3 = Color3.fromRGB(230, 230, 236),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			Parent = VisBtn,
 		})
+		New("Frame", { Name = "Divider", Size = UDim2.new(0, 1, 0, 24), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = OpenButtonBar })
 		local FixBtn = New("TextButton", {
 			Name = "Fix",
-			Size = UDim2.new(0, 110, 0, 36),
+			Size = UDim2.new(0, 76, 0, 32),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
 			Text = "",
 			Parent = OpenButtonBar,
 		})
 		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = FixBtn })
+		New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 4), Parent = FixBtn })
+		New("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = FixBtn })
 		local FixIconImg = New("ImageLabel", {
 			Name = "IconImg",
 			Size = UDim2.new(0, 16, 0, 16),
-			Position = UDim2.new(0, 12, 0.5, -8),
 			BackgroundTransparency = 1,
 			Image = Library:GetIcon("lock-open"),
 			ImageColor3 = Color3.fromRGB(150, 160, 180),
@@ -3409,12 +3457,12 @@ PlaceholderText = "请输入",
 		Library:SetIcon(FixIconImg, "lock-open", 10)
 		local FixLabel = New("TextLabel", {
 			Name = "Text",
-			Size = UDim2.new(1, -46, 1, 0),
-			Position = UDim2.new(0, 34, 0, 0),
+			Size = UDim2.new(0, 0, 0, 18),
+			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamSemibold,
 			Text = "固定",
-			TextSize = 13,
+			TextSize = 12,
 			TextColor3 = Color3.fromRGB(230, 230, 236),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextTruncate = Enum.TextTruncate.AtEnd,
@@ -3493,6 +3541,11 @@ PlaceholderText = "请输入",
 		end)
 		FixBtn.MouseButton1Click:Connect(function()
 			Window:SetDraggable(not WindowDraggable)
+		end)
+		TitleBtn.MouseButton1Click:Connect(function()
+			if Minimized then
+				RestoreWindow()
+			end
 		end)
 		function Window:SetDraggable(v)
 			WindowDraggable = v and true or false
