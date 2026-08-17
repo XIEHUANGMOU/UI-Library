@@ -350,7 +350,7 @@ local Library = (function()
 		local CtrlTitle = New("TextLabel", {
 			Name = "TextLabel",
 			Size = UDim2.new(1, -90, 0, 20),
-			Position = UDim2.new(0, 14, 0, 12),
+			Position = UDim2.new(0, 14, 0.5, -10),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
 			Text = title,
@@ -361,7 +361,7 @@ local Library = (function()
 			Parent = Ctrl,
 		})
 		if ic then
-			CtrlTitle.Position = UDim2.new(0, 40, 0, 12)
+			CtrlTitle.Position = UDim2.new(0, 40, 0.5, -10)
 			New("ImageLabel", {
 				Name = "Icon",
 				Size = UDim2.new(0, 16, 0, 16),
@@ -375,7 +375,7 @@ local Library = (function()
 		local Swatch = New("TextButton", {
 			Name = "Swatch",
 			Size = UDim2.new(0, 60, 0, 24),
-			Position = UDim2.new(1, -70, 0, 10),
+			Position = UDim2.new(1, -70, 0.5, -12),
 			BackgroundColor3 = Color3.fromHSV(hue, sat, vib),
 			BorderSizePixel = 0,
 			AutoButtonColor = false,
@@ -2086,7 +2086,7 @@ local Library = (function()
 						TextYAlignment = Enum.TextYAlignment.Top,
 						Parent = Label,
 					})
-					New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
+New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
 					if ic then
 						New("ImageLabel", {
 							Name = "Icon",
@@ -2466,7 +2466,7 @@ PlaceholderText = "请输入",
 					TextYAlignment = Enum.TextYAlignment.Top,
 					Parent = Label,
 				})
-				New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
+				New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, ic and 40 or 14), PaddingRight = UDim.new(0, 10), Parent = LabelText })
 				if ic then
 					New("ImageLabel", {
 						Name = "Icon",
@@ -3090,12 +3090,18 @@ PlaceholderText = "请输入",
 			end
 			Minimized = false
 			MinimizeIcon.Image = Library:GetIcon("minus")
+			Main.Visible = true
 			TweenService:Create(Main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = size }):Play()
 			task.wait(0.15)
 			TabsContainer.Visible = true
 			Body.Visible = true
 			BottomBar.Visible = true
 			ResizeHandle.Visible = true
+			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
+			local ob = cg and cg:FindFirstChild("OpenButton")
+			if ob then
+				ob.Visible = false
+			end
 		end
 		local function MinimizeWindow()
 			if Minimized then
@@ -3109,6 +3115,16 @@ PlaceholderText = "请输入",
 			Body.Visible = false
 			BottomBar.Visible = false
 			ResizeHandle.Visible = false
+			task.delay(0.3, function()
+				if Minimized then
+					Main.Visible = false
+					local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
+					local ob = cg and cg:FindFirstChild("OpenButton")
+					if ob then
+						ob.Visible = true
+					end
+				end
+			end)
 		end
 		MinimizeButton.MouseButton1Click:Connect(MinimizeWindow)
 		local function CloseWindow()
@@ -3289,6 +3305,204 @@ PlaceholderText = "请输入",
 			Title = title,
 			Icon = Logo.Image,
 		}
+		local ControlGui = New("ScreenGui", {
+			Name = "XHMControlGui",
+			DisplayOrder = 1000000000,
+			ResetOnSpawn = false,
+			IgnoreGuiInset = true,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			Parent = ScreenGui.Parent,
+		})
+		local OpenButtonBar = New("Frame", {
+			Name = "OpenButton",
+			Size = UDim2.new(0, 0, 0, 44),
+			AutomaticSize = Enum.AutomaticSize.X,
+			Position = UDim2.new(0, 16, 0, 90),
+			AnchorPoint = Vector2.new(0, 0),
+			BackgroundColor3 = Color3.fromRGB(24, 24, 28),
+			BackgroundTransparency = 0.15,
+			BorderSizePixel = 0,
+			Visible = false,
+			ZIndex = 999999,
+			Parent = ControlGui,
+		})
+		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = OpenButtonBar })
+		New("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Transparency = 0.6, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = OpenButtonBar })
+		local OpenLayout = New("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 6),
+			Parent = OpenButtonBar,
+		})
+		local DragHandle = New("Frame", {
+			Name = "Drag",
+			Size = UDim2.new(0, 32, 0, 36),
+			BackgroundTransparency = 1,
+			LayoutOrder = 0,
+			Parent = OpenButtonBar,
+		})
+		local DragIcon = New("ImageLabel", {
+			Name = "Icon",
+			Size = UDim2.new(0, 18, 0, 18),
+			Position = UDim2.new(0.5, -9, 0.5, -9),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("move"),
+			ImageColor3 = Color3.fromRGB(170, 170, 180),
+			ImageTransparency = 0.2,
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = DragHandle,
+		})
+		Library:SetIcon(DragIcon, "move", 12)
+		local VisBtn = New("TextButton", {
+			Name = "Vis",
+			Size = UDim2.new(0, 110, 0, 36),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Text = "",
+			Parent = OpenButtonBar,
+		})
+		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = VisBtn })
+		local VisIconImg = New("ImageLabel", {
+			Name = "IconImg",
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0, 12, 0.5, -8),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("eye-off"),
+			ImageColor3 = Color3.fromRGB(150, 160, 180),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = VisBtn,
+		})
+		Library:SetIcon(VisIconImg, "eye-off", 10)
+		local VisLabel = New("TextLabel", {
+			Name = "Text",
+			Size = UDim2.new(1, -46, 1, 0),
+			Position = UDim2.new(0, 34, 0, 0),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = "隐藏",
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(230, 230, 236),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = VisBtn,
+		})
+		local FixBtn = New("TextButton", {
+			Name = "Fix",
+			Size = UDim2.new(0, 110, 0, 36),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Text = "",
+			Parent = OpenButtonBar,
+		})
+		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = FixBtn })
+		local FixIconImg = New("ImageLabel", {
+			Name = "IconImg",
+			Size = UDim2.new(0, 16, 0, 16),
+			Position = UDim2.new(0, 12, 0.5, -8),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon("lock-open"),
+			ImageColor3 = Color3.fromRGB(150, 160, 180),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = FixBtn,
+		})
+		Library:SetIcon(FixIconImg, "lock-open", 10)
+		local FixLabel = New("TextLabel", {
+			Name = "Text",
+			Size = UDim2.new(1, -46, 1, 0),
+			Position = UDim2.new(0, 34, 0, 0),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamSemibold,
+			Text = "固定",
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(230, 230, 236),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = FixBtn,
+		})
+		local function ApplyIcon(iconImg, name, tries)
+			if not iconImg then
+				return
+			end
+			local id = Library:GetIcon(name)
+			if id then
+				iconImg.Image = id
+			elseif tries and tries > 0 then
+				task.delay(0.2, function()
+					if iconImg.Parent then
+						ApplyIcon(iconImg, name, tries - 1)
+					end
+				end)
+			end
+		end
+		local function UpdateVisButton()
+			VisLabel.Text = ScreenGui.Enabled and "隐藏" or "显示"
+			VisBtn.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(60, 60, 70) or Color3.fromRGB(90, 120, 255)
+			ApplyIcon(VisIconImg, ScreenGui.Enabled and "eye-off" or "eye", 10)
+		end
+		local function UpdateFixButton()
+			FixLabel.Text = WindowDraggable and "固定" or "解锁"
+			FixBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
+			FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(90, 160, 255)
+		end
+		UpdateVisButton()
+		UpdateFixButton()
+		VisBtn.MouseEnter:Connect(function()
+			TweenService:Create(VisBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0.1 }):Play()
+		end)
+		VisBtn.MouseLeave:Connect(function()
+			TweenService:Create(VisBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0 }):Play()
+		end)
+		FixBtn.MouseEnter:Connect(function()
+			TweenService:Create(FixBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0.1 }):Play()
+		end)
+		FixBtn.MouseLeave:Connect(function()
+			TweenService:Create(FixBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0 }):Play()
+		end)
+		local OBtnDragging = false
+		local OBtnStart = Vector2.new(0, 0)
+		local OBtnPos = UDim2.new(0, 16, 0, 90)
+		DragHandle.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				OBtnDragging = true
+				OBtnStart = input.Position
+				OBtnPos = OpenButtonBar.Position
+			end
+		end)
+		DragHandle.InputChanged:Connect(function(input)
+			if OBtnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
+				local nx = math.clamp(OBtnPos.X.Offset + (input.Position.X - OBtnStart.X), 0, viewport.X - 240)
+				local ny = math.clamp(OBtnPos.Y.Offset + (input.Position.Y - OBtnStart.Y), 0, viewport.Y - 60)
+				OpenButtonBar.Position = UDim2.new(0, nx, 0, ny)
+			end
+		end)
+		DragHandle.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				OBtnDragging = false
+			end
+		end)
+		VisBtn.MouseButton1Click:Connect(function()
+			if Minimized then
+				RestoreWindow()
+				return
+			end
+			ScreenGui.Enabled = not ScreenGui.Enabled
+			UpdateVisButton()
+		end)
+		FixBtn.MouseButton1Click:Connect(function()
+			Window:SetDraggable(not WindowDraggable)
+		end)
+		function Window:SetDraggable(v)
+			WindowDraggable = v and true or false
+			UpdateFixButton()
+		end
+		ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(UpdateVisButton)
+		ScreenGui.Destroying:Connect(function()
+			ControlGui:Destroy()
+		end)
+		Main.Size = UDim2.new(0, 0, 0, 0)
 		local function SearchContains(str, q)
 			if not str or not q or q == "" then
 				return false
@@ -3580,108 +3794,6 @@ PlaceholderText = "请输入",
 		function Window:ToggleVisibility(v)
 			ScreenGui.Enabled = v
 		end
-		local ControlGui = New("ScreenGui", {
-			Name = "XHMControlGui",
-			DisplayOrder = 1000000000,
-			ResetOnSpawn = false,
-			IgnoreGuiInset = true,
-			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-			Parent = ScreenGui.Parent,
-		})
-		local ControlBar = New("Frame", {
-			Name = "Controls",
-			Size = UDim2.new(0, 152, 0, 32),
-			Position = UDim2.new(0.5, -76, 0, 16),
-			BackgroundTransparency = 1,
-			ZIndex = 999999,
-			Parent = ControlGui,
-		})
-		local function MakeControlButton(text, pos, iconName)
-			local Btn = New("TextButton", {
-				Name = text,
-				Size = UDim2.new(0, 72, 0, 32),
-				Position = pos,
-				BackgroundColor3 = Color3.fromRGB(36, 36, 44),
-				AutoButtonColor = false,
-				Text = "",
-				ZIndex = 999999,
-				Parent = ControlBar,
-			})
-			New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Btn })
-			local IconImg = New("ImageLabel", {
-				Name = "IconImg",
-				Size = UDim2.new(0, 16, 0, 16),
-				Position = UDim2.new(0, 10, 0.5, -8),
-				BackgroundTransparency = 1,
-				Image = iconName and Library:GetIcon(iconName),
-				ImageColor3 = Color3.fromRGB(150, 160, 180),
-				ScaleType = Enum.ScaleType.Fit,
-				Parent = Btn,
-			})
-			local Lbl = New("TextLabel", {
-				Name = "Icon",
-				Size = UDim2.new(1, -34, 1, 0),
-				Position = UDim2.new(0, 34, 0, 0),
-				BackgroundTransparency = 1,
-				Font = Enum.Font.GothamMedium,
-				Text = text,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(230, 230, 236),
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextTruncate = Enum.TextTruncate.AtEnd,
-				Parent = Btn,
-			})
-			return Btn, Lbl, IconImg
-		end
-		local VisButton, VisIcon, VisIconImg = MakeControlButton("隐藏", UDim2.new(0, 0, 0, 0), "eye-off")
-		local FixButton, FixIcon, FixIconImg = MakeControlButton("固定", UDim2.new(0, 80, 0, 0), "lock-open")
-		local function ApplyIcon(iconImg, name, tries)
-			if not iconImg then
-				return
-			end
-			local id = Library:GetIcon(name)
-			if id then
-				iconImg.Image = id
-			elseif tries and tries > 0 then
-				task.delay(0.2, function()
-					if iconImg.Parent then
-						ApplyIcon(iconImg, name, tries - 1)
-					end
-				end)
-			end
-		end
-		local function UpdateVisButton()
-			VisIcon.Text = ScreenGui.Enabled and "隐藏" or "显示"
-			VisButton.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(36, 36, 44) or Color3.fromRGB(70, 70, 80)
-			ApplyIcon(VisIconImg, ScreenGui.Enabled and "eye-off" or "eye", 10)
-		end
-		local function UpdateFixButton()
-			FixIcon.Text = WindowDraggable and "固定" or "解锁"
-			FixButton.BackgroundColor3 = Color3.fromRGB(36, 36, 44)
-			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
-			if FixIconImg then
-				FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(90, 160, 255)
-			end
-		end
-		UpdateVisButton()
-		UpdateFixButton()
-		function Window:SetDraggable(v)
-			WindowDraggable = v and true or false
-			UpdateFixButton()
-		end
-		VisButton.MouseButton1Click:Connect(function()
-			ScreenGui.Enabled = not ScreenGui.Enabled
-			UpdateVisButton()
-		end)
-		FixButton.MouseButton1Click:Connect(function()
-			Window:SetDraggable(not WindowDraggable)
-		end)
-		ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(UpdateVisButton)
-		ScreenGui.Destroying:Connect(function()
-			ControlGui:Destroy()
-		end)
-		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-		Main.Size = UDim2.new(0, 0, 0, 0)
 		TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Size = size,
 			Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
