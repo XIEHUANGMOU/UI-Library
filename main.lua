@@ -3093,10 +3093,7 @@ PlaceholderText = "请输入",
 			MinimizeIcon.Image = Library:GetIcon("minus")
 			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
 			local ob = cg and cg:FindFirstChild("OpenButton")
-			local fromPos = UDim2.new(0, 16, 0, 90)
-			if ob and ob.Visible then
-				fromPos = ob.Position
-			end
+			local fromPos = OBtnPos
 			Main.Visible = true
 			Main.Size = UDim2.new(0, 260, 0, 44)
 			Main.Position = fromPos
@@ -3124,10 +3121,7 @@ PlaceholderText = "请输入",
 			MinimizeIcon.Image = Library:GetIcon("maximize")
 			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
 			local ob = cg and cg:FindFirstChild("OpenButton")
-			local pillPos = UDim2.new(0, 16, 0, 90)
-			if ob and ob.Visible then
-				pillPos = ob.Position
-			end
+			local pillPos = OBtnPos
 			local pillSize = UDim2.new(0, 260, 0, 44)
 			TabsContainer.Visible = false
 			Body.Visible = false
@@ -3139,7 +3133,7 @@ PlaceholderText = "请输入",
 				BackgroundTransparency = 1,
 			}):Play()
 			if ob then
-				ob.Position = pillPos
+				ob.Position = OBtnPos
 				ob.Visible = true
 			end
 			task.delay(0.55, function()
@@ -3477,6 +3471,7 @@ local OpenButtonBar = New("Frame", {
 		local OBtnDragging = false
 		local OBtnStart = Vector2.new(0, 0)
 		local OBtnPos = UDim2.new(0, 16, 0, 90)
+		OpenButtonBar.Position = OBtnPos
 		DragHandle.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				OBtnDragging = true
@@ -3484,15 +3479,16 @@ local OpenButtonBar = New("Frame", {
 				OBtnPos = OpenButtonBar.Position
 			end
 		end)
-		DragHandle.InputChanged:Connect(function(input)
+		UserInputService.InputChanged:Connect(function(input)
 			if OBtnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 				local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(900, 600)
 				local nx = math.clamp(OBtnPos.X.Offset + (input.Position.X - OBtnStart.X), 0, viewport.X - 240)
 				local ny = math.clamp(OBtnPos.Y.Offset + (input.Position.Y - OBtnStart.Y), 0, viewport.Y - 60)
-				OpenButtonBar.Position = UDim2.new(0, nx, 0, ny)
+				OBtnPos = UDim2.new(0, nx, 0, ny)
+				OpenButtonBar.Position = OBtnPos
 			end
 		end)
-		DragHandle.InputEnded:Connect(function(input)
+		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				OBtnDragging = false
 			end
