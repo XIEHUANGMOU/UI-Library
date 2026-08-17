@@ -719,6 +719,13 @@ local Library = (function()
 				New("Folder", { Name = "XHMUltraLib", Parent = CoreGui })
 			end
 		end)
+		local MainCanvas = New("CanvasGroup", {
+			Name = "MainCanvas",
+			GroupTransparency = 0,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			Parent = ScreenGui,
+		})
 		local Main = New("Frame", {
 			Name = "Main",
 			Size = size,
@@ -729,7 +736,7 @@ local Library = (function()
 			ClipsDescendants = true,
 			Active = true,
 			ZIndex = 999999,
-			Parent = ScreenGui,
+			Parent = MainCanvas,
 		})
 		New("UIStroke", { Color = Color3.fromRGB(235, 235, 240), Thickness = 2, Parent = Main })
 		New("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Main })
@@ -3093,14 +3100,23 @@ PlaceholderText = "请输入",
 			MinimizeIcon.Image = Library:GetIcon("minus")
 			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
 			local ob = cg and cg:FindFirstChild("OpenButton")
-			if ob then
-				ob.Visible = false
+			local fromPos = UDim2.new(0, 16, 0, 90)
+			if ob and ob.Visible then
+				fromPos = ob.Position
 			end
+			MainCanvas.Visible = true
 			Main.Visible = true
+			Main.Size = UDim2.new(0, 260, 0, 44)
+			Main.Position = fromPos
+			MainCanvas.GroupTransparency = 1
 			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
 				Size = size,
 				Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
 			}):Play()
+			TweenService:Create(MainCanvas, TweenInfo.new(0.35, Enum.EasingStyle.Linear), { GroupTransparency = 0 }):Play()
+			if ob then
+				ob.Visible = false
+			end
 			task.wait(0.2)
 			TabsContainer.Visible = true
 			Body.Visible = true
@@ -3114,7 +3130,12 @@ PlaceholderText = "请输入",
 			end
 			Minimized = true
 			MinimizeIcon.Image = Library:GetIcon("maximize")
+			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
+			local ob = cg and cg:FindFirstChild("OpenButton")
 			local pillPos = UDim2.new(0, 16, 0, 90)
+			if ob and ob.Visible then
+				pillPos = ob.Position
+			end
 			local pillSize = UDim2.new(0, 260, 0, 44)
 			TabsContainer.Visible = false
 			Body.Visible = false
@@ -3124,15 +3145,14 @@ PlaceholderText = "请输入",
 				Size = pillSize,
 				Position = pillPos,
 			}):Play()
-			local cg = ScreenGui.Parent and ScreenGui.Parent:FindFirstChild("XHMControlGui")
-			local ob = cg and cg:FindFirstChild("OpenButton")
+			TweenService:Create(MainCanvas, TweenInfo.new(0.4, Enum.EasingStyle.Linear), { GroupTransparency = 1 }):Play()
 			if ob then
 				ob.Position = pillPos
 				ob.Visible = true
 			end
 			task.delay(0.55, function()
 				if Minimized then
-					Main.Visible = false
+					MainCanvas.Visible = false
 				end
 			end)
 		end
@@ -3399,41 +3419,6 @@ local OpenButtonBar = New("Frame", {
 			Parent = TitleBtn,
 		})
 		New("Frame", { Name = "Divider", Size = UDim2.new(0, 1, 0, 24), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = OpenButtonBar })
-		local VisBtn = New("TextButton", {
-			Name = "Vis",
-			Size = UDim2.new(0, 76, 0, 32),
-			BackgroundTransparency = 1,
-			AutoButtonColor = false,
-			Text = "",
-			Parent = OpenButtonBar,
-		})
-		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = VisBtn })
-		New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 4), Parent = VisBtn })
-		New("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = VisBtn })
-		local VisIconImg = New("ImageLabel", {
-			Name = "IconImg",
-			Size = UDim2.new(0, 16, 0, 16),
-			BackgroundTransparency = 1,
-			Image = Library:GetIcon("eye-off"),
-			ImageColor3 = Color3.fromRGB(150, 160, 180),
-			ScaleType = Enum.ScaleType.Fit,
-			Parent = VisBtn,
-		})
-		Library:SetIcon(VisIconImg, "eye-off", 10)
-		local VisLabel = New("TextLabel", {
-			Name = "Text",
-			Size = UDim2.new(0, 0, 0, 18),
-			AutomaticSize = Enum.AutomaticSize.X,
-			BackgroundTransparency = 1,
-			Font = Enum.Font.GothamSemibold,
-			Text = "隐藏",
-			TextSize = 12,
-			TextColor3 = Color3.fromRGB(230, 230, 236),
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			Parent = VisBtn,
-		})
-		New("Frame", { Name = "Divider", Size = UDim2.new(0, 1, 0, 24), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = OpenButtonBar })
 		local FixBtn = New("TextButton", {
 			Name = "Fix",
 			Size = UDim2.new(0, 76, 0, 32),
@@ -3483,25 +3468,13 @@ local OpenButtonBar = New("Frame", {
 				end)
 			end
 		end
-		local function UpdateVisButton()
-			VisLabel.Text = ScreenGui.Enabled and "隐藏" or "显示"
-			VisBtn.BackgroundColor3 = ScreenGui.Enabled and Color3.fromRGB(60, 60, 70) or Color3.fromRGB(90, 120, 255)
-			ApplyIcon(VisIconImg, ScreenGui.Enabled and "eye-off" or "eye", 10)
-		end
 		local function UpdateFixButton()
 			FixLabel.Text = WindowDraggable and "固定" or "解锁"
 			FixBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
 			ApplyIcon(FixIconImg, WindowDraggable and "lock-open" or "lock", 10)
 			FixIconImg.ImageColor3 = WindowDraggable and Color3.fromRGB(150, 160, 180) or Color3.fromRGB(90, 160, 255)
 		end
-		UpdateVisButton()
 		UpdateFixButton()
-		VisBtn.MouseEnter:Connect(function()
-			TweenService:Create(VisBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0.1 }):Play()
-		end)
-		VisBtn.MouseLeave:Connect(function()
-			TweenService:Create(VisBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0 }):Play()
-		end)
 		FixBtn.MouseEnter:Connect(function()
 			TweenService:Create(FixBtn, TweenInfo.new(0.12), { BackgroundTransparency = 0.1 }):Play()
 		end)
@@ -3531,14 +3504,6 @@ local OpenButtonBar = New("Frame", {
 				OBtnDragging = false
 			end
 		end)
-		VisBtn.MouseButton1Click:Connect(function()
-			if Minimized then
-				RestoreWindow()
-				return
-			end
-			ScreenGui.Enabled = not ScreenGui.Enabled
-			UpdateVisButton()
-		end)
 		FixBtn.MouseButton1Click:Connect(function()
 			Window:SetDraggable(not WindowDraggable)
 		end)
@@ -3551,7 +3516,6 @@ local OpenButtonBar = New("Frame", {
 			WindowDraggable = v and true or false
 			UpdateFixButton()
 		end
-		ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(UpdateVisButton)
 		ScreenGui.Destroying:Connect(function()
 			ControlGui:Destroy()
 		end)
