@@ -3662,8 +3662,6 @@ local OpenButtonBar = New("Frame", {
 		ScreenGui.Destroying:Connect(function()
 			ControlGui:Destroy()
 		end)
-		Main.Size = UDim2.new(0, 0, 0, 0)
-		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 		local function SearchContains(str, q)
 			if not str or not q or q == "" then
 				return false
@@ -3955,10 +3953,6 @@ local OpenButtonBar = New("Frame", {
 		function Window:ToggleVisibility(v)
 			ScreenGui.Enabled = v
 		end
-		TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = size,
-			Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
-		}):Play()
 		local function OnSearchHotkey(input)
 			if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
 				local ctrl = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
