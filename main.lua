@@ -219,11 +219,15 @@ local Library = (function()
 	end
 	local function MakeTag(container, options)
 		local title = options.title or options.name or "标签"
-		local tColor = options.color or Color3.fromRGB(49, 101, 255)
-		local radius = options.radius or 999
-		local ic = options.icon
+		local tColor = (typeof(options.color) == "Color3") and options.color or Color3.fromRGB(49, 101, 255)
+		local radius = (type(options.radius) == "number" and options.radius >= 0) and options.radius or 999
+		local border = options.border or false
 		local textSize = options.textSize or 14
+		local iconSize = options.iconSize or 16
+		local pad = (type(options.padding) == "number" and options.padding > 0) and options.padding or 10
+		local ic = options.icon
 		local iconAsset = ic and Library:GetIcon(ic)
+		local corner = radius >= 1 and UDim.new(1, 0) or UDim.new(radius, 0)
 		local function ContrastText(c)
 			local _, _, v = Color3.toHSV(typeof(c) == "Color3" and c or Color3.new(1, 1, 1))
 			if v > 0.55 then
@@ -233,16 +237,30 @@ local Library = (function()
 		end
 		local TagFrame = New("Frame", {
 			Name = title,
-			Size = UDim2.new(0, 0, 0, 24),
+			Size = UDim2.new(0, 0, 0, 26),
 			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundColor3 = tColor,
 			BorderSizePixel = 0,
 			Parent = container,
 		})
-		New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TagFrame })
+		New("UICorner", { CornerRadius = corner, Parent = TagFrame })
+		if border then
+			New("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Transparency = 0.6, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = TagFrame })
+		end
+		local Glass = New("Frame", {
+			Name = "Glass",
+			Size = UDim2.new(1, 1, 1, 1),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.75,
+			BorderSizePixel = 0,
+			Parent = TagFrame,
+		})
+		New("UICorner", { CornerRadius = corner, Parent = Glass })
 		local TagContent = New("Frame", {
 			Name = "Content",
-			Size = UDim2.new(0, 0, 0, 24),
+			Size = UDim2.new(0, 0, 0, 26),
 			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundTransparency = 1,
 			Parent = TagFrame,
@@ -251,15 +269,15 @@ local Library = (function()
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			FillDirection = Enum.FillDirection.Horizontal,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
-			Padding = UDim.new(0, 6),
+			Padding = UDim.new(0, math.max(4, pad / 1.5)),
 			Parent = TagContent,
 		})
-		New("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = TagContent })
+		New("UIPadding", { PaddingLeft = UDim.new(0, pad), PaddingRight = UDim.new(0, pad), Parent = TagContent })
 		local TagIcon
 		if iconAsset then
 			TagIcon = New("ImageLabel", {
 				Name = "Icon",
-				Size = UDim2.new(0, 14, 0, 14),
+				Size = UDim2.new(0, iconSize, 0, iconSize),
 				BackgroundTransparency = 1,
 				Image = iconAsset,
 				ImageColor3 = ContrastText(tColor),
@@ -270,14 +288,15 @@ local Library = (function()
 		end
 		local TagTitle = New("TextLabel", {
 			Name = "Title",
-			Size = UDim2.new(0, 0, 0, 24),
-			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.new(0, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.XY,
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamSemibold,
 			Text = title,
 			TextSize = textSize,
 			TextColor3 = ContrastText(tColor),
 			TextXAlignment = Enum.TextXAlignment.Left,
+			LayoutOrder = 9999,
 			Parent = TagContent,
 		})
 		local TagModule = {
@@ -290,8 +309,8 @@ local Library = (function()
 			return TagModule
 		end
 		function TagModule:SetColor(color)
-			TagModule.Color = color
 			if typeof(color) == "Color3" then
+				TagModule.Color = color
 				TagFrame.BackgroundColor3 = color
 				TagTitle.TextColor3 = ContrastText(color)
 				if TagIcon then
@@ -309,7 +328,7 @@ local Library = (function()
 			if asset then
 				TagIcon = New("ImageLabel", {
 					Name = "Icon",
-					Size = UDim2.new(0, 14, 0, 14),
+					Size = UDim2.new(0, iconSize, 0, iconSize),
 					BackgroundTransparency = 1,
 					Image = asset,
 					ImageColor3 = ContrastText(TagModule.Color),
@@ -325,6 +344,7 @@ local Library = (function()
 		end
 		function TagModule:Destroy()
 			TagFrame:Destroy()
+			return TagModule
 		end
 		return TagModule
 	end
