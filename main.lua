@@ -11,6 +11,16 @@ local Library = (function()
 	local UIScale = 1
 	local WindowScale = nil
 	local GlobalScale = nil
+	local CoreGui = nil
+	pcall(function()
+		CoreGui = game:GetService("CoreGui")
+	end)
+	local function TopLayer()
+		if CoreGui and CoreGui.Parent then
+			return CoreGui
+		end
+		return LocalPlayer:WaitForChild("PlayerGui")
+	end
 	local Connections = {}
 	local Opened = true
 	local Minimized = false
@@ -712,7 +722,7 @@ local Library = (function()
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-			Parent = LocalPlayer:WaitForChild("PlayerGui"),
+			Parent = TopLayer(),
 		})
 		WindowScale = New("UIScale", {
 			Name = "WindowScale",
@@ -3944,7 +3954,7 @@ local OpenButtonBar = New("Frame", {
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-			Parent = LocalPlayer:WaitForChild("PlayerGui"),
+			Parent = TopLayer(),
 		})
 		NotifyHolder = New("Frame", {
 			Name = "NotifyHolder",
