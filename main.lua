@@ -1024,24 +1024,62 @@ local Library = (function()
 				TagsDragging = false
 			end
 		end)
+		local function GetLabelTextWidth(inst)
+			local w = inst.TextBounds.X
+			if w <= 0 then
+				local ok, svc = pcall(function()
+					return game:GetService("TextService")
+				end)
+				if ok and svc and svc.GetTextSize then
+					local ok2, res = pcall(function()
+						return svc:GetTextSize(inst.Text, inst.TextSize, inst.Font, Vector2.new(1000, 1000))
+					end)
+					if ok2 and res then
+						w = res.X
+					end
+				end
+			end
+			return w
+		end
 		local function LayoutTopBarTags()
 			local tbW = TopBar.AbsoluteSize.X
-			local tbAbsX = TopBar.AbsolutePosition.X
 			local leftBound = 46
 			local guard = 0
-			if SubtitleLabel and SubtitleLabel.TextBounds.X > 0 then
-				guard = (SubtitleLabel.AbsolutePosition.X - tbAbsX) + SubtitleLabel.TextBounds.X
-			elseif TitleLabel and TitleLabel.TextBounds.X > 0 then
-				guard = (TitleLabel.AbsolutePosition.X - tbAbsX) + TitleLabel.TextBounds.X
+			local useSub = false
+			if SubtitleLabel and SubtitleLabel.Text ~= "" then
+				useSub = true
+				local subW = GetLabelTextWidth(SubtitleLabel)
+				if subW > 0 then
+					guard = (SubtitleLabel.Position.X.Scale * tbW + SubtitleLabel.Position.X.Offset) + subW
+				else
+					task.delay(0.1, LayoutTopBarTags)
+				end
+			end
+			if not useSub and TitleLabel then
+				local tW = GetLabelTextWidth(TitleLabel)
+				if tW > 0 then
+					guard = (TitleLabel.Position.X.Scale * tbW + TitleLabel.Position.X.Offset) + tW
+				end
 			end
 			if guard > 0 then
 				leftBound = math.min(guard + 8, tbW - 40)
 			end
-			local right = tbW - 12
+			local limit = tbW - 74
 			local sb = TopBar:FindFirstChild("SearchBox")
 			if sb and sb.Visible then
-				right = math.max(leftBound + 40, tbW - 252)
+				local sbl = sb.Position.X.Scale * tbW + sb.Position.X.Offset
+				if sbl > 0 then
+					limit = math.min(limit, sbl - 10)
+				end
 			end
+			local st = TopBar:FindFirstChild("SearchToggle")
+			if st then
+				local stl = st.Position.X.Scale * tbW + st.Position.X.Offset
+				if stl > 0 then
+					limit = math.min(limit, stl - 10)
+				end
+			end
+			local right = math.max(leftBound + 40, limit)
 			local w = math.max(40, right - leftBound)
 			TopBarTags.Position = UDim2.new(0, leftBound, 0, 6)
 			TopBarTags.Size = UDim2.new(0, w, 0, 26)
@@ -1049,6 +1087,10 @@ local Library = (function()
 		TopBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(LayoutTopBarTags)
 		if SubtitleLabel then
 			SubtitleLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(LayoutTopBarTags)
+			SubtitleLabel:GetPropertyChangedSignal("TextBounds"):Connect(LayoutTopBarTags)
+		end
+		if TitleLabel then
+			TitleLabel:GetPropertyChangedSignal("TextBounds"):Connect(LayoutTopBarTags)
 		end
 		task.defer(LayoutTopBarTags)
 		local MinimizeButton = New("TextButton", {
@@ -3277,13 +3319,6 @@ PlaceholderText = "请输入",
 			ConfirmOverlay = nil
 			ConfirmPanel = nil
 			if overlay and overlay.Parent then
-				local FadeCG = New("CanvasGroup", {
-					Name = "ConfirmFade",
-					GroupTransparency = 0,
-					Parent = Main,
-				})
-				overlay.Parent = FadeCG
-				TweenService:Create(FadeCG, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { GroupTransparency = 1 }):Play()
 				if panel then
 					TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 						Size = UDim2.new(0, 0, 0, 0),
@@ -3291,8 +3326,8 @@ PlaceholderText = "请输入",
 					}):Play()
 				end
 				task.delay(0.3, function()
-					if FadeCG.Parent then
-						FadeCG:Destroy()
+					if overlay.Parent then
+						overlay:Destroy()
 					end
 				end)
 			end
@@ -3308,11 +3343,6 @@ PlaceholderText = "请输入",
 			ConfirmShown = true
 			ConfirmSavedDrag = WindowDraggable
 			WindowDraggable = false
-			local ConfirmFade = New("CanvasGroup", {
-				Name = "ConfirmFade",
-				GroupTransparency = 1,
-				Parent = Main,
-			})
 			ConfirmOverlay = New("Frame", {
 				Name = "ConfirmOverlay",
 				Size = UDim2.new(1, 0, 1, 0),
@@ -3320,7 +3350,7 @@ PlaceholderText = "请输入",
 				BackgroundTransparency = 0.6,
 				BorderSizePixel = 0,
 				ZIndex = 2000000,
-				Parent = ConfirmFade,
+				Parent = Main,
 			})
 			ConfirmPanel = New("Frame", {
 				Name = "ConfirmPanel",
@@ -3413,19 +3443,10 @@ PlaceholderText = "请输入",
 			end)
 			ConfirmPanel.Position = UDim2.new(0.5, 0, 0.5, 0)
 			ConfirmPanel.Size = UDim2.new(0, 0, 0, 0)
-			TweenService:Create(ConfirmFade, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 }):Play()
 			TweenService:Create(ConfirmPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				Size = UDim2.new(0, ConfirmWidth, 0, ConfirmHeight),
 				Position = UDim2.new(0.5, -ConfirmWidth / 2, 0.5, -ConfirmHeight / 2),
 			}):Play()
-			task.delay(0.4, function()
-				if ConfirmOverlay and ConfirmOverlay.Parent == ConfirmFade then
-					ConfirmOverlay.Parent = Main
-				end
-				if ConfirmFade.Parent then
-					ConfirmFade:Destroy()
-				end
-			end)
 		end
 		CloseButton.MouseButton1Click:Connect(ShowConfirmUI)
 		MinimizeButton.MouseEnter:Connect(function()
