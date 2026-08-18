@@ -3276,18 +3276,26 @@ PlaceholderText = "请输入",
 			local panel = ConfirmPanel
 			ConfirmOverlay = nil
 			ConfirmPanel = nil
-			TweenService:Create(overlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { GroupTransparency = 1 }):Play()
-			if panel then
-				TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-					Size = UDim2.new(0, 0, 0, 0),
-					Position = UDim2.new(0.5, 0, 0.5, 0),
-				}):Play()
-			end
-			task.delay(0.3, function()
-				if overlay.Parent then
-					overlay:Destroy()
+			if overlay and overlay.Parent then
+				local FadeCG = New("CanvasGroup", {
+					Name = "ConfirmFade",
+					GroupTransparency = 0,
+					Parent = Main,
+				})
+				overlay.Parent = FadeCG
+				TweenService:Create(FadeCG, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { GroupTransparency = 1 }):Play()
+				if panel then
+					TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+						Size = UDim2.new(0, 0, 0, 0),
+						Position = UDim2.new(0.5, 0, 0.5, 0),
+					}):Play()
 				end
-			end)
+				task.delay(0.3, function()
+					if FadeCG.Parent then
+						FadeCG:Destroy()
+					end
+				end)
+			end
 		end
 		local function ShowConfirmUI()
 			if ConfirmShown then
@@ -3300,15 +3308,19 @@ PlaceholderText = "请输入",
 			ConfirmShown = true
 			ConfirmSavedDrag = WindowDraggable
 			WindowDraggable = false
-			ConfirmOverlay = New("CanvasGroup", {
+			local ConfirmFade = New("CanvasGroup", {
+				Name = "ConfirmFade",
+				GroupTransparency = 1,
+				Parent = Main,
+			})
+			ConfirmOverlay = New("Frame", {
 				Name = "ConfirmOverlay",
 				Size = UDim2.new(1, 0, 1, 0),
 				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 				BackgroundTransparency = 0.6,
 				BorderSizePixel = 0,
-				GroupTransparency = 1,
 				ZIndex = 2000000,
-				Parent = Main,
+				Parent = ConfirmFade,
 			})
 			ConfirmPanel = New("Frame", {
 				Name = "ConfirmPanel",
@@ -3401,11 +3413,19 @@ PlaceholderText = "请输入",
 			end)
 			ConfirmPanel.Position = UDim2.new(0.5, 0, 0.5, 0)
 			ConfirmPanel.Size = UDim2.new(0, 0, 0, 0)
-			TweenService:Create(ConfirmOverlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 }):Play()
+			TweenService:Create(ConfirmFade, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 }):Play()
 			TweenService:Create(ConfirmPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				Size = UDim2.new(0, ConfirmWidth, 0, ConfirmHeight),
 				Position = UDim2.new(0.5, -ConfirmWidth / 2, 0.5, -ConfirmHeight / 2),
 			}):Play()
+			task.delay(0.4, function()
+				if ConfirmOverlay and ConfirmOverlay.Parent == ConfirmFade then
+					ConfirmOverlay.Parent = Main
+				end
+				if ConfirmFade.Parent then
+					ConfirmFade:Destroy()
+				end
+			end)
 		end
 		CloseButton.MouseButton1Click:Connect(ShowConfirmUI)
 		MinimizeButton.MouseEnter:Connect(function()
