@@ -1941,13 +1941,6 @@ local Library = (function()
 					AutomaticSize = Enum.AutomaticSize.Y,
 					Parent = Section,
 				})
-				New("Frame", {
-					Name = "Divider",
-					Size = UDim2.new(1, 0, 0, 1),
-					BackgroundColor3 = Color3.fromRGB(50, 50, 60),
-					BorderSizePixel = 0,
-					Parent = Section,
-				})
 				New("UIListLayout", {
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					Padding = UDim.new(0, 0),
@@ -2205,7 +2198,7 @@ New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), 
 					local ic = Library:GetIcon(options.icon)
 					local Slider = New("Frame", {
 						Name = text,
-					Size = UDim2.new(1, 0, 0, 36),
+					Size = UDim2.new(1, 0, 0, 40),
 						BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 						BorderSizePixel = 0,
 						Parent = SectionContent,
@@ -2298,8 +2291,8 @@ New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), 
 					Library:SetIcon(PlusIcon, "plus", 12)
 					local SliderBar = New("Frame", {
 						Name = "Bar",
-						Size = UDim2.new(1, -24, 0, 4),
-						Position = UDim2.new(0, 12, 0, 28),
+						Size = UDim2.new(1, -24, 0, 6),
+						Position = UDim2.new(0, 12, 0, 29),
 						BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 						BorderSizePixel = 0,
 						Parent = Slider,
@@ -2316,7 +2309,7 @@ New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), 
 					local SliderGrab = New("Frame", {
 						Name = "Grab",
 						Size = UDim2.new(0, 12, 0, 12),
-						Position = UDim2.new(0, -6, 0, -4),
+						Position = UDim2.new(0, -6, 0, -3),
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						BorderSizePixel = 0,
 						Parent = SliderBar,
@@ -2332,7 +2325,7 @@ New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), 
 						local displayRelX = (Current - Min) / (Max - Min)
 						ValueBox.Text = tostring(Current)
 						SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
-						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -3)
 						if callback then
 							pcall(callback, Current)
 						end
@@ -2343,7 +2336,7 @@ New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), 
 						Current = v
 						ValueBox.Text = tostring(v)
 						SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
-						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+						SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -3)
 						if callback then
 							pcall(callback, v)
 						end
@@ -2756,7 +2749,7 @@ PlaceholderText = "请输入",
 				local ic = Library:GetIcon(options.icon)
 				local Slider = New("Frame", {
 					Name = text,
-				Size = UDim2.new(1, 0, 0, 36),
+				Size = UDim2.new(1, 0, 0, 40),
 					BackgroundColor3 = Color3.fromRGB(36, 36, 44),
 					BorderSizePixel = 0,
 					Parent = TabPage,
@@ -2849,8 +2842,8 @@ PlaceholderText = "请输入",
 				Library:SetIcon(PlusIcon, "plus", 12)
 				local SliderBar = New("Frame", {
 					Name = "Bar",
-					Size = UDim2.new(1, -24, 0, 4),
-					Position = UDim2.new(0, 12, 0, 28),
+					Size = UDim2.new(1, -24, 0, 6),
+					Position = UDim2.new(0, 12, 0, 29),
 					BackgroundColor3 = Color3.fromRGB(55, 55, 66),
 					BorderSizePixel = 0,
 					Parent = Slider,
@@ -2867,7 +2860,7 @@ PlaceholderText = "请输入",
 				local SliderGrab = New("Frame", {
 					Name = "Grab",
 					Size = UDim2.new(0, 12, 0, 12),
-					Position = UDim2.new(0, -6, 0, -4),
+					Position = UDim2.new(0, -6, 0, -3),
 					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 					BorderSizePixel = 0,
 					Parent = SliderBar,
@@ -2883,7 +2876,7 @@ PlaceholderText = "请输入",
 					local displayRelX = (Current - Min) / (Max - Min)
 					ValueBox.Text = tostring(Current)
 					SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
-					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -3)
 					if callback then
 						pcall(callback, Current)
 					end
@@ -2894,7 +2887,7 @@ PlaceholderText = "请输入",
 					Current = v
 					ValueBox.Text = tostring(v)
 					SliderFill.Size = UDim2.new(displayRelX, 0, 1, 0)
-					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -4)
+					SliderGrab.Position = UDim2.new(displayRelX, -6, 0, -3)
 					if callback then
 						pcall(callback, v)
 					end
@@ -3173,6 +3166,36 @@ PlaceholderText = "请输入",
 		local OBtnDragging = false
 		local OBtnStart = Vector2.new(0, 0)
 		local OBtnPos = UDim2.new(0, 16, 0, 90)
+		local FadeGroup = nil
+		local function FadeMain(from, to, dur, finish)
+			if FadeGroup then
+				Main.Parent = ScreenGui
+				FadeGroup:Destroy()
+				FadeGroup = nil
+			end
+			FadeGroup = New("CanvasGroup", {
+				Name = "FadeGroup",
+				GroupTransparency = from,
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Parent = ScreenGui,
+			})
+			Main.Parent = FadeGroup
+			local tw = TweenService:Create(FadeGroup, TweenInfo.new(dur, Enum.EasingStyle.Linear), { GroupTransparency = to })
+			pcall(function()
+				tw.Completed:Connect(function()
+					if finish then
+						finish()
+					end
+					Main.Parent = ScreenGui
+					if FadeGroup then
+						FadeGroup:Destroy()
+						FadeGroup = nil
+					end
+				end)
+			end)
+			tw:Play()
+		end
 		local function RestoreWindow()
 			if not Minimized then
 				return
@@ -3183,22 +3206,20 @@ PlaceholderText = "请输入",
 			local ob = cg and cg:FindFirstChild("OpenButton")
 			local fromPos = OBtnPos
 			Main.Visible = true
-			Main.Size = UDim2.new(0, 260, 0, 44)
-			Main.Position = fromPos
-			Main.BackgroundTransparency = 1
-			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-				Size = size,
-				Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
-				BackgroundTransparency = 0.04,
-			}):Play()
-			if ob then
-				ob.Visible = false
-			end
-			task.wait(0.2)
 			TabsContainer.Visible = true
 			Body.Visible = true
 			BottomBar.Visible = true
 			ResizeHandle.Visible = true
+			Main.Size = UDim2.new(0, 260, 0, 44)
+			Main.Position = fromPos
+			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+				Size = size,
+				Position = UDim2.new(0.5, -size.X.Offset / 2, 0.5, -size.Y.Offset / 2),
+			}):Play()
+			if ob then
+				ob.Visible = false
+			end
+			FadeMain(1, 0, 0.35, nil)
 		end
 		local function MinimizeWindow()
 			if Minimized then
@@ -3211,23 +3232,21 @@ PlaceholderText = "请输入",
 			local ob = cg and cg:FindFirstChild("OpenButton")
 			local pillPos = OBtnPos
 			local pillSize = UDim2.new(0, 260, 0, 44)
-			TabsContainer.Visible = false
-			Body.Visible = false
-			BottomBar.Visible = false
-			ResizeHandle.Visible = false
 			TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {
 				Size = pillSize,
 				Position = pillPos,
-				BackgroundTransparency = 1,
 			}):Play()
 			if ob then
 				ob.Position = OBtnPos
 				ob.Visible = true
 			end
-			task.delay(0.55, function()
+			FadeMain(0, 1, 0.4, function()
 				if Minimized then
 					Main.Visible = false
-					Main.BackgroundTransparency = 1
+					TabsContainer.Visible = false
+					Body.Visible = false
+					BottomBar.Visible = false
+					ResizeHandle.Visible = false
 				end
 			end)
 		end
@@ -3257,7 +3276,7 @@ PlaceholderText = "请输入",
 			local panel = ConfirmPanel
 			ConfirmOverlay = nil
 			ConfirmPanel = nil
-			TweenService:Create(overlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(overlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { GroupTransparency = 1 }):Play()
 			if panel then
 				TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 					Size = UDim2.new(0, 0, 0, 0),
@@ -3281,12 +3300,13 @@ PlaceholderText = "请输入",
 			ConfirmShown = true
 			ConfirmSavedDrag = WindowDraggable
 			WindowDraggable = false
-			ConfirmOverlay = New("Frame", {
+			ConfirmOverlay = New("CanvasGroup", {
 				Name = "ConfirmOverlay",
 				Size = UDim2.new(1, 0, 1, 0),
 				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = 1,
+				BackgroundTransparency = 0.6,
 				BorderSizePixel = 0,
+				GroupTransparency = 1,
 				ZIndex = 2000000,
 				Parent = Main,
 			})
@@ -3381,7 +3401,7 @@ PlaceholderText = "请输入",
 			end)
 			ConfirmPanel.Position = UDim2.new(0.5, 0, 0.5, 0)
 			ConfirmPanel.Size = UDim2.new(0, 0, 0, 0)
-			TweenService:Create(ConfirmOverlay, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.6 }):Play()
+			TweenService:Create(ConfirmOverlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { GroupTransparency = 0 }):Play()
 			TweenService:Create(ConfirmPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				Size = UDim2.new(0, ConfirmWidth, 0, ConfirmHeight),
 				Position = UDim2.new(0.5, -ConfirmWidth / 2, 0.5, -ConfirmHeight / 2),
