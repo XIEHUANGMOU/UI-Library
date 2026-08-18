@@ -1680,7 +1680,7 @@ local Library = (function()
 							pcall(callback, multi and Value or Value, v, idx)
 						end
 						if not multi then
-							Rebuild(false)
+							Rebuild(true)
 						end
 					end)
 					end
@@ -1734,7 +1734,7 @@ local Library = (function()
 				end
 				Opened = true
 				Chevron.Rotation = 180
-				Rebuild(false)
+				Rebuild(true)
 				Menu.Visible = true
 				Menu.BackgroundTransparency = 0.12
 				UpdatePosition()
@@ -1779,7 +1779,7 @@ local Library = (function()
 			end)
 			if searchEnabled and SearchBox then
 				SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-					Rebuild(false)
+					Rebuild(true)
 				end)
 			end
 			local dropObj = {}
@@ -1792,7 +1792,7 @@ local Library = (function()
 				if options.save then
 					ConfigSet(text, Value)
 				end
-				Rebuild(false)
+				Rebuild(true)
 			end
 			function dropObj:Refresh(newValues)
 				if newValues then
