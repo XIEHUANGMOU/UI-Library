@@ -708,7 +708,7 @@ local Library = (function()
 		local title = options.Title or "XHM Ultra"
 		local size = options.Size or UDim2.new(0, 680, 0, 460)
 		local ScreenGui = New("ScreenGui", {
-			DisplayOrder = 999999999,
+			DisplayOrder = 2147483645,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -1016,19 +1016,23 @@ local Library = (function()
 		end)
 		local function LayoutTopBarTags()
 			local tbW = TopBar.AbsoluteSize.X
-			local sb = TopBar:FindFirstChild("SearchBox")
-			local rightEdge = math.max(120, (sb and sb.Visible) and (tbW - 252) or (tbW - 136))
+			local tbAbsX = TopBar.AbsolutePosition.X
 			local leftBound = 46
 			local guard = 0
 			if SubtitleLabel and SubtitleLabel.TextBounds.X > 0 then
-				guard = SubtitleLabel.AbsolutePosition.X + SubtitleLabel.TextBounds.X
+				guard = (SubtitleLabel.AbsolutePosition.X - tbAbsX) + SubtitleLabel.TextBounds.X
 			elseif TitleLabel and TitleLabel.TextBounds.X > 0 then
-				guard = TitleLabel.AbsolutePosition.X + TitleLabel.TextBounds.X
+				guard = (TitleLabel.AbsolutePosition.X - tbAbsX) + TitleLabel.TextBounds.X
 			end
 			if guard > 0 then
-				leftBound = math.min(guard + 8, rightEdge - 80)
+				leftBound = math.min(guard + 8, tbW - 40)
 			end
-			local w = math.max(90, rightEdge - leftBound)
+			local right = tbW - 12
+			local sb = TopBar:FindFirstChild("SearchBox")
+			if sb and sb.Visible then
+				right = math.max(leftBound + 40, tbW - 252)
+			end
+			local w = math.max(40, right - leftBound)
 			TopBarTags.Position = UDim2.new(0, leftBound, 0, 6)
 			TopBarTags.Size = UDim2.new(0, w, 0, 26)
 		end
@@ -3398,7 +3402,7 @@ PlaceholderText = "请输入",
 		}
 		local ControlGui = New("ScreenGui", {
 			Name = "XHMControlGui",
-			DisplayOrder = 1000000000,
+			DisplayOrder = 2147483646,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -3936,7 +3940,7 @@ local OpenButtonBar = New("Frame", {
 			return
 		end
 		NotifyGui = New("ScreenGui", {
-			DisplayOrder = 1000000001,
+			DisplayOrder = 2147483647,
 			ResetOnSpawn = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
